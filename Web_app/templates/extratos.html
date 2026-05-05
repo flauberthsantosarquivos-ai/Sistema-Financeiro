@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <title>Importar Extratos</title>
+
+    <style>
+        :root {
+            --bg: #f4f6fb;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --primary: #1d4ed8;
+            --primary-dark: #1e40af;
+            --green: #047857;
+            --red: #b91c1c;
+            --amber: #b45309;
+            --border: #e5e7eb;
+            --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .page {
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #0f172a, #1d4ed8);
+            color: white;
+            border-radius: 26px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+            margin-bottom: 22px;
+        }
+
+        .hero h1 {
+            margin: 0 0 8px;
+            font-size: 32px;
+            letter-spacing: -0.04em;
+        }
+
+        .hero p {
+            margin: 0;
+            color: #dbeafe;
+        }
+
+        .nav {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .nav a {
+            text-decoration: none;
+            background: white;
+            border: 1px solid var(--border);
+            color: #1e40af;
+            padding: 12px 16px;
+            border-radius: 999px;
+            font-weight: 800;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+        }
+
+        .nav a.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card h2 {
+            margin: 0 0 14px;
+            font-size: 22px;
+            letter-spacing: -0.03em;
+        }
+
+        .upload-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        input[type="file"],
+        input[type="text"],
+        select {
+            background: #f9fafb;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 11px;
+            min-width: 160px;
+            font-family: inherit;
+        }
+
+        input[type="file"] {
+            min-width: 360px;
+        }
+
+        button {
+            border: none;
+            background: var(--primary);
+            color: white;
+            border-radius: 13px;
+            padding: 14px 22px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+        }
+
+        .alert {
+            padding: 15px 18px;
+            border-radius: 16px;
+            margin-bottom: 18px;
+            font-weight: 700;
+        }
+
+        .success {
+            background: #ecfdf5;
+            border: 1px solid #bbf7d0;
+            color: #065f46;
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 12px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1250px;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #334155;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            vertical-align: top;
+        }
+
+        .money {
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .negative {
+            color: var(--red);
+        }
+
+        .positive {
+            color: var(--green);
+        }
+
+        .desc {
+            min-width: 280px;
+            font-weight: 700;
+        }
+
+        .small-select {
+            min-width: 145px;
+            max-width: 180px;
+        }
+
+        .warning {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #92400e;
+            border-radius: 18px;
+            padding: 16px;
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 1000px) {
+            .page {
+                padding: 18px;
+            }
+
+            input[type="file"] {
+                min-width: 100%;
+                width: 100%;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+        <section class="hero">
+            <h1>Dashboard Financeiro</h1>
+            <p>
+                Importar Extratos: envie CSV ou Excel, confira a prévia, ajuste categorias e grave na BASE_LANCAMENTOS.
+            </p>
+        </section>
+
+        <nav class="nav">
+            <a href="/">Início</a>
+            <a href="/financeiro">Visão Geral</a>
+            <a href="/financeiro/base-lancamentos">BASE_LANCAMENTOS</a>
+            <a href="/financeiro/extratos" class="active">Importar Extratos</a>
+            <a href="/financeiro/lancamento">Novo Lançamento</a>
+        </nav>
+
+        {% if mensagem %}
+            <div class="alert success">{{ mensagem }}</div>
+        {% endif %}
+
+        {% if erro %}
+            <div class="alert error">{{ erro }}</div>
+        {% endif %}
+
+        {% if etapa == "upload" %}
+            <section class="card">
+                <h2>Enviar extrato</h2>
+                <p class="hint">
+                    Envie um arquivo CSV, XLS ou XLSX. O sistema tentará identificar automaticamente as colunas de data,
+                    descrição e valor.
+                </p>
+
+                <form method="post" action="/financeiro/extratos/previsualizar" enctype="multipart/form-data">
+                    <div class="upload-row">
+                        <input type="file" name="arquivo" accept=".csv,.xlsx,.xls" required />
+                        <button type="submit">Ler extrato</button>
+                    </div>
+                </form>
+            </section>
+
+            <div class="warning">
+                Recomendação: antes de importar para a base oficial, confira se o banco exportou corretamente data,
+                descrição e valor. Se o arquivo tiver colunas muito diferentes, podemos adaptar o leitor ao modelo do banco.
+            </div>
+        {% endif %}
+
+        {% if etapa == "previa" and resultado %}
+            <section class="card">
+                <h2>Prévia do extrato</h2>
+
+                <p class="hint">
+                    Colunas detectadas:
+                    Data: <strong>{{ resultado.colunas_detectadas.data }}</strong> |
+                    Descrição: <strong>{{ resultado.colunas_detectadas.descricao }}</strong> |
+                    Valor: <strong>{{ resultado.colunas_detectadas.valor }}</strong>
+                </p>
+
+                <form method="post" action="/financeiro/extratos/importar">
+                    <input type="hidden" name="temp_id" value="{{ temp_id }}" />
+
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Importar</th>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th>Valor</th>
+                                    <th>Tipo</th>
+                                    <th>Categoria</th>
+                                    <th>Subcategoria</th>
+                                    <th>Situação</th>
+                                    <th>Pagamento</th>
+                                    <th>Conta</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for mov in resultado.movimentacoes %}
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" name="importar_{{ mov.indice }}" value="SIM" checked />
+                                        </td>
+                                        <td>{{ mov.data }}</td>
+                                        <td class="desc">{{ mov.descricao }}</td>
+                                        <td class="money {% if mov.valor < 0 %}negative{% else %}positive{% endif %}">
+                                            R$ {{ mov.valor_fmt }}
+                                        </td>
+                                        <td>
+                                            <select class="small-select" name="tipo_{{ mov.indice }}">
+                                                <option value="DESPESA" {% if mov.tipo == "DESPESA" %}selected{% endif %}>DESPESA</option>
+                                                <option value="RECEITA" {% if mov.tipo == "RECEITA" %}selected{% endif %}>RECEITA</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="categoria_{{ mov.indice }}" value="{{ mov.categoria }}" />
+                                        </td>
+                                        <td>
+                                            <input type="text" name="subcategoria_{{ mov.indice }}" value="{{ mov.subcategoria }}" />
+                                        </td>
+                                        <td>
+                                            <select class="small-select" name="situacao_{{ mov.indice }}">
+                                                {% for item in situacoes %}
+                                                    <option value="{{ item }}" {% if mov.situacao == item %}selected{% endif %}>
+                                                        {{ item }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select class="small-select" name="forma_pagamento_{{ mov.indice }}">
+                                                {% for item in formas_pagamento %}
+                                                    <option value="{{ item }}" {% if mov.forma_pagamento == item %}selected{% endif %}>
+                                                        {{ item }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select class="small-select" name="conta_{{ mov.indice }}">
+                                                {% for item in contas %}
+                                                    <option value="{{ item }}" {% if mov.conta == item %}selected{% endif %}>
+                                                        {{ item }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="upload-row">
+                        <button type="submit">Confirmar e importar selecionados</button>
+                    </div>
+                </form>
+            </section>
+        {% endif %}
+    </main>
+</body>
+</html>

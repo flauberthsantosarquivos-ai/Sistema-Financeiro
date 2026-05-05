@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <title>Configurações do Sistema Financeiro</title>
+
+    <style>
+        :root {
+            --bg: #f4f6fb;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --primary: #1d4ed8;
+            --primary-dark: #1e40af;
+            --green: #047857;
+            --red: #b91c1c;
+            --amber: #b45309;
+            --border: #e5e7eb;
+            --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .page {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #0f172a, #1d4ed8);
+            color: white;
+            border-radius: 26px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+            margin-bottom: 22px;
+        }
+
+        .hero h1 {
+            margin: 0 0 8px;
+            font-size: 32px;
+            letter-spacing: -0.04em;
+        }
+
+        .hero p {
+            margin: 0;
+            color: #dbeafe;
+        }
+
+        .nav {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .nav a {
+            text-decoration: none;
+            background: white;
+            border: 1px solid var(--border);
+            color: #1e40af;
+            padding: 12px 16px;
+            border-radius: 999px;
+            font-weight: 800;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+        }
+
+        .nav a.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .alert {
+            padding: 15px 18px;
+            border-radius: 16px;
+            margin-bottom: 18px;
+            font-weight: 700;
+        }
+
+        .success {
+            background: #ecfdf5;
+            border: 1px solid #bbf7d0;
+            color: #065f46;
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .warning {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #92400e;
+            border-radius: 18px;
+            padding: 16px;
+            font-weight: 700;
+            line-height: 1.5;
+            margin-bottom: 18px;
+        }
+
+        .danger-note {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            color: #9a3412;
+            border-radius: 18px;
+            padding: 16px;
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card h2 {
+            margin: 0 0 16px;
+            font-size: 22px;
+            letter-spacing: -0.03em;
+        }
+
+        .info-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .info-item {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px;
+            background: #f9fafb;
+        }
+
+        .label {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 6px;
+        }
+
+        .value {
+            font-size: 15px;
+            font-weight: 800;
+            word-break: break-word;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #bbf7d0;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-weight: 900;
+            font-size: 13px;
+        }
+
+        .status::before {
+            content: "";
+            width: 9px;
+            height: 9px;
+            background: #10b981;
+            border-radius: 999px;
+        }
+
+        .actions {
+            display: grid;
+            gap: 12px;
+        }
+
+        .action {
+            border: 1px solid var(--border);
+            background: #f8fafc;
+            border-radius: 18px;
+            padding: 18px;
+        }
+
+        .action h3 {
+            margin: 0 0 8px;
+            font-size: 18px;
+        }
+
+        .action p {
+            margin: 0 0 14px;
+            color: var(--muted);
+            font-weight: 600;
+            line-height: 1.45;
+        }
+
+        button,
+        .button-link {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            border: none;
+            background: var(--primary);
+            color: white;
+            border-radius: 13px;
+            padding: 12px 16px;
+            font-weight: 900;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        button:hover,
+        .button-link:hover {
+            background: var(--primary-dark);
+        }
+
+        .disabled {
+            background: #e5e7eb;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+
+        .confirm-box {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #92400e;
+            border-radius: 16px;
+            padding: 14px;
+            margin: 14px 0;
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        .confirm-label {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            font-weight: 800;
+            color: #92400e;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .confirm-label input {
+            margin-top: 3px;
+        }
+
+        form {
+            margin: 0;
+        }
+
+        @media (max-width: 1000px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+        <section class="hero">
+            <h1>Configurações do Sistema</h1>
+            <p>
+                Área administrativa para gerenciar a planilha vinculada, estrutura padrão,
+                conexão com Google Drive e parâmetros financeiros do cliente.
+            </p>
+        </section>
+
+        <nav class="nav">
+            <a href="/">Início</a>
+            <a href="/financeiro/planejamento">Planejamento Mensal</a>
+            <a href="/financeiro/lancamento">Novo Lançamento</a>
+            <a href="/financeiro/extratos">Importar Extrato</a>
+            <a href="/financeiro/base-lancamentos">BASE_LANCAMENTOS</a>
+            <a href="/financeiro">Dashboard Financeiro</a>
+            <a href="/financeiro/configuracoes" class="active">Configurações</a>
+        </nav>
+
+        {% if mensagem %}
+            <div class="alert success">{{ mensagem }}</div>
+        {% endif %}
+
+        {% if erro %}
+            <div class="alert error">{{ erro }}</div>
+        {% endif %}
+
+        {% if nova_planilha_url %}
+            <div class="warning">
+                Nova planilha criada e vinculada ao sistema:
+                <br />
+                <strong>{{ nova_planilha_url }}</strong>
+            </div>
+        {% endif %}
+
+        <div class="grid">
+            <section class="card">
+                <h2>Planilha vinculada</h2>
+
+                <div class="info-list">
+                    <div class="info-item">
+                        <div class="label">Cliente</div>
+                        <div class="value">{{ nome_cliente }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="label">Ano base</div>
+                        <div class="value">{{ ano_base }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="label">Receita padrão</div>
+                        <div class="value">R$ {{ receita_padrao }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="label">Conta principal</div>
+                        <div class="value">{{ conta_principal }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="label">Conta alimentação</div>
+                        <div class="value">{{ conta_alimentacao }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="label">Meta de reserva</div>
+                        <div class="value">{{ meta_reserva }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="label">Link da planilha Google</div>
+                        <div class="value">{{ planilha_google }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="label">Status</div>
+                        <div class="value">
+                            <span class="status">{{ status_google }}</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>Ações administrativas</h2>
+
+                <div class="actions">
+                    <div class="action">
+                        <h3>Criar nova planilha padrão</h3>
+                        <p>
+                            Cria uma nova planilha financeira profissional no Google Drive,
+                            com abas CONFIGURACOES, CATEGORIAS, CONTAS, ORCAMENTO_PADRAO,
+                            BASE_LANCAMENTOS, RESUMO_MENSAL e DASHBOARD_PLANILHA.
+                        </p>
+
+                        <form method="post" action="/financeiro/configuracoes/criar-planilha">
+                            <input type="hidden" name="nome_cliente" value="{{ nome_cliente }}" />
+                            <input type="hidden" name="ano_base" value="{{ ano_base }}" />
+                            <input type="hidden" name="receita_padrao" value="{{ receita_padrao }}" />
+                            <input type="hidden" name="conta_principal" value="{{ conta_principal }}" />
+                            <input type="hidden" name="conta_alimentacao" value="{{ conta_alimentacao }}" />
+                            <input type="hidden" name="meta_reserva" value="{{ meta_reserva }}" />
+
+                            {% if configuracao_existente %}
+                                <div class="confirm-box">
+                                    Já existe uma planilha vinculada ao sistema. Criar outra planilha mudará a base usada
+                                    por Planejamento Mensal, Novo Lançamento, Importar Extrato, BASE_LANCAMENTOS e Dashboard.
+                                </div>
+
+                                <label class="confirm-label">
+                                    <input type="checkbox" name="confirmar_recriacao" value="SIM" />
+                                    <span>
+                                        Confirmo que desejo criar uma nova planilha padrão e substituir a vinculação atual.
+                                    </span>
+                                </label>
+                            {% endif %}
+
+                            <button type="submit">
+                                Criar nova planilha padrão
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="action">
+                        <h3>Testar conexão Google</h3>
+                        <p>
+                            Verifica se o sistema consegue acessar a planilha vinculada
+                            com as credenciais configuradas.
+                        </p>
+                        <button class="disabled" type="button" disabled>
+                            Em breve
+                        </button>
+                    </div>
+
+                    <div class="action">
+                        <h3>Alterar planilha vinculada</h3>
+                        <p>
+                            Permite trocar o link da planilha padrão usada pelo sistema.
+                            Esta função será usada em implantação de novos clientes.
+                        </p>
+                        <button class="disabled" type="button" disabled>
+                            Em breve
+                        </button>
+                    </div>
+
+                    <div class="action">
+                        <h3>Configurar importação de extratos</h3>
+                        <p>
+                            Define padrões para importação de extratos bancários, como conta padrão,
+                            regras de classificação e categorias sugeridas.
+                        </p>
+                        <a class="button-link" href="/financeiro/extratos">
+                            Abrir importação
+                        </a>
+                    </div>
+
+                    <div class="action">
+                        <h3>Auditar BASE_LANCAMENTOS</h3>
+                        <p>
+                            Abre a base oficial do sistema para verificar se os lançamentos foram gravados
+                            corretamente por mês, origem, situação, previsto e realizado.
+                        </p>
+                        <a class="button-link" href="/financeiro/base-lancamentos">
+                            Abrir base
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="danger-note">
+            Esta área deve ser usada apenas na configuração inicial ou manutenção do sistema.
+            O cliente, no uso diário, deve trabalhar principalmente com Planejamento Mensal,
+            Novo Lançamento, Importar Extrato, BASE_LANCAMENTOS e Dashboard Financeiro.
+        </div>
+    </main>
+</body>
+</html>

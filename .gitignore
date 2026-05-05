@@ -1,0 +1,7 @@
+credentials.json
+token*.json
+config_runtime_financeiro.json
+uploads/
+__pycache__/
+*.pyc
+.env

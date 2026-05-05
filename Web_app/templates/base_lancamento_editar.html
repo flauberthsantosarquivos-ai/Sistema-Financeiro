@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <title>Editar Lançamento</title>
+
+    <style>
+        :root {
+            --bg: #f4f6fb;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --primary: #1d4ed8;
+            --primary-dark: #1e40af;
+            --green: #047857;
+            --red: #b91c1c;
+            --border: #e5e7eb;
+            --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .page {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #0f172a, #1d4ed8);
+            color: white;
+            border-radius: 26px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+            margin-bottom: 22px;
+        }
+
+        .hero h1 {
+            margin: 0 0 8px;
+            font-size: 32px;
+        }
+
+        .hero p {
+            margin: 0;
+            color: #dbeafe;
+        }
+
+        .nav {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .nav a {
+            text-decoration: none;
+            background: white;
+            border: 1px solid var(--border);
+            color: #1e40af;
+            padding: 12px 16px;
+            border-radius: 999px;
+            font-weight: 800;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+        }
+
+        .nav a.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            padding: 24px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 900;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 13px;
+            background: #f9fafb;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        textarea {
+            min-height: 90px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+
+        button,
+        .button-link {
+            border: none;
+            background: var(--primary);
+            color: white;
+            border-radius: 13px;
+            padding: 14px 22px;
+            font-weight: 900;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        button:hover,
+        .button-link:hover {
+            background: var(--primary-dark);
+        }
+
+        .secondary {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .alert {
+            padding: 15px 18px;
+            border-radius: 16px;
+            margin-bottom: 18px;
+            font-weight: 700;
+        }
+
+        .success {
+            background: #ecfdf5;
+            border: 1px solid #bbf7d0;
+            color: #065f46;
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+        <section class="hero">
+            <h1>Dashboard Financeiro</h1>
+            <p>Editar lançamento da BASE_LANCAMENTOS.</p>
+        </section>
+
+        <nav class="nav">
+            <a href="/">Início</a>
+            <a href="/financeiro">Visão Geral</a>
+            <a href="/financeiro/base-lancamentos" class="active">BASE_LANCAMENTOS</a>
+            <a href="/financeiro/extratos">Importar Extratos</a>
+            <a href="/financeiro/lancamento">Novo Lançamento</a>
+        </nav>
+
+        {% if mensagem %}
+            <div class="alert success">{{ mensagem }}</div>
+        {% endif %}
+
+        {% if erro %}
+            <div class="alert error">{{ erro }}</div>
+        {% endif %}
+
+        {% if lancamento %}
+            <section class="card">
+                <form method="post" action="/financeiro/base-lancamentos/editar/{{ lancamento.ID }}">
+                    <div class="grid">
+                        <div class="field">
+                            <label>Data</label>
+                            <input type="text" name="data" value="{{ lancamento.DATA }}" />
+                        </div>
+
+                        <div class="field">
+                            <label>Mês</label>
+                            <select name="mes">
+                                {% for sigla, nome in meses_opcoes %}
+                                    <option value="{{ sigla }}" {% if lancamento.MES == sigla %}selected{% endif %}>
+                                        {{ nome }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label>Ano</label>
+                            <input type="number" name="ano" value="{{ lancamento.ANO }}" />
+                        </div>
+
+                        <div class="field">
+                            <label>Tipo</label>
+                            <select name="tipo">
+                                <option value="RECEITA" {% if lancamento.TIPO == "RECEITA" %}selected{% endif %}>RECEITA</option>
+                                <option value="DESPESA" {% if lancamento.TIPO == "DESPESA" %}selected{% endif %}>DESPESA</option>
+                                <option value="TRANSFERÊNCIA" {% if lancamento.TIPO == "TRANSFERÊNCIA" %}selected{% endif %}>TRANSFERÊNCIA</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label>Categoria</label>
+                            <input type="text" name="categoria" value="{{ lancamento.CATEGORIA }}" />
+                        </div>
+
+                        <div class="field">
+                            <label>Subcategoria</label>
+                            <input type="text" name="subcategoria" value="{{ lancamento.SUBCATEGORIA }}" />
+                        </div>
+
+                        <div class="field full">
+                            <label>Descrição</label>
+                            <input type="text" name="descricao" value="{{ lancamento.DESCRICAO }}" />
+                        </div>
+
+                        <div class="field">
+                            <label>Valor previsto</label>
+                            <input type="text" name="valor_previsto" value="{{ lancamento.VALOR_PREVISTO }}" />
+                        </div>
+
+                        <div class="field">
+                            <label>Valor realizado</label>
+                            <input type="text" name="valor_realizado" value="{{ lancamento.VALOR_REALIZADO }}" />
+                        </div>
+
+                        <div class="field">
+                            <label>Situação</label>
+                            <select name="situacao">
+                                {% for item in ["PREVISTO", "RESERVADO", "PAGO", "PENDENTE", "RECEBIDO", "CANCELADO"] %}
+                                    <option value="{{ item }}" {% if lancamento.SITUACAO == item %}selected{% endif %}>
+                                        {{ item }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label>Forma de pagamento</label>
+                            <input type="text" name="forma_pagamento" value="{{ lancamento.FORMA_PAGAMENTO }}" />
+                        </div>
+
+                        <div class="field">
+                            <label>Conta</label>
+                            <input type="text" name="conta" value="{{ lancamento.CONTA }}" />
+                        </div>
+
+                        <div class="field">
+                            <label>Origem</label>
+                            <input type="text" name="origem" value="{{ lancamento.ORIGEM }}" />
+                        </div>
+
+                        <div class="field full">
+                            <label>Observação</label>
+                            <textarea name="observacao">{{ lancamento.OBSERVACAO }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button type="submit">Salvar alterações</button>
+                        <a class="button-link secondary" href="/financeiro/base-lancamentos">Voltar</a>
+                    </div>
+                </form>
+            </section>
+        {% endif %}
+    </main>
+</body>
+</html>

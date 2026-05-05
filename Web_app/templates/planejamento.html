@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <title>Planejamento Mensal</title>
+
+    <style>
+        :root {
+            --bg: #f4f6fb;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --primary: #1d4ed8;
+            --primary-dark: #1e40af;
+            --green: #047857;
+            --red: #b91c1c;
+            --amber: #b45309;
+            --border: #e5e7eb;
+            --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .page {
+            max-width: 1380px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #0f172a, #1d4ed8);
+            color: white;
+            border-radius: 26px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+            margin-bottom: 22px;
+        }
+
+        .hero h1 {
+            margin: 0 0 8px;
+            font-size: 32px;
+            letter-spacing: -0.04em;
+        }
+
+        .hero p {
+            margin: 0;
+            color: #dbeafe;
+        }
+
+        .nav {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .nav a {
+            text-decoration: none;
+            background: white;
+            border: 1px solid var(--border);
+            color: #1e40af;
+            padding: 12px 16px;
+            border-radius: 999px;
+            font-weight: 800;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+        }
+
+        .nav a.active {
+            background: #1d4ed8;
+            color: white;
+            border-color: #1d4ed8;
+        }
+
+        .alert {
+            padding: 15px 18px;
+            border-radius: 16px;
+            margin-bottom: 18px;
+            font-weight: 700;
+        }
+
+        .success {
+            background: #ecfdf5;
+            border: 1px solid #bbf7d0;
+            color: #065f46;
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1.4fr 2fr;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        input,
+        select {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 13px;
+            background: #f9fafb;
+            font-size: 15px;
+            color: var(--text);
+            font-family: inherit;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        button {
+            border: none;
+            background: var(--primary);
+            color: white;
+            border-radius: 13px;
+            padding: 14px 22px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+        }
+
+        .check {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 800;
+            color: #334155;
+        }
+
+        .check input {
+            width: auto;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .metric {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            padding: 22px;
+        }
+
+        .metric-title {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 25px;
+            font-weight: 950;
+            letter-spacing: -0.04em;
+        }
+
+        .green {
+            color: var(--green);
+        }
+
+        .red {
+            color: var(--red);
+        }
+
+        .amber {
+            color: var(--amber);
+        }
+
+        .two-cols {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 24px;
+        }
+
+        .chart-row {
+            display: grid;
+            grid-template-columns: 160px 1fr 120px;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 13px;
+        }
+
+        .chart-label {
+            font-weight: 800;
+            color: #334155;
+            font-size: 14px;
+        }
+
+        .bar-wrap {
+            background: #eef2ff;
+            border-radius: 999px;
+            height: 14px;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 14px;
+            border-radius: 999px;
+            background: #2563eb;
+        }
+
+        .chart-value {
+            text-align: right;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .summary-bar {
+            height: 18px;
+            display: flex;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #e5e7eb;
+            margin-top: 14px;
+        }
+
+        .summary-reservado {
+            background: #10b981;
+        }
+
+        .summary-previsto {
+            background: #3b82f6;
+        }
+
+        .summary-saldo {
+            background: #d1d5db;
+        }
+
+        .legend {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .legend span::before {
+            content: "";
+            display: inline-block;
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            margin-right: 6px;
+            vertical-align: -1px;
+        }
+
+        .leg-reservado::before {
+            background: #10b981;
+        }
+
+        .leg-previsto::before {
+            background: #3b82f6;
+        }
+
+        .leg-saldo::before {
+            background: #d1d5db;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #334155;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        tr:hover td {
+            background: #f9fafb;
+        }
+
+        .money {
+            font-weight: 900;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: #f1f5f9;
+            color: #334155;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .reservado {
+            background: #ecfdf5;
+            color: #065f46;
+        }
+
+        .previsto {
+            background: #eff6ff;
+            color: #1e40af;
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 1150px) {
+            .cards,
+            .two-cols,
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page {
+                padding: 18px;
+            }
+
+            .chart-row {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-value {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+        <section class="hero">
+            <h1>Planejamento Mensal</h1>
+            <p>
+                Gere a previsão do mês com receita estimada, valores reservados para alimentação,
+                despesas fixas previstas e saldo estimado.
+            </p>
+        </section>
+
+        <nav class="nav">
+            <a href="/">Início</a>
+            <a href="/financeiro/planejamento" class="active">Planejamento Mensal</a>
+            <a href="/financeiro/lancamento">Novo Lançamento</a>
+            <a href="/financeiro">Dashboard Financeiro</a>
+        </nav>
+
+        {% if mensagem %}
+            <div class="alert success">{{ mensagem }}</div>
+        {% endif %}
+
+        {% if erro %}
+            <div class="alert error">{{ erro }}</div>
+        {% endif %}
+
+        <section class="card">
+            <form method="post" action="/financeiro/planejamento">
+                <input type="hidden" name="link_planilha" value="{{ link_planilha }}" />
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label>Mês</label>
+                        <select name="mes" required>
+                            {% for sigla, nome in meses %}
+                                <option value="{{ sigla }}" {% if mes_atual == sigla %}selected{% endif %}>
+                                    {{ nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>Ano</label>
+                        <input type="number" name="ano" value="{{ ano_atual }}" required />
+                    </div>
+
+                    <div class="field">
+                        <label>Receita prevista</label>
+                        <input type="text" name="receita_prevista" value="{{ receita_prevista }}" required />
+                    </div>
+
+                    <div class="field">
+                        <label>Planilha vinculada</label>
+                        <input type="text" value="Google Sheets configurado no sistema" disabled />
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="submit">Gerar planejamento do mês</button>
+
+                    <label class="check">
+                        <input type="checkbox" name="substituir" value="SIM" />
+                        Confirmo gerar novamente mesmo que já exista planejamento para o mês
+                    </label>
+                </div>
+
+                <div class="hint">
+                    O planejamento cria automaticamente os lançamentos na BASE_LANCAMENTOS. Despesas variáveis e não previstas devem ser lançadas depois em “Novo Lançamento”.
+                </div>
+            </form>
+        </section>
+
+        <section class="cards">
+            <div class="metric">
+                <div class="metric-title">Receita prevista</div>
+                <div class="metric-value green">{{ resumo.receita_prevista_fmt }}</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-title">Alimentação reservada</div>
+                <div class="metric-value amber">{{ resumo.total_reservado_fmt }}</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-title">Despesas previstas</div>
+                <div class="metric-value red">{{ resumo.total_previsto_fmt }}</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-title">Total planejado</div>
+                <div class="metric-value red">{{ resumo.total_geral_fmt }}</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-title">Saldo estimado</div>
+                <div class="metric-value {% if resumo.saldo_estimado >= 0 %}green{% else %}red{% endif %}">
+                    {{ resumo.saldo_estimado_fmt }}
+                </div>
+            </div>
+        </section>
+
+        <div class="two-cols">
+            <section class="card">
+                <h2 style="margin-top: 0;">Visão geral do orçamento</h2>
+
+                {% set receita = resumo.receita_prevista if resumo.receita_prevista > 0 else 1 %}
+                {% set pct_reservado = (resumo.total_reservado / receita * 100) if receita > 0 else 0 %}
+                {% set pct_previsto = (resumo.total_previsto / receita * 100) if receita > 0 else 0 %}
+                {% set pct_saldo = (resumo.saldo_estimado / receita * 100) if resumo.saldo_estimado > 0 else 0 %}
+
+                <div class="summary-bar">
+                    <div class="summary-reservado" style="width: {{ pct_reservado }}%;"></div>
+                    <div class="summary-previsto" style="width: {{ pct_previsto }}%;"></div>
+                    <div class="summary-saldo" style="width: {{ pct_saldo }}%;"></div>
+                </div>
+
+                <div class="legend">
+                    <span class="leg-reservado">Reservado</span>
+                    <span class="leg-previsto">Previsto</span>
+                    <span class="leg-saldo">Saldo estimado</span>
+                </div>
+
+                <p class="hint">
+                    Comprometimento da receita prevista:
+                    <strong>{{ resumo.percentual_comprometimento_fmt }}</strong>
+                </p>
+            </section>
+
+            <section class="card">
+                <h2 style="margin-top: 0;">Despesas por categoria</h2>
+
+                {% for item in resumo.ranking_categorias %}
+                    <div class="chart-row">
+                        <div class="chart-label">{{ item.categoria }}</div>
+                        <div class="bar-wrap">
+                            <div class="bar" style="width: {{ item.percentual_visual }}%;"></div>
+                        </div>
+                        <div class="chart-value">{{ item.valor_fmt }}</div>
+                    </div>
+                {% endfor %}
+            </section>
+        </div>
+
+        <section class="card">
+            <h2 style="margin-top: 0;">Itens que serão gerados no mês</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Categoria</th>
+                        <th>Subcategoria</th>
+                        <th>Descrição</th>
+                        <th>Valor padrão</th>
+                        <th>Situação</th>
+                        <th>Conta</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in resumo.itens %}
+                        <tr>
+                            <td><strong>{{ item.categoria }}</strong></td>
+                            <td>{{ item.subcategoria }}</td>
+                            <td>{{ item.descricao }}</td>
+                            <td class="money">{{ item.valor_fmt }}</td>
+                            <td>
+                                <span class="pill {% if item.situacao == 'RESERVADO' %}reservado{% else %}previsto{% endif %}">
+                                    {{ item.situacao }}
+                                </span>
+                            </td>
+                            <td>{{ item.conta }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>

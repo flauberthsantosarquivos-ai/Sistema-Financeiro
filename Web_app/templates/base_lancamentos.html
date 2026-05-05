@@ -11,14 +11,25 @@
             --text: #1f2937;
             --muted: #6b7280;
             --primary: #1d4ed8;
+            --primary-dark: #1e40af;
             --green: #047857;
+            --green-bg: #ecfdf5;
+            --green-border: #bbf7d0;
             --red: #b91c1c;
+            --red-bg: #fef2f2;
+            --red-border: #fecaca;
             --amber: #b45309;
+            --amber-bg: #fffbeb;
+            --amber-border: #fde68a;
+            --blue-bg: #eff6ff;
+            --blue-border: #bfdbfe;
             --border: #e5e7eb;
             --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             margin: 0;
@@ -28,7 +39,7 @@
         }
 
         .page {
-            max-width: 1600px;
+            max-width: 1700px;
             margin: 0 auto;
             padding: 32px;
         }
@@ -51,6 +62,7 @@
         .hero p {
             margin: 0;
             color: #dbeafe;
+            line-height: 1.5;
         }
 
         .nav {
@@ -77,6 +89,25 @@
             border-color: var(--primary);
         }
 
+        .alert {
+            padding: 15px 18px;
+            border-radius: 16px;
+            margin-bottom: 18px;
+            font-weight: 700;
+        }
+
+        .success {
+            background: var(--green-bg);
+            border: 1px solid var(--green-border);
+            color: #065f46;
+        }
+
+        .error {
+            background: var(--red-bg);
+            border: 1px solid var(--red-border);
+            color: #991b1b;
+        }
+
         .card {
             background: var(--card);
             border: 1px solid var(--border);
@@ -86,9 +117,31 @@
             margin-bottom: 24px;
         }
 
+        .section-title {
+            margin: 0 0 16px;
+            font-size: 22px;
+            letter-spacing: -0.03em;
+        }
+
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .filters-header p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-weight: 650;
+            line-height: 1.45;
+        }
+
         .filter-grid {
             display: grid;
-            grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr auto;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
             gap: 12px;
             align-items: end;
         }
@@ -103,7 +156,8 @@
             margin-bottom: 7px;
         }
 
-        input, select {
+        input,
+        select {
             width: 100%;
             border: 1px solid var(--border);
             border-radius: 13px;
@@ -111,6 +165,19 @@
             background: #f9fafb;
             font-size: 15px;
             font-family: inherit;
+        }
+
+        input:focus,
+        select:focus {
+            outline: 2px solid #bfdbfe;
+            border-color: #93c5fd;
+            background: white;
+        }
+
+        input[type="checkbox"] {
+            width: auto;
+            transform: scale(1.15);
+            cursor: pointer;
         }
 
         button {
@@ -124,28 +191,31 @@
             white-space: nowrap;
         }
 
-        .alert {
-            padding: 15px 18px;
-            border-radius: 16px;
-            margin-bottom: 18px;
-            font-weight: 700;
+        button:hover {
+            background: var(--primary-dark);
         }
 
-        .success {
-            background: #ecfdf5;
-            border: 1px solid #bbf7d0;
-            color: #065f46;
+        .clear-link {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            background: #e5e7eb;
+            color: #111827;
+            border-radius: 13px;
+            padding: 13px 20px;
+            font-weight: 900;
+            white-space: nowrap;
+            width: 100%;
         }
 
-        .error {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #991b1b;
+        .clear-link:hover {
+            background: #d1d5db;
         }
 
         .summary {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 18px;
             margin-bottom: 24px;
         }
@@ -173,23 +243,129 @@
             letter-spacing: -0.04em;
         }
 
-        .green { color: var(--green); }
-        .red { color: var(--red); }
-        .amber { color: var(--amber); }
+        .green {
+            color: var(--green);
+        }
+
+        .red {
+            color: var(--red);
+        }
+
+        .amber {
+            color: var(--amber);
+        }
+
+        .table-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .table-top p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-weight: 650;
+            line-height: 1.45;
+        }
+
+        .table-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 14px;
+        }
+
+        .table-actions-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            color: #334155;
+            font-weight: 800;
+        }
+
+        .selection-hint {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .trash-button {
+            background: #dc2626;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .trash-button:hover {
+            background: #b91c1c;
+        }
+
+        .legend {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 900;
+            color: #475569;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 7px 11px;
+        }
+
+        .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 999px;
+        }
+
+        .dot-red {
+            background: var(--red);
+        }
+
+        .dot-green {
+            background: var(--green);
+        }
+
+        .dot-amber {
+            background: var(--amber);
+        }
 
         .table-wrap {
             overflow-x: auto;
             border: 1px solid var(--border);
             border-radius: 18px;
+            background: white;
         }
 
         table {
             width: 100%;
-            min-width: 1580px;
+            min-width: 1550px;
             border-collapse: collapse;
         }
 
         th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
             background: #f8fafc;
             color: #334155;
             text-align: left;
@@ -198,54 +374,131 @@
             letter-spacing: 0.06em;
             padding: 12px;
             border-bottom: 1px solid var(--border);
+            white-space: nowrap;
         }
 
         td {
-            padding: 10px 12px;
+            padding: 11px 12px;
             border-bottom: 1px solid var(--border);
             font-size: 13px;
             vertical-align: top;
         }
 
-        .money {
-            text-align: right;
-            font-weight: 900;
-            white-space: nowrap;
+        tr:hover td {
+            background: #f8fafc;
         }
 
+        .row-despesa td {
+            background: #fffafa;
+        }
+
+        .row-receita td {
+            background: #fbfffd;
+        }
+
+        .row-transferencia td {
+            background: #fffdf5;
+        }
+
+        .select-col {
+            text-align: center;
+            width: 70px;
+        }
+
+        .money {
+            text-align: right;
+            font-weight: 950;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+
+        .money-despesa {
+            color: var(--red);
+        }
+
+        .money-receita {
+            color: var(--green);
+        }
+
+        .money-transferencia {
+            color: var(--amber);
+        }
+
+        .tipo-pill,
         .pill {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             padding: 5px 10px;
             border-radius: 999px;
+            font-size: 12px;
+            font-weight: 900;
+            white-space: nowrap;
+            border: 1px solid transparent;
+        }
+
+        .tipo-despesa {
+            background: var(--red-bg);
+            color: var(--red);
+            border-color: var(--red-border);
+        }
+
+        .tipo-receita {
+            background: var(--green-bg);
+            color: var(--green);
+            border-color: var(--green-border);
+        }
+
+        .tipo-transferencia {
+            background: var(--amber-bg);
+            color: var(--amber);
+            border-color: var(--amber-border);
+        }
+
+        .pill {
             background: #f1f5f9;
             color: #334155;
-            font-size: 12px;
-            font-weight: 800;
-            white-space: nowrap;
+            border-color: #e2e8f0;
         }
 
         .desc {
-            min-width: 280px;
-            font-weight: 700;
+            min-width: 360px;
+            font-weight: 750;
+            color: #1f2937;
+            line-height: 1.35;
+        }
+
+        .subtle {
+            color: var(--muted);
+            font-weight: 650;
         }
 
         .edit-link {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: #eff6ff;
+            background: var(--blue-bg);
             color: #1d4ed8;
-            border: 1px solid #bfdbfe;
+            border: 1px solid var(--blue-border);
             border-radius: 999px;
             padding: 6px 10px;
             text-decoration: none;
             font-weight: 900;
             font-size: 12px;
+            white-space: nowrap;
         }
 
         .edit-link:hover {
             background: #dbeafe;
+        }
+
+        .empty-state {
+            padding: 28px;
+            text-align: center;
+            color: var(--muted);
+            font-weight: 800;
+            background: #f8fafc;
+            border-radius: 16px;
         }
 
         @media (max-width: 1200px) {
@@ -257,6 +510,10 @@
             .page {
                 padding: 18px;
             }
+
+            .table-top {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -266,7 +523,7 @@
         <section class="hero">
             <h1>Dashboard Financeiro</h1>
             <p>
-                BASE_LANCAMENTOS: consulta e edição da base oficial do sistema.
+                BASE_LANCAMENTOS: consulta, filtros, edição e exclusão da base oficial do sistema.
             </p>
         </section>
 
@@ -287,14 +544,29 @@
         {% endif %}
 
         <section class="card">
+            <div class="filters-header">
+                <div>
+                    <h2 class="section-title">Filtros da base</h2>
+                    <p>
+                        Use os filtros para localizar lançamentos antes de editar, excluir ou conferir os totais.
+                    </p>
+                </div>
+            </div>
+
             <form method="get" action="/financeiro/base-lancamentos">
                 <div class="filter-grid">
                     <div>
                         <label>Período</label>
                         <select name="periodo_tipo" id="periodo_tipo" onchange="alternarPeriodo()">
-                            <option value="todos" {% if filtros.periodo_tipo == "todos" %}selected{% endif %}>Todos os meses</option>
-                            <option value="mes_unico" {% if filtros.periodo_tipo == "mes_unico" %}selected{% endif %}>Mês específico</option>
-                            <option value="intervalo" {% if filtros.periodo_tipo == "intervalo" %}selected{% endif %}>Intervalo de meses</option>
+                            <option value="todos" {% if filtros.periodo_tipo == "todos" %}selected{% endif %}>
+                                Todos os meses
+                            </option>
+                            <option value="mes_unico" {% if filtros.periodo_tipo == "mes_unico" %}selected{% endif %}>
+                                Mês específico
+                            </option>
+                            <option value="intervalo" {% if filtros.periodo_tipo == "intervalo" %}selected{% endif %}>
+                                Intervalo de meses
+                            </option>
                         </select>
                     </div>
 
@@ -302,7 +574,9 @@
                         <label>Mês</label>
                         <select name="mes_unico">
                             {% for sigla, nome in meses_opcoes %}
-                                <option value="{{ sigla }}" {% if filtros.mes_unico == sigla %}selected{% endif %}>{{ nome }}</option>
+                                <option value="{{ sigla }}" {% if filtros.mes_unico == sigla %}selected{% endif %}>
+                                    {{ nome }}
+                                </option>
                             {% endfor %}
                         </select>
                     </div>
@@ -311,7 +585,9 @@
                         <label>De</label>
                         <select name="mes_inicio">
                             {% for sigla, nome in meses_opcoes %}
-                                <option value="{{ sigla }}" {% if filtros.mes_inicio == sigla %}selected{% endif %}>{{ nome }}</option>
+                                <option value="{{ sigla }}" {% if filtros.mes_inicio == sigla %}selected{% endif %}>
+                                    {{ nome }}
+                                </option>
                             {% endfor %}
                         </select>
                     </div>
@@ -320,7 +596,9 @@
                         <label>Até</label>
                         <select name="mes_fim">
                             {% for sigla, nome in meses_opcoes %}
-                                <option value="{{ sigla }}" {% if filtros.mes_fim == sigla %}selected{% endif %}>{{ nome }}</option>
+                                <option value="{{ sigla }}" {% if filtros.mes_fim == sigla %}selected{% endif %}>
+                                    {{ nome }}
+                                </option>
                             {% endfor %}
                         </select>
                     </div>
@@ -331,7 +609,71 @@
                     </div>
 
                     <div>
+                        <label>Tipo</label>
+                        <select name="tipo">
+                            <option value="">Todos</option>
+                            {% for item in tipos_opcoes %}
+                                <option value="{{ item }}" {% if filtros.tipo == item %}selected{% endif %}>
+                                    {{ item }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label>Situação</label>
+                        <select name="situacao">
+                            <option value="">Todas</option>
+                            {% for item in situacoes_opcoes %}
+                                <option value="{{ item }}" {% if filtros.situacao == item %}selected{% endif %}>
+                                    {{ item }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label>Origem</label>
+                        <select name="origem">
+                            <option value="">Todas</option>
+                            {% for item in origens_opcoes %}
+                                <option value="{{ item }}" {% if filtros.origem == item %}selected{% endif %}>
+                                    {{ item }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label>Categoria</label>
+                        <select name="categoria">
+                            <option value="">Todas</option>
+                            {% for item in categorias_opcoes %}
+                                <option value="{{ item }}" {% if filtros.categoria == item %}selected{% endif %}>
+                                    {{ item }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label>Buscar texto</label>
+                        <input
+                            type="text"
+                            name="texto"
+                            value="{{ filtros.texto }}"
+                            placeholder="Descrição, conta, observação..."
+                        />
+                    </div>
+
+                    <div>
                         <button type="submit">Filtrar base</button>
+                    </div>
+
+                    <div>
+                        <a class="clear-link" href="/financeiro/base-lancamentos">
+                            Limpar filtros
+                        </a>
                     </div>
                 </div>
             </form>
@@ -344,69 +686,161 @@
             </div>
 
             <div class="metric">
-                <div class="metric-title">Total previsto</div>
-                <div class="metric-value red">{{ total_previsto_fmt }}</div>
+                <div class="metric-title">Total de receitas</div>
+                <div class="metric-value green">{{ total_receitas_fmt }}</div>
             </div>
 
             <div class="metric">
-                <div class="metric-title">Total realizado</div>
-                <div class="metric-value green">{{ total_realizado_fmt }}</div>
+                <div class="metric-title">Total de despesas</div>
+                <div class="metric-value red">{{ total_despesas_fmt }}</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-title">Saldo</div>
+                <div class="metric-value {% if saldo_valor >= 0 %}green{% else %}red{% endif %}">
+                    {{ saldo_fmt }}
+                </div>
             </div>
         </section>
 
         <section class="card">
-            <h2 style="margin-top: 0;">Lançamentos da base</h2>
+            <div class="table-top">
+                <div>
+                    <h2 class="section-title">Lançamentos da base</h2>
+                    <p>
+                        Ordem principal: Data, Descrição, Valor, Tipo, Categoria, Subcategoria e Situação.
+                    </p>
+                </div>
 
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Ações</th>
-                            <th>Data</th>
-                            <th>Mês</th>
-                            <th>Ano</th>
-                            <th>Tipo</th>
-                            <th>Categoria</th>
-                            <th>Subcategoria</th>
-                            <th>Descrição</th>
-                            <th>Previsto</th>
-                            <th>Realizado</th>
-                            <th>Situação</th>
-                            <th>Forma</th>
-                            <th>Conta</th>
-                            <th>Origem</th>
-                            <th>Observação</th>
-                            <th>Criado em</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in linhas %}
-                            <tr>
-                                <td>
-                                    <a class="edit-link" href="/financeiro/base-lancamentos/editar/{{ item.id }}">
-                                        Editar
-                                    </a>
-                                </td>
-                                <td>{{ item.data }}</td>
-                                <td>{{ item.mes }}</td>
-                                <td>{{ item.ano }}</td>
-                                <td><span class="pill">{{ item.tipo }}</span></td>
-                                <td>{{ item.categoria }}</td>
-                                <td>{{ item.subcategoria }}</td>
-                                <td class="desc">{{ item.descricao }}</td>
-                                <td class="money">{{ item.valor_previsto_fmt }}</td>
-                                <td class="money">{{ item.valor_realizado_fmt }}</td>
-                                <td><span class="pill">{{ item.situacao }}</span></td>
-                                <td>{{ item.forma_pagamento }}</td>
-                                <td>{{ item.conta }}</td>
-                                <td><span class="pill">{{ item.origem }}</span></td>
-                                <td>{{ item.observacao }}</td>
-                                <td>{{ item.criado_em }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="legend">
+                    <span class="legend-item"><span class="dot dot-red"></span>Despesa</span>
+                    <span class="legend-item"><span class="dot dot-green"></span>Receita</span>
+                    <span class="legend-item"><span class="dot dot-amber"></span>Transferência</span>
+                </div>
             </div>
+
+            <form
+                method="post"
+                action="/financeiro/base-lancamentos/excluir-selecionados"
+                onsubmit="return confirmarExclusaoSelecionados();"
+            >
+                <div class="table-actions">
+                    <div class="table-actions-left">
+                        <label style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="selecionar_todos" onclick="alternarTodos(this)" />
+                            Selecionar todos
+                        </label>
+
+                        <span class="selection-hint">
+                            Marque os lançamentos que deseja excluir.
+                        </span>
+                    </div>
+
+                    <button type="submit" class="trash-button">
+                        🗑️ Excluir selecionados
+                    </button>
+                </div>
+
+                {% if linhas %}
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="select-col">Selecionar</th>
+                                    <th>Ações</th>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th>Valor</th>
+                                    <th>Tipo</th>
+                                    <th>Categoria</th>
+                                    <th>Subcategoria</th>
+                                    <th>Situação</th>
+                                    <th>Mês</th>
+                                    <th>Ano</th>
+                                    <th>Forma</th>
+                                    <th>Conta</th>
+                                    <th>Origem</th>
+                                    <th>Observação</th>
+                                    <th>Criado em</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for item in linhas %}
+                                    {% set tipo_upper = item.tipo|string|upper %}
+
+                                    <tr class="{% if tipo_upper == 'DESPESA' %}row-despesa{% elif tipo_upper == 'RECEITA' %}row-receita{% elif tipo_upper == 'TRANSFERÊNCIA' or tipo_upper == 'TRANSFERENCIA' %}row-transferencia{% endif %}">
+                                        <td class="select-col">
+                                            {% if item.id %}
+                                                <input
+                                                    type="checkbox"
+                                                    name="lancamentos_ids"
+                                                    value="{{ item.id }}"
+                                                    class="check-lancamento"
+                                                />
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            <a class="edit-link" href="/financeiro/base-lancamentos/editar/{{ item.id }}">
+                                                Editar
+                                            </a>
+                                        </td>
+
+                                        <td><strong>{{ item.data }}</strong></td>
+
+                                        <td class="desc">{{ item.descricao }}</td>
+
+                                        <td class="money {% if tipo_upper == 'DESPESA' %}money-despesa{% elif tipo_upper == 'RECEITA' %}money-receita{% elif tipo_upper == 'TRANSFERÊNCIA' or tipo_upper == 'TRANSFERENCIA' %}money-transferencia{% endif %}">
+                                            {% if item.valor_realizado > 0 %}
+                                                {{ item.valor_realizado_fmt }}
+                                            {% else %}
+                                                {{ item.valor_previsto_fmt }}
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {% if tipo_upper == "DESPESA" %}
+                                                <span class="tipo-pill tipo-despesa">DESPESA</span>
+                                            {% elif tipo_upper == "RECEITA" %}
+                                                <span class="tipo-pill tipo-receita">RECEITA</span>
+                                            {% elif tipo_upper == "TRANSFERÊNCIA" or tipo_upper == "TRANSFERENCIA" %}
+                                                <span class="tipo-pill tipo-transferencia">TRANSFERÊNCIA</span>
+                                            {% else %}
+                                                <span class="pill">{{ item.tipo }}</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td><strong>{{ item.categoria }}</strong></td>
+
+                                        <td>{{ item.subcategoria }}</td>
+
+                                        <td><span class="pill">{{ item.situacao }}</span></td>
+
+                                        <td>{{ item.mes }}</td>
+
+                                        <td>{{ item.ano }}</td>
+
+                                        <td>{{ item.forma_pagamento }}</td>
+
+                                        <td>{{ item.conta }}</td>
+
+                                        <td><span class="pill">{{ item.origem }}</span></td>
+
+                                        <td class="subtle">{{ item.observacao }}</td>
+
+                                        <td class="subtle">{{ item.criado_em }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        Nenhum lançamento encontrado para os filtros aplicados.
+                    </div>
+                {% endif %}
+            </form>
         </section>
     </main>
 
@@ -430,6 +864,29 @@
                 campoInicio.style.display = "block";
                 campoFim.style.display = "block";
             }
+        }
+
+        function alternarTodos(master) {
+            const checks = document.querySelectorAll(".check-lancamento");
+
+            checks.forEach(function (check) {
+                check.checked = master.checked;
+            });
+        }
+
+        function confirmarExclusaoSelecionados() {
+            const selecionados = document.querySelectorAll(".check-lancamento:checked");
+
+            if (selecionados.length === 0) {
+                alert("Selecione ao menos um lançamento para excluir.");
+                return false;
+            }
+
+            return confirm(
+                "Tem certeza que deseja excluir " +
+                selecionados.length +
+                " lançamento(s) da BASE_LANCAMENTOS?"
+            );
         }
 
         document.addEventListener("DOMContentLoaded", alternarPeriodo);

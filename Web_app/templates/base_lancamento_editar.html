@@ -84,6 +84,7 @@
             border-radius: 22px;
             box-shadow: var(--shadow);
             padding: 24px;
+            margin-bottom: 24px;
         }
 
         .grid {
@@ -157,6 +158,15 @@
             color: #111827;
         }
 
+        .danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .danger:hover {
+            background: #b91c1c;
+        }
+
         .alert {
             padding: 15px 18px;
             border-radius: 16px;
@@ -176,6 +186,38 @@
             color: #991b1b;
         }
 
+        .delete-box {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            border-radius: 18px;
+            padding: 18px;
+            margin-top: 24px;
+        }
+
+        .delete-box h3 {
+            margin: 0 0 8px;
+        }
+
+        .delete-box p {
+            margin: 0 0 14px;
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        .confirm-label {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            font-weight: 900;
+            margin-bottom: 14px;
+        }
+
+        .confirm-label input {
+            width: auto;
+            margin-top: 3px;
+        }
+
         @media (max-width: 900px) {
             .grid {
                 grid-template-columns: 1fr;
@@ -192,7 +234,7 @@
     <main class="page">
         <section class="hero">
             <h1>Dashboard Financeiro</h1>
-            <p>Editar lançamento da BASE_LANCAMENTOS.</p>
+            <p>Editar ou excluir lançamento da BASE_LANCAMENTOS.</p>
         </section>
 
         <nav class="nav">
@@ -307,8 +349,44 @@
                         <a class="button-link secondary" href="/financeiro/base-lancamentos">Voltar</a>
                     </div>
                 </form>
+
+                <div class="delete-box">
+                    <h3>Excluir lançamento</h3>
+                    <p>
+                        Esta ação remove definitivamente este lançamento da BASE_LANCAMENTOS.
+                        Use apenas para registros duplicados, importados incorretamente ou lançamentos de teste.
+                    </p>
+
+                    <form
+                        method="post"
+                        action="/financeiro/base-lancamentos/excluir/{{ lancamento.ID }}"
+                        onsubmit="return confirmarExclusaoFinal();"
+                    >
+                        <label class="confirm-label">
+                            <input type="checkbox" name="confirmar_exclusao" value="SIM" id="confirmar_exclusao" />
+                            <span>Confirmo que desejo excluir definitivamente este lançamento.</span>
+                        </label>
+
+                        <button type="submit" class="danger">
+                            Excluir lançamento
+                        </button>
+                    </form>
+                </div>
             </section>
         {% endif %}
     </main>
+
+    <script>
+        function confirmarExclusaoFinal() {
+            const checkbox = document.getElementById("confirmar_exclusao");
+
+            if (!checkbox.checked) {
+                alert("Marque a confirmação antes de excluir o lançamento.");
+                return false;
+            }
+
+            return confirm("Tem certeza que deseja excluir este lançamento da BASE_LANCAMENTOS?");
+        }
+    </script>
 </body>
 </html>

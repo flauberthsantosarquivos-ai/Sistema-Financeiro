@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8" />
-    <title>Novo Lançamento Financeiro</title>
+    <title>BASE_LANCAMENTOS</title>
 
     <style>
         :root {
@@ -11,9 +11,9 @@
             --text: #1f2937;
             --muted: #6b7280;
             --primary: #1d4ed8;
-            --primary-dark: #1e40af;
             --green: #047857;
             --red: #b91c1c;
+            --amber: #b45309;
             --border: #e5e7eb;
             --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
         }
@@ -30,7 +30,7 @@
         }
 
         .page {
-            max-width: 1180px;
+            max-width: 1600px;
             margin: 0 auto;
             padding: 32px;
         }
@@ -38,15 +38,16 @@
         .hero {
             background: linear-gradient(135deg, #0f172a, #1d4ed8);
             color: white;
-            border-radius: 24px;
-            padding: 30px;
+            border-radius: 26px;
+            padding: 32px;
             box-shadow: var(--shadow);
-            margin-bottom: 24px;
+            margin-bottom: 22px;
         }
 
         .hero h1 {
             margin: 0 0 8px;
-            font-size: 30px;
+            font-size: 32px;
+            letter-spacing: -0.04em;
         }
 
         .hero p {
@@ -84,55 +85,41 @@
             border-radius: 22px;
             box-shadow: var(--shadow);
             padding: 24px;
+            margin-bottom: 24px;
         }
 
-        .grid {
+        .filter-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
-        }
-
-        .field {
-            display: flex;
-            flex-direction: column;
-            gap: 7px;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 12px;
+            align-items: end;
         }
 
         label {
-            font-size: 13px;
-            font-weight: 800;
+            font-size: 12px;
+            font-weight: 900;
             color: var(--muted);
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.08em;
+            display: block;
+            margin-bottom: 7px;
         }
 
         input,
-        select,
-        textarea {
+        select {
             width: 100%;
             border: 1px solid var(--border);
             border-radius: 13px;
-            padding: 13px;
+            padding: 12px;
             background: #f9fafb;
             font-size: 15px;
-            color: var(--text);
             font-family: inherit;
         }
 
-        textarea {
-            min-height: 90px;
-            resize: vertical;
-        }
-
-        .full {
-            grid-column: 1 / -1;
-        }
-
-        .actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 22px;
-            flex-wrap: wrap;
+        input[type="checkbox"] {
+            width: auto;
+            transform: scale(1.15);
+            cursor: pointer;
         }
 
         button {
@@ -140,22 +127,40 @@
             background: var(--primary);
             color: white;
             border-radius: 13px;
-            padding: 14px 22px;
+            padding: 13px 20px;
             font-weight: 900;
             cursor: pointer;
+            white-space: nowrap;
         }
 
-        button:hover {
-            background: var(--primary-dark);
-        }
-
-        .secondary {
+        .clear-link {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
             background: #e5e7eb;
             color: #111827;
+            border-radius: 13px;
+            padding: 13px 20px;
+            font-weight: 900;
+            white-space: nowrap;
+            width: 100%;
         }
 
-        .secondary:hover {
+        .clear-link:hover {
             background: #d1d5db;
+        }
+
+        .trash-button {
+            background: #dc2626;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .trash-button:hover {
+            background: #b91c1c;
         }
 
         .alert {
@@ -177,15 +182,155 @@
             color: #991b1b;
         }
 
-        .hint {
-            margin-top: 14px;
-            color: var(--muted);
-            font-size: 13px;
-            font-weight: 600;
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
         }
 
-        @media (max-width: 900px) {
-            .grid {
+        .metric {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+        }
+
+        .metric-title {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 25px;
+            font-weight: 950;
+            letter-spacing: -0.04em;
+        }
+
+        .green {
+            color: var(--green);
+        }
+
+        .red {
+            color: var(--red);
+        }
+
+        .amber {
+            color: var(--amber);
+        }
+
+        .table-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 14px;
+        }
+
+        .table-actions-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            color: #334155;
+            font-weight: 800;
+        }
+
+        .selection-hint {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1650px;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #334155;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            vertical-align: top;
+        }
+
+        .select-col {
+            text-align: center;
+            width: 70px;
+        }
+
+        .money {
+            text-align: right;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: #f1f5f9;
+            color: #334155;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .desc {
+            min-width: 280px;
+            font-weight: 700;
+        }
+
+        .edit-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+            border-radius: 999px;
+            padding: 6px 10px;
+            text-decoration: none;
+            font-weight: 900;
+            font-size: 12px;
+        }
+
+        .edit-link:hover {
+            background: #dbeafe;
+        }
+
+        @media (max-width: 1200px) {
+            .filter-grid,
+            .summary {
                 grid-template-columns: 1fr;
             }
 
@@ -201,220 +346,12 @@
         <section class="hero">
             <h1>Dashboard Financeiro</h1>
             <p>
-                Novo Lançamento: cadastre receitas, despesas variáveis, gastos não previstos e ajustes.
+                BASE_LANCAMENTOS: consulta, filtros, edição e exclusão da base oficial do sistema.
             </p>
         </section>
 
         <nav class="nav">
             <a href="/">Início</a>
             <a href="/financeiro">Visão Geral</a>
-            <a href="/financeiro/base-lancamentos">BASE_LANCAMENTOS</a>
-            <a href="/financeiro/extratos">Importar Extratos</a>
-            <a href="/financeiro/lancamento" class="active">Novo Lançamento</a>
-        </nav>
-
-        {% if mensagem %}
-            <div class="alert success">{{ mensagem }}</div>
-        {% endif %}
-
-        {% if erro %}
-            <div class="alert error">{{ erro }}</div>
-        {% endif %}
-
-        <section class="card">
-            <form method="post" action="/financeiro/lancamento">
-                <input type="hidden" name="link_planilha" value="{{ link_planilha }}" />
-
-                <div class="grid">
-                    <div class="field">
-                        <label>Data</label>
-                        <input type="date" name="data" value="{{ hoje }}" required />
-                    </div>
-
-                    <div class="field">
-                        <label>Mês</label>
-                        <select name="mes" required>
-                            <option value="">Selecione...</option>
-                            {% for sigla, nome in meses %}
-                                <option value="{{ sigla }}">{{ nome }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="field">
-                        <label>Ano</label>
-                        <input type="number" name="ano" value="{{ ano_atual }}" required />
-                    </div>
-
-                    <div class="field">
-                        <label>Tipo</label>
-                        <select name="tipo" id="tipo" required onchange="atualizarCategorias()">
-                            <option value="">Selecione...</option>
-                            <option value="DESPESA">DESPESA</option>
-                            <option value="RECEITA">RECEITA</option>
-                        </select>
-                    </div>
-
-                    <div class="field">
-                        <label>Categoria</label>
-                        <select name="categoria" id="categoria" required onchange="atualizarSubcategorias()">
-                            <option value="">Selecione...</option>
-                        </select>
-                    </div>
-
-                    <div class="field">
-                        <label>Subcategoria</label>
-                        <select name="subcategoria" id="subcategoria" required>
-                            <option value="">Selecione...</option>
-                        </select>
-                    </div>
-
-                    <div class="field full">
-                        <label>Descrição</label>
-                        <input type="text" name="descricao" placeholder="Ex.: Conta de energia, compra extra, despesa não prevista" required />
-                    </div>
-
-                    <div class="field">
-                        <label>Valor previsto</label>
-                        <input type="text" name="valor_previsto" placeholder="Ex.: 500,00" />
-                    </div>
-
-                    <div class="field">
-                        <label>Valor realizado</label>
-                        <input type="text" name="valor_realizado" placeholder="Ex.: 450,00" />
-                    </div>
-
-                    <div class="field">
-                        <label>Situação</label>
-                        <select name="situacao" required>
-                            <option value="">Selecione...</option>
-                            {% for item in situacoes %}
-                                <option value="{{ item }}">{{ item }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="field">
-                        <label>Forma de pagamento</label>
-                        <select name="forma_pagamento" required>
-                            <option value="">Selecione...</option>
-                            {% for item in formas_pagamento %}
-                                <option value="{{ item }}">{{ item }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="field">
-                        <label>Conta</label>
-                        <select name="conta" required>
-                            <option value="">Selecione...</option>
-                            {% for item in contas %}
-                                <option value="{{ item }}">{{ item }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="field full">
-                        <label>Observação</label>
-                        <textarea name="observacao" placeholder="Informações adicionais, se necessário"></textarea>
-                    </div>
-                </div>
-
-                <div class="actions">
-                    <button type="submit">Salvar lançamento</button>
-
-                    <button type="button" class="secondary" onclick="limparFormulario()">
-                        Limpar formulário
-                    </button>
-                </div>
-
-                <div class="hint">
-                    Categoria e subcategoria são controladas pelo sistema para evitar variações que bagunçam o dashboard.
-                </div>
-            </form>
-        </section>
-    </main>
-
-    <script>
-        const categoriasReceita = {{ categorias_receita | tojson }};
-        const categoriasDespesa = {{ categorias_despesa | tojson }};
-
-        function limparSelect(select) {
-            while (select.firstChild) {
-                select.removeChild(select.firstChild);
-            }
-        }
-
-        function adicionarOption(select, valor, texto = null) {
-            const option = document.createElement("option");
-            option.value = valor;
-            option.textContent = texto || valor;
-            select.appendChild(option);
-        }
-
-        function atualizarCategorias() {
-            const tipo = document.getElementById("tipo").value;
-            const categoriaSelect = document.getElementById("categoria");
-
-            limparSelect(categoriaSelect);
-            adicionarOption(categoriaSelect, "", "Selecione...");
-
-            if (!tipo) {
-                atualizarSubcategorias();
-                return;
-            }
-
-            const origem = tipo === "RECEITA" ? categoriasReceita : categoriasDespesa;
-
-            Object.keys(origem).forEach(function (categoria) {
-                adicionarOption(categoriaSelect, categoria);
-            });
-
-            atualizarSubcategorias();
-        }
-
-        function atualizarSubcategorias() {
-            const tipo = document.getElementById("tipo").value;
-            const categoria = document.getElementById("categoria").value;
-            const subcategoriaSelect = document.getElementById("subcategoria");
-
-            limparSelect(subcategoriaSelect);
-            adicionarOption(subcategoriaSelect, "", "Selecione...");
-
-            if (!tipo || !categoria) {
-                return;
-            }
-
-            const origem = tipo === "RECEITA" ? categoriasReceita : categoriasDespesa;
-            const subcategorias = origem[categoria] || [];
-
-            subcategorias.forEach(function (subcategoria) {
-                adicionarOption(subcategoriaSelect, subcategoria);
-            });
-        }
-
-        function limparFormulario() {
-            const form = document.querySelector("form");
-
-            form.querySelector('input[name="data"]').value = "";
-            form.querySelector('select[name="mes"]').value = "";
-            form.querySelector('input[name="ano"]').value = "";
-            form.querySelector('select[name="tipo"]').value = "";
-
-            atualizarCategorias();
-
-            form.querySelector('input[name="descricao"]').value = "";
-            form.querySelector('input[name="valor_previsto"]').value = "";
-            form.querySelector('input[name="valor_realizado"]').value = "";
-            form.querySelector('select[name="situacao"]').value = "";
-            form.querySelector('select[name="forma_pagamento"]').value = "";
-            form.querySelector('select[name="conta"]').value = "";
-            form.querySelector('textarea[name="observacao"]').value = "";
-        }
-
-        document.addEventListener("DOMContentLoaded", function () {
-            atualizarCategorias();
-        });
-    </script>
-</body>
-</html>
+            <a href="/financeiro/base-lancamentos" class="active">BASE_LANCAMENTOS</a>
+         

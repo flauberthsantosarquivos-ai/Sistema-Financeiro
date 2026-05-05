@@ -11,6 +11,7 @@
             --text: #1f2937;
             --muted: #6b7280;
             --primary: #1d4ed8;
+            --primary-dark: #1e40af;
             --green: #047857;
             --green-bg: #ecfdf5;
             --green-border: #bbf7d0;
@@ -38,7 +39,7 @@
         }
 
         .page {
-            max-width: 1600px;
+            max-width: 1650px;
             margin: 0 auto;
             padding: 32px;
         }
@@ -160,6 +161,10 @@
             white-space: nowrap;
         }
 
+        button:hover {
+            background: var(--primary-dark);
+        }
+
         .summary {
             display: grid;
             grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -201,6 +206,46 @@
         .red { color: var(--red); }
         .amber { color: var(--amber); }
 
+        .executive-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .executive-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .executive-title {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 900;
+            margin-bottom: 9px;
+        }
+
+        .executive-value {
+            font-size: 20px;
+            font-weight: 950;
+            letter-spacing: -0.03em;
+            color: #111827;
+            line-height: 1.25;
+        }
+
+        .executive-sub {
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 700;
+            line-height: 1.35;
+        }
+
         .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -208,8 +253,70 @@
             margin-bottom: 24px;
         }
 
-        .chart-box {
-            min-height: 340px;
+        .budget-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .budget-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 18px;
+        }
+
+        .budget-box h3 {
+            margin: 0 0 14px;
+            font-size: 18px;
+            letter-spacing: -0.02em;
+        }
+
+        .budget-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 750;
+        }
+
+        .budget-line:last-child {
+            border-bottom: none;
+        }
+
+        .budget-label {
+            color: #475569;
+        }
+
+        .budget-value {
+            font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .progress-wrap {
+            margin-top: 14px;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 16px;
+            background: #e5e7eb;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: var(--primary);
+        }
+
+        .progress-note {
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 750;
         }
 
         .bars {
@@ -352,12 +459,17 @@
             border-radius: 16px;
         }
 
-        @media (max-width: 1200px) {
+        @media (max-width: 1300px) {
             .summary {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
-            .grid-2 {
+            .executive-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .grid-2,
+            .budget-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -379,7 +491,8 @@
                 padding: 18px;
             }
 
-            .summary {
+            .summary,
+            .executive-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -391,7 +504,7 @@
         <section class="hero">
             <h1>Análise Financeira</h1>
             <p>
-                Indicadores, categorias, maiores despesas e diagnóstico automático com base na BASE_LANCAMENTOS revisada.
+                Indicadores, controle orçamentário, maiores despesas e diagnóstico automático com base na BASE_LANCAMENTOS revisada.
             </p>
         </section>
 
@@ -411,7 +524,7 @@
         <section class="card">
             <h2 class="section-title">Filtros da análise</h2>
             <p class="section-subtitle">
-                Escolha o período antes de avaliar os indicadores e diagnósticos.
+                Escolha o período antes de avaliar os indicadores, orçamento e diagnósticos.
             </p>
 
             <form method="get" action="/financeiro/analise">
@@ -482,7 +595,7 @@
                 <div class="metric-value {% if analise.saldo >= 0 %}green{% else %}red{% endif %}">
                     {{ analise.saldo_fmt }}
                 </div>
-                <div class="metric-note">Receitas menos despesas</div>
+                <div class="metric-note">{{ analise.saldo_percentual_receita_fmt }} da receita</div>
             </div>
 
             <div class="metric">
@@ -506,8 +619,110 @@
             </div>
         </section>
 
+        <section class="executive-grid">
+            <div class="executive-card">
+                <div class="executive-title">Maior categoria</div>
+                <div class="executive-value">{{ analise.maior_categoria }}</div>
+                <div class="executive-sub">{{ analise.maior_categoria_valor_fmt }}</div>
+            </div>
+
+            <div class="executive-card">
+                <div class="executive-title">Maior despesa individual</div>
+                {% if analise.maior_despesa %}
+                    <div class="executive-value">{{ analise.maior_despesa.valor_fmt }}</div>
+                    <div class="executive-sub">{{ analise.maior_despesa.descricao }}</div>
+                {% else %}
+                    <div class="executive-value">Sem despesa</div>
+                    <div class="executive-sub">Nenhuma despesa encontrada no período.</div>
+                {% endif %}
+            </div>
+
+            <div class="executive-card">
+                <div class="executive-title">Média por despesa</div>
+                <div class="executive-value">{{ analise.media_despesas_fmt }}</div>
+                <div class="executive-sub">Baseada nos lançamentos de despesa.</div>
+            </div>
+
+            <div class="executive-card">
+                <div class="executive-title">Saldo sobre receita</div>
+                <div class="executive-value {% if analise.saldo_percentual_receita >= 0 %}green{% else %}red{% endif %}">
+                    {{ analise.saldo_percentual_receita_fmt }}
+                </div>
+                <div class="executive-sub">Quanto sobrou em relação à receita.</div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2 class="section-title">Planejado x Realizado</h2>
+            <p class="section-subtitle">
+                Comparação entre valores previstos e realizados na BASE_LANCAMENTOS.
+            </p>
+
+            <div class="budget-grid">
+                <div class="budget-box">
+                    <h3>Receitas</h3>
+
+                    <div class="budget-line">
+                        <span class="budget-label">Previsto</span>
+                        <span class="budget-value">{{ analise.total_receitas_previsto_fmt }}</span>
+                    </div>
+
+                    <div class="budget-line">
+                        <span class="budget-label">Realizado</span>
+                        <span class="budget-value green">{{ analise.total_receitas_realizado_fmt }}</span>
+                    </div>
+
+                    <div class="budget-line">
+                        <span class="budget-label">Diferença</span>
+                        <span class="budget-value {% if analise.diferenca_receitas >= 0 %}green{% else %}red{% endif %}">
+                            {% if analise.diferenca_receitas >= 0 %}+{% else %}-{% endif %}{{ analise.diferenca_receitas_fmt }}
+                        </span>
+                    </div>
+
+                    <div class="progress-wrap">
+                        <div class="progress-track">
+                            <div class="progress-fill" style="width: {% if analise.percentual_execucao_receitas > 100 %}100{% else %}{{ analise.percentual_execucao_receitas }}{% endif %}%;"></div>
+                        </div>
+                        <div class="progress-note">
+                            Execução: {{ analise.percentual_execucao_receitas_fmt }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="budget-box">
+                    <h3>Despesas</h3>
+
+                    <div class="budget-line">
+                        <span class="budget-label">Previsto</span>
+                        <span class="budget-value">{{ analise.total_despesas_previsto_fmt }}</span>
+                    </div>
+
+                    <div class="budget-line">
+                        <span class="budget-label">Realizado</span>
+                        <span class="budget-value red">{{ analise.total_despesas_realizado_fmt }}</span>
+                    </div>
+
+                    <div class="budget-line">
+                        <span class="budget-label">Diferença</span>
+                        <span class="budget-value {% if analise.diferenca_despesas <= 0 %}green{% else %}red{% endif %}">
+                            {% if analise.diferenca_despesas >= 0 %}+{% else %}-{% endif %}{{ analise.diferenca_despesas_fmt }}
+                        </span>
+                    </div>
+
+                    <div class="progress-wrap">
+                        <div class="progress-track">
+                            <div class="progress-fill" style="width: {% if analise.percentual_execucao_despesas > 100 %}100{% else %}{{ analise.percentual_execucao_despesas }}{% endif %}%;"></div>
+                        </div>
+                        <div class="progress-note">
+                            Execução: {{ analise.percentual_execucao_despesas_fmt }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="grid-2">
-            <article class="card chart-box">
+            <article class="card">
                 <h2 class="section-title">Despesas por categoria</h2>
                 <p class="section-subtitle">
                     Categorias com maior impacto no período.

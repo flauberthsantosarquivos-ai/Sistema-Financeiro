@@ -40,20 +40,33 @@ def normalizar(valor) -> str:
     return str(valor or "").strip().upper()
 
 
-def valor_lancamento(item: dict) -> float:
-    valor_realizado = abs(para_float(item.get("VALOR_REALIZADO")))
-    valor_previsto = abs(para_float(item.get("VALOR_PREVISTO")))
+def valor_previsto(item: dict) -> float:
+    return abs(para_float(item.get("VALOR_PREVISTO")))
 
-    if valor_realizado > 0:
-        return valor_realizado
 
-    return valor_previsto
+def valor_realizado(item: dict) -> float:
+    return abs(para_float(item.get("VALOR_REALIZADO")))
+
+
+def valor_base_lancamento(item: dict) -> float:
+    realizado = valor_realizado(item)
+    previsto = valor_previsto(item)
+
+    if realizado > 0:
+        return realizado
+
+    return previsto
 
 
 def preparar_analise(registros: list[dict]) -> dict:
     total_receitas = 0.0
     total_despesas = 0.0
     total_transferencias = 0.0
+
+    total_receitas_previsto = 0.0
+    total_receitas_realizado = 0.0
+    total_despesas_previsto = 0.0
+    total_despesas_realizado = 0.0
 
     qtd_receitas = 0
     qtd_despesas = 0
@@ -72,7 +85,9 @@ def preparar_analise(registros: list[dict]) -> dict:
         data = str(item.get("DATA", "")).strip()
         situacao = str(item.get("SITUACAO", "")).strip()
 
-        valor = valor_lancamento(item)
+        previsto = valor_previsto(item)
+        realizado = valor_realizado(item)
+        valor = valor_base_lancamento(item)
 
         if valor <= 0:
             continue
@@ -92,11 +107,17 @@ def preparar_analise(registros: list[dict]) -> dict:
 
         if tipo == "RECEITA":
             total_receitas += valor
+            total_receitas_previsto += previsto
+            total_receitas_realizado += realizado
+
             qtd_receitas += 1
             receitas_por_categoria[categoria] = receitas_por_categoria.get(categoria, 0.0) + valor
 
         elif tipo == "DESPESA":
             total_despesas += valor
+            total_despesas_previsto += previsto
+            total_despesas_realizado += realizado
+
             qtd_despesas += 1
             despesas_por_categoria[categoria] = despesas_por_categoria.get(categoria, 0.0) + valor
 
@@ -122,6 +143,26 @@ def preparar_analise(registros: list[dict]) -> dict:
     if total_receitas > 0:
         comprometimento = (total_despesas / total_receitas) * 100
 
+    saldo_percentual_receita = 0.0
+    if total_receitas > 0:
+        saldo_percentual_receita = (saldo / total_receitas) * 100
+
+    media_despesas = 0.0
+    if qtd_despesas > 0:
+        media_despesas = total_despesas / qtd_despesas
+
+    diferenca_despesas = total_despesas_realizado - total_despesas_previsto
+
+    percentual_execucao_despesas = 0.0
+    if total_despesas_previsto > 0:
+        percentual_execucao_despesas = (total_despesas_realizado / total_despesas_previsto) * 100
+
+    diferenca_receitas = total_receitas_realizado - total_receitas_previsto
+
+    percentual_execucao_receitas = 0.0
+    if total_receitas_previsto > 0:
+        percentual_execucao_receitas = (total_receitas_realizado / total_receitas_previsto) * 100
+
     categorias_ordenadas = sorted(
         despesas_por_categoria.items(),
         key=lambda item: item[1],
@@ -143,6 +184,8 @@ def preparar_analise(registros: list[dict]) -> dict:
     maior_categoria = categorias_ordenadas[0][0] if categorias_ordenadas else "Sem despesas"
     maior_categoria_valor = categorias_ordenadas[0][1] if categorias_ordenadas else 0.0
 
+    maior_despesa = top_despesas[0] if top_despesas else None
+
     diagnosticos = gerar_diagnostico(
         total_receitas=total_receitas,
         total_despesas=total_despesas,
@@ -151,6 +194,12 @@ def preparar_analise(registros: list[dict]) -> dict:
         qtd_a_classificar=qtd_a_classificar,
         maior_categoria=maior_categoria,
         maior_categoria_valor=maior_categoria_valor,
+        total_despesas_previsto=total_despesas_previsto,
+        total_despesas_realizado=total_despesas_realizado,
+        diferenca_despesas=diferenca_despesas,
+        percentual_execucao_despesas=percentual_execucao_despesas,
+        saldo_percentual_receita=saldo_percentual_receita,
+        maior_despesa=maior_despesa,
     )
 
     return {
@@ -159,18 +208,45 @@ def preparar_analise(registros: list[dict]) -> dict:
         "total_transferencias": total_transferencias,
         "saldo": saldo,
         "comprometimento": comprometimento,
+        "saldo_percentual_receita": saldo_percentual_receita,
+        "media_despesas": media_despesas,
         "qtd_receitas": qtd_receitas,
         "qtd_despesas": qtd_despesas,
         "qtd_transferencias": qtd_transferencias,
         "qtd_a_classificar": qtd_a_classificar,
         "total_lancamentos": len(registros),
+
         "total_receitas_fmt": formatar_moeda(total_receitas),
         "total_despesas_fmt": formatar_moeda(total_despesas),
         "total_transferencias_fmt": formatar_moeda(total_transferencias),
         "saldo_fmt": formatar_moeda(saldo),
         "comprometimento_fmt": f"{comprometimento:.1f}".replace(".", ",") + "%",
+        "saldo_percentual_receita_fmt": f"{saldo_percentual_receita:.1f}".replace(".", ",") + "%",
+        "media_despesas_fmt": formatar_moeda(media_despesas),
+
+        "total_receitas_previsto": total_receitas_previsto,
+        "total_receitas_realizado": total_receitas_realizado,
+        "total_despesas_previsto": total_despesas_previsto,
+        "total_despesas_realizado": total_despesas_realizado,
+        "diferenca_receitas": diferenca_receitas,
+        "diferenca_despesas": diferenca_despesas,
+        "percentual_execucao_receitas": percentual_execucao_receitas,
+        "percentual_execucao_despesas": percentual_execucao_despesas,
+
+        "total_receitas_previsto_fmt": formatar_moeda(total_receitas_previsto),
+        "total_receitas_realizado_fmt": formatar_moeda(total_receitas_realizado),
+        "total_despesas_previsto_fmt": formatar_moeda(total_despesas_previsto),
+        "total_despesas_realizado_fmt": formatar_moeda(total_despesas_realizado),
+        "diferenca_receitas_fmt": formatar_moeda(abs(diferenca_receitas)),
+        "diferenca_despesas_fmt": formatar_moeda(abs(diferenca_despesas)),
+        "percentual_execucao_receitas_fmt": f"{percentual_execucao_receitas:.1f}".replace(".", ",") + "%",
+        "percentual_execucao_despesas_fmt": f"{percentual_execucao_despesas:.1f}".replace(".", ",") + "%",
+
         "maior_categoria": maior_categoria,
+        "maior_categoria_valor": maior_categoria_valor,
         "maior_categoria_valor_fmt": formatar_moeda(maior_categoria_valor),
+        "maior_despesa": maior_despesa,
+
         "despesas_por_categoria": [
             {
                 "categoria": categoria,
@@ -191,14 +267,6 @@ def preparar_analise(registros: list[dict]) -> dict:
         ],
         "top_despesas": top_despesas,
         "diagnosticos": diagnosticos,
-        "chart_categorias_labels": [categoria for categoria, _ in categorias_ordenadas[:8]],
-        "chart_categorias_valores": [round(valor, 2) for _, valor in categorias_ordenadas[:8]],
-        "chart_resumo_labels": ["Receitas", "Despesas", "Transferências"],
-        "chart_resumo_valores": [
-            round(total_receitas, 2),
-            round(total_despesas, 2),
-            round(total_transferencias, 2),
-        ],
     }
 
 
@@ -210,6 +278,12 @@ def gerar_diagnostico(
     qtd_a_classificar: int,
     maior_categoria: str,
     maior_categoria_valor: float,
+    total_despesas_previsto: float,
+    total_despesas_realizado: float,
+    diferenca_despesas: float,
+    percentual_execucao_despesas: float,
+    saldo_percentual_receita: float,
+    maior_despesa: dict | None,
 ) -> list[dict]:
     diagnosticos = []
 
@@ -252,7 +326,7 @@ def gerar_diagnostico(
             {
                 "tipo": "positivo",
                 "titulo": "Saldo positivo",
-                "texto": f"O saldo do período está positivo em {formatar_moeda(saldo)}.",
+                "texto": f"O saldo do período está positivo em {formatar_moeda(saldo)}. Isso representa {saldo_percentual_receita:.1f}% da receita.",
             }
         )
     else:
@@ -274,13 +348,53 @@ def gerar_diagnostico(
         )
 
     if maior_categoria and maior_categoria != "Sem despesas" and maior_categoria_valor > 0:
+        percentual_maior_categoria = 0.0
+
+        if total_despesas > 0:
+            percentual_maior_categoria = (maior_categoria_valor / total_despesas) * 100
+
         diagnosticos.append(
             {
                 "tipo": "info",
                 "titulo": "Maior categoria de despesa",
-                "texto": f"A maior categoria de despesa no período é {maior_categoria}, com {formatar_moeda(maior_categoria_valor)}.",
+                "texto": f"A maior categoria de despesa é {maior_categoria}, com {formatar_moeda(maior_categoria_valor)}, representando {percentual_maior_categoria:.1f}% das despesas.",
             }
         )
+
+    if maior_despesa:
+        diagnosticos.append(
+            {
+                "tipo": "info",
+                "titulo": "Maior despesa individual",
+                "texto": f"A maior despesa individual foi {maior_despesa['descricao']}, no valor de {maior_despesa['valor_fmt']}.",
+            }
+        )
+
+    if total_despesas_previsto > 0:
+        if diferenca_despesas > 0:
+            diagnosticos.append(
+                {
+                    "tipo": "alerta" if percentual_execucao_despesas > 115 else "atencao",
+                    "titulo": "Despesas acima do previsto",
+                    "texto": f"As despesas realizadas superaram o previsto em {formatar_moeda(diferenca_despesas)}. A execução está em {percentual_execucao_despesas:.1f}%.",
+                }
+            )
+        elif diferenca_despesas < 0:
+            diagnosticos.append(
+                {
+                    "tipo": "positivo",
+                    "titulo": "Despesas abaixo do previsto",
+                    "texto": f"As despesas realizadas ficaram {formatar_moeda(abs(diferenca_despesas))} abaixo do previsto. A execução está em {percentual_execucao_despesas:.1f}%.",
+                }
+            )
+        else:
+            diagnosticos.append(
+                {
+                    "tipo": "positivo",
+                    "titulo": "Despesas dentro do previsto",
+                    "texto": "As despesas realizadas estão exatamente iguais ao valor previsto para o período.",
+                }
+            )
 
     return diagnosticos
 

@@ -35,6 +35,50 @@ MESES_OPCOES = [
     ("DEZ", "Dezembro"),
 ]
 
+MESES_MAPA = {
+    "JAN": "Janeiro",
+    "FEV": "Fevereiro",
+    "MAR": "Março",
+    "ABR": "Abril",
+    "MAI": "Maio",
+    "JUN": "Junho",
+    "JUL": "Julho",
+    "AGO": "Agosto",
+    "SET": "Setembro",
+    "OUT": "Outubro",
+    "NOV": "Novembro",
+    "DEZ": "Dezembro",
+}
+
+
+CORES_CATEGORIAS = {
+    "ALIMENTAÇÃO": {"cor": "#047857", "fundo": "#ecfdf5", "borda": "#bbf7d0"},
+    "MORADIA": {"cor": "#1d4ed8", "fundo": "#eff6ff", "borda": "#bfdbfe"},
+    "CASA": {"cor": "#2563eb", "fundo": "#eff6ff", "borda": "#bfdbfe"},
+    "TRANSPORTE": {"cor": "#ea580c", "fundo": "#fff7ed", "borda": "#fed7aa"},
+    "SAÚDE": {"cor": "#dc2626", "fundo": "#fef2f2", "borda": "#fecaca"},
+    "EDUCAÇÃO": {"cor": "#7c3aed", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
+    "COMUNICAÇÃO": {"cor": "#0891b2", "fundo": "#ecfeff", "borda": "#a5f3fc"},
+    "INVESTIMENTOS": {"cor": "#b45309", "fundo": "#fffbeb", "borda": "#fde68a"},
+    "INVESTIMENTOS / RESERVA": {"cor": "#b45309", "fundo": "#fffbeb", "borda": "#fde68a"},
+    "TRANSFERÊNCIA": {"cor": "#ca8a04", "fundo": "#fefce8", "borda": "#fef08a"},
+    "TRANSFERÊNCIA VIA PIX": {"cor": "#ca8a04", "fundo": "#fefce8", "borda": "#fef08a"},
+    "OUTROS": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
+    "SEM CATEGORIA": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
+}
+
+
+PALETA_PADRAO = [
+    {"cor": "#047857", "fundo": "#ecfdf5", "borda": "#bbf7d0"},
+    {"cor": "#1d4ed8", "fundo": "#eff6ff", "borda": "#bfdbfe"},
+    {"cor": "#ea580c", "fundo": "#fff7ed", "borda": "#fed7aa"},
+    {"cor": "#7c3aed", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
+    {"cor": "#dc2626", "fundo": "#fef2f2", "borda": "#fecaca"},
+    {"cor": "#0891b2", "fundo": "#ecfeff", "borda": "#a5f3fc"},
+    {"cor": "#b45309", "fundo": "#fffbeb", "borda": "#fde68a"},
+    {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
+]
+
 
 def normalizar(valor) -> str:
     return str(valor or "").strip().upper()
@@ -58,7 +102,258 @@ def valor_base_lancamento(item: dict) -> float:
     return previsto
 
 
-def preparar_analise(registros: list[dict]) -> dict:
+def obter_estilo_categoria(categoria: str, indice: int) -> dict:
+    categoria_normalizada = normalizar(categoria)
+
+    for chave, estilo in CORES_CATEGORIAS.items():
+        if chave in categoria_normalizada or categoria_normalizada in chave:
+            return estilo
+
+    return PALETA_PADRAO[indice % len(PALETA_PADRAO)]
+
+
+def extrair_mes(item: dict) -> str:
+    mes = normalizar(item.get("MES"))
+
+    if mes in MESES_MAPA:
+        return mes
+
+    data_lancamento = str(item.get("DATA", "")).strip()
+
+    if "/" in data_lancamento:
+        partes = data_lancamento.split("/")
+
+        if len(partes) >= 2:
+            try:
+                numero_mes = int(partes[1])
+                siglas = list(MESES_MAPA.keys())
+
+                if 1 <= numero_mes <= 12:
+                    return siglas[numero_mes - 1]
+            except Exception:
+                pass
+
+    return ""
+
+
+def calcular_evolucao_mensal(registros: list[dict]) -> dict:
+    meses = []
+
+    for sigla, nome in MESES_OPCOES:
+        meses.append(
+            {
+                "mes": sigla,
+                "nome": nome,
+                "receitas": 0.0,
+                "despesas": 0.0,
+                "transferencias": 0.0,
+                "saldo": 0.0,
+                "comprometimento": 0.0,
+                "qtd_lancamentos": 0,
+            }
+        )
+
+    indice_por_mes = {item["mes"]: indice for indice, item in enumerate(meses)}
+
+    for item in registros:
+        tipo = normalizar(item.get("TIPO"))
+        mes = extrair_mes(item)
+        valor = valor_base_lancamento(item)
+
+        if not mes or mes not in indice_por_mes or valor <= 0:
+            continue
+
+        indice = indice_por_mes[mes]
+
+        if tipo == "RECEITA":
+            meses[indice]["receitas"] += valor
+            meses[indice]["qtd_lancamentos"] += 1
+
+        elif tipo == "DESPESA":
+            meses[indice]["despesas"] += valor
+            meses[indice]["qtd_lancamentos"] += 1
+
+        elif tipo in {"TRANSFERÊNCIA", "TRANSFERENCIA"}:
+            meses[indice]["transferencias"] += valor
+            meses[indice]["qtd_lancamentos"] += 1
+
+    maior_valor = 0.0
+
+    for item in meses:
+        item["saldo"] = item["receitas"] - item["despesas"]
+
+        if item["receitas"] > 0:
+            item["comprometimento"] = (item["despesas"] / item["receitas"]) * 100
+
+        maior_valor = max(
+            maior_valor,
+            item["receitas"],
+            item["despesas"],
+            abs(item["saldo"]),
+        )
+
+    meses_formatados = []
+
+    for item in meses:
+        receitas_pct = (item["receitas"] / maior_valor * 100) if maior_valor > 0 else 0
+        despesas_pct = (item["despesas"] / maior_valor * 100) if maior_valor > 0 else 0
+        saldo_pct = (abs(item["saldo"]) / maior_valor * 100) if maior_valor > 0 else 0
+
+        meses_formatados.append(
+            {
+                **item,
+                "receitas_fmt": formatar_moeda(item["receitas"]),
+                "despesas_fmt": formatar_moeda(item["despesas"]),
+                "transferencias_fmt": formatar_moeda(item["transferencias"]),
+                "saldo_fmt": formatar_moeda(item["saldo"]),
+                "comprometimento_fmt": f"{item['comprometimento']:.1f}".replace(".", ",") + "%",
+                "receitas_pct": receitas_pct,
+                "despesas_pct": despesas_pct,
+                "saldo_pct": saldo_pct,
+            }
+        )
+
+    total_receitas = sum(item["receitas"] for item in meses)
+    total_despesas = sum(item["despesas"] for item in meses)
+    saldo_total = total_receitas - total_despesas
+
+    melhor_mes = None
+    pior_mes = None
+
+    meses_com_movimento = [
+        item for item in meses_formatados
+        if item["receitas"] > 0 or item["despesas"] > 0
+    ]
+
+    if meses_com_movimento:
+        melhor_mes = max(meses_com_movimento, key=lambda item: item["saldo"])
+        pior_mes = min(meses_com_movimento, key=lambda item: item["saldo"])
+
+    return {
+        "meses": meses_formatados,
+        "total_receitas": total_receitas,
+        "total_despesas": total_despesas,
+        "saldo_total": saldo_total,
+        "total_receitas_fmt": formatar_moeda(total_receitas),
+        "total_despesas_fmt": formatar_moeda(total_despesas),
+        "saldo_total_fmt": formatar_moeda(saldo_total),
+        "melhor_mes": melhor_mes,
+        "pior_mes": pior_mes,
+    }
+
+
+def calcular_orcamento_por_categoria(registros: list[dict]) -> dict:
+    categorias = {}
+
+    for item in registros:
+        tipo = normalizar(item.get("TIPO"))
+
+        if tipo != "DESPESA":
+            continue
+
+        categoria = str(item.get("CATEGORIA", "")).strip() or "SEM CATEGORIA"
+        previsto = valor_previsto(item)
+        realizado = valor_realizado(item)
+
+        if previsto <= 0 and realizado <= 0:
+            continue
+
+        categorias.setdefault(
+            categoria,
+            {
+                "previsto": 0.0,
+                "realizado": 0.0,
+                "qtd_lancamentos": 0,
+            },
+        )
+
+        categorias[categoria]["previsto"] += previsto
+        categorias[categoria]["realizado"] += realizado
+        categorias[categoria]["qtd_lancamentos"] += 1
+
+    lista = []
+
+    total_previsto = 0.0
+    total_realizado = 0.0
+
+    for indice, (categoria, valores) in enumerate(categorias.items()):
+        previsto = valores["previsto"]
+        realizado = valores["realizado"]
+        diferenca = realizado - previsto
+
+        execucao = 0.0
+        if previsto > 0:
+            execucao = (realizado / previsto) * 100
+
+        if previsto <= 0 and realizado > 0:
+            status = "Sem previsto"
+            status_classe = "sem-previsto"
+            status_tipo = "atencao"
+        elif execucao <= 100:
+            status = "Dentro do previsto"
+            status_classe = "dentro"
+            status_tipo = "positivo"
+        elif execucao <= 115:
+            status = "Atenção"
+            status_classe = "atencao"
+            status_tipo = "atencao"
+        else:
+            status = "Acima do previsto"
+            status_classe = "acima"
+            status_tipo = "alerta"
+
+        estilo = obter_estilo_categoria(categoria, indice)
+
+        total_previsto += previsto
+        total_realizado += realizado
+
+        lista.append(
+            {
+                "categoria": categoria,
+                "previsto": previsto,
+                "realizado": realizado,
+                "diferenca": diferenca,
+                "execucao": execucao,
+                "previsto_fmt": formatar_moeda(previsto),
+                "realizado_fmt": formatar_moeda(realizado),
+                "diferenca_fmt": formatar_moeda(abs(diferenca)),
+                "execucao_fmt": f"{execucao:.1f}".replace(".", ",") + "%" if previsto > 0 else "Sem previsto",
+                "qtd_lancamentos": valores["qtd_lancamentos"],
+                "status": status,
+                "status_classe": status_classe,
+                "status_tipo": status_tipo,
+                "cor": estilo["cor"],
+                "cor_fundo": estilo["fundo"],
+                "cor_borda": estilo["borda"],
+            }
+        )
+
+    lista = sorted(
+        lista,
+        key=lambda item: item["diferenca"],
+        reverse=True,
+    )
+
+    diferenca_total = total_realizado - total_previsto
+
+    execucao_total = 0.0
+    if total_previsto > 0:
+        execucao_total = (total_realizado / total_previsto) * 100
+
+    return {
+        "categorias": lista,
+        "total_previsto": total_previsto,
+        "total_realizado": total_realizado,
+        "diferenca_total": diferenca_total,
+        "execucao_total": execucao_total,
+        "total_previsto_fmt": formatar_moeda(total_previsto),
+        "total_realizado_fmt": formatar_moeda(total_realizado),
+        "diferenca_total_fmt": formatar_moeda(abs(diferenca_total)),
+        "execucao_total_fmt": f"{execucao_total:.1f}".replace(".", ",") + "%" if total_previsto > 0 else "Sem previsto",
+    }
+
+
+def preparar_analise(registros: list[dict], registros_ano: list[dict] | None = None) -> dict:
     total_receitas = 0.0
     total_despesas = 0.0
     total_transferencias = 0.0
@@ -74,6 +369,7 @@ def preparar_analise(registros: list[dict]) -> dict:
     qtd_a_classificar = 0
 
     despesas_por_categoria = {}
+    despesas_por_categoria_subcategoria = {}
     receitas_por_categoria = {}
     top_despesas = []
 
@@ -121,17 +417,29 @@ def preparar_analise(registros: list[dict]) -> dict:
             qtd_despesas += 1
             despesas_por_categoria[categoria] = despesas_por_categoria.get(categoria, 0.0) + valor
 
-            top_despesas.append(
+            detalhe = {
+                "data": data,
+                "descricao": descricao,
+                "categoria": categoria,
+                "subcategoria": subcategoria,
+                "situacao": situacao,
+                "valor": valor,
+                "valor_fmt": formatar_moeda(valor),
+            }
+
+            despesas_por_categoria_subcategoria.setdefault(categoria, {})
+            despesas_por_categoria_subcategoria[categoria].setdefault(
+                subcategoria,
                 {
-                    "data": data,
-                    "descricao": descricao,
-                    "categoria": categoria,
-                    "subcategoria": subcategoria,
-                    "situacao": situacao,
-                    "valor": valor,
-                    "valor_fmt": formatar_moeda(valor),
-                }
+                    "valor": 0.0,
+                    "lancamentos": [],
+                },
             )
+
+            despesas_por_categoria_subcategoria[categoria][subcategoria]["valor"] += valor
+            despesas_por_categoria_subcategoria[categoria][subcategoria]["lancamentos"].append(detalhe)
+
+            top_despesas.append(detalhe)
 
         elif tipo in {"TRANSFERÊNCIA", "TRANSFERENCIA"}:
             total_transferencias += valor
@@ -186,6 +494,81 @@ def preparar_analise(registros: list[dict]) -> dict:
 
     maior_despesa = top_despesas[0] if top_despesas else None
 
+    despesas_por_categoria_lista = []
+
+    for indice_categoria, (categoria, valor_categoria) in enumerate(categorias_ordenadas):
+        percentual_categoria = (valor_categoria / total_despesas * 100) if total_despesas > 0 else 0
+        estilo = obter_estilo_categoria(categoria, indice_categoria)
+
+        subcategorias_raw = despesas_por_categoria_subcategoria.get(categoria, {})
+
+        subcategorias_ordenadas = sorted(
+            subcategorias_raw.items(),
+            key=lambda item: item[1]["valor"],
+            reverse=True,
+        )
+
+        subcategorias_lista = []
+        todos_lancamentos_categoria = []
+
+        for indice_subcategoria, (subcategoria, dados_subcategoria) in enumerate(subcategorias_ordenadas):
+            valor_subcategoria = dados_subcategoria["valor"]
+            percentual_subcategoria = (
+                valor_subcategoria / valor_categoria * 100
+                if valor_categoria > 0
+                else 0
+            )
+
+            lancamentos = sorted(
+                dados_subcategoria["lancamentos"],
+                key=lambda item: item["valor"],
+                reverse=True,
+            )
+
+            todos_lancamentos_categoria.extend(lancamentos)
+
+            subcategorias_lista.append(
+                {
+                    "id": f"sub_{indice_categoria}_{indice_subcategoria}",
+                    "subcategoria": subcategoria,
+                    "valor": valor_subcategoria,
+                    "valor_fmt": formatar_moeda(valor_subcategoria),
+                    "percentual": percentual_subcategoria,
+                    "percentual_fmt": f"{percentual_subcategoria:.1f}".replace(".", ",") + "%",
+                    "qtd_lancamentos": len(lancamentos),
+                    "lancamentos": lancamentos,
+                }
+            )
+
+        todos_lancamentos_categoria = sorted(
+            todos_lancamentos_categoria,
+            key=lambda item: item["valor"],
+            reverse=True,
+        )
+
+        qtd_lancamentos_categoria = sum(
+            subcategoria["qtd_lancamentos"]
+            for subcategoria in subcategorias_lista
+        )
+
+        despesas_por_categoria_lista.append(
+            {
+                "id": f"cat_{indice_categoria}",
+                "modal_id": f"modal_cat_{indice_categoria}",
+                "categoria": categoria,
+                "valor": valor_categoria,
+                "valor_fmt": formatar_moeda(valor_categoria),
+                "percentual": percentual_categoria,
+                "percentual_fmt": f"{percentual_categoria:.1f}".replace(".", ",") + "%",
+                "qtd_lancamentos": qtd_lancamentos_categoria,
+                "subcategorias": subcategorias_lista,
+                "lancamentos": todos_lancamentos_categoria,
+                "cor": estilo["cor"],
+                "cor_fundo": estilo["fundo"],
+                "cor_borda": estilo["borda"],
+            }
+        )
+
     diagnosticos = gerar_diagnostico(
         total_receitas=total_receitas,
         total_despesas=total_despesas,
@@ -201,6 +584,10 @@ def preparar_analise(registros: list[dict]) -> dict:
         saldo_percentual_receita=saldo_percentual_receita,
         maior_despesa=maior_despesa,
     )
+
+    registros_para_evolucao = registros_ano if registros_ano is not None else registros
+    evolucao_mensal = calcular_evolucao_mensal(registros_para_evolucao)
+    orcamento_por_categoria = calcular_orcamento_por_categoria(registros)
 
     return {
         "total_receitas": total_receitas,
@@ -247,16 +634,7 @@ def preparar_analise(registros: list[dict]) -> dict:
         "maior_categoria_valor_fmt": formatar_moeda(maior_categoria_valor),
         "maior_despesa": maior_despesa,
 
-        "despesas_por_categoria": [
-            {
-                "categoria": categoria,
-                "valor": valor,
-                "valor_fmt": formatar_moeda(valor),
-                "percentual": (valor / total_despesas * 100) if total_despesas > 0 else 0,
-                "percentual_fmt": f"{((valor / total_despesas * 100) if total_despesas > 0 else 0):.1f}".replace(".", ",") + "%",
-            }
-            for categoria, valor in categorias_ordenadas
-        ],
+        "despesas_por_categoria": despesas_por_categoria_lista,
         "receitas_por_categoria": [
             {
                 "categoria": categoria,
@@ -267,6 +645,8 @@ def preparar_analise(registros: list[dict]) -> dict:
         ],
         "top_despesas": top_despesas,
         "diagnosticos": diagnosticos,
+        "evolucao_mensal": evolucao_mensal,
+        "orcamento_por_categoria": orcamento_por_categoria,
     }
 
 
@@ -440,7 +820,19 @@ async def analise_financeira_get(
             ano=ano_final,
         )
 
-        analise = preparar_analise(registros_filtrados)
+        registros_ano = filtrar_por_periodo(
+            registros=registros,
+            periodo_tipo="todos",
+            mes_unico=mes_unico,
+            mes_inicio="JAN",
+            mes_fim="DEZ",
+            ano=ano_final,
+        )
+
+        analise = preparar_analise(
+            registros=registros_filtrados,
+            registros_ano=registros_ano,
+        )
 
         return templates.TemplateResponse(
             request=request,

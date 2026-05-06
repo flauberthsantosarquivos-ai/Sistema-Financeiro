@@ -208,7 +208,7 @@
 
         .small-select {
             min-width: 145px;
-            max-width: 180px;
+            max-width: 190px;
         }
 
         .warning {
@@ -249,10 +249,11 @@
 
         <nav class="nav">
             <a href="/">Início</a>
-            <a href="/financeiro">Visão Geral</a>
-            <a href="/financeiro/base-lancamentos">BASE_LANCAMENTOS</a>
-            <a href="/financeiro/extratos" class="active">Importar Extratos</a>
-            <a href="/financeiro/lancamento">Novo Lançamento</a>
+            <a href="/financeiro">Central Financeira</a>
+            <a href="/financeiro/extratos" class="active">1. Importar Extratos</a>
+            <a href="/financeiro/base-lancamentos">2. Revisar Base</a>
+            <a href="/financeiro/lancamento">3. Novo Lançamento</a>
+            <a href="/financeiro/analise">4. Análise Financeira</a>
         </nav>
 
         {% if mensagem %}
@@ -315,29 +316,38 @@
                                     <th>Conta</th>
                                 </tr>
                             </thead>
+
                             <tbody>
                                 {% for mov in resultado.movimentacoes %}
                                     <tr>
                                         <td>
                                             <input type="checkbox" name="importar_{{ mov.indice }}" value="SIM" checked />
                                         </td>
+
                                         <td>{{ mov.data }}</td>
+
                                         <td class="desc">{{ mov.descricao }}</td>
+
                                         <td class="money {% if mov.valor < 0 %}negative{% else %}positive{% endif %}">
                                             R$ {{ mov.valor_fmt }}
                                         </td>
+
                                         <td>
                                             <select class="small-select" name="tipo_{{ mov.indice }}">
                                                 <option value="DESPESA" {% if mov.tipo == "DESPESA" %}selected{% endif %}>DESPESA</option>
                                                 <option value="RECEITA" {% if mov.tipo == "RECEITA" %}selected{% endif %}>RECEITA</option>
+                                                <option value="TRANSFERÊNCIA" {% if mov.tipo == "TRANSFERÊNCIA" or mov.tipo == "TRANSFERENCIA" %}selected{% endif %}>TRANSFERÊNCIA</option>
                                             </select>
                                         </td>
+
                                         <td>
                                             <input type="text" name="categoria_{{ mov.indice }}" value="{{ mov.categoria }}" />
                                         </td>
+
                                         <td>
                                             <input type="text" name="subcategoria_{{ mov.indice }}" value="{{ mov.subcategoria }}" />
                                         </td>
+
                                         <td>
                                             <select class="small-select" name="situacao_{{ mov.indice }}">
                                                 {% for item in situacoes %}
@@ -347,6 +357,7 @@
                                                 {% endfor %}
                                             </select>
                                         </td>
+
                                         <td>
                                             <select class="small-select" name="forma_pagamento_{{ mov.indice }}">
                                                 {% for item in formas_pagamento %}
@@ -356,6 +367,7 @@
                                                 {% endfor %}
                                             </select>
                                         </td>
+
                                         <td>
                                             <select class="small-select" name="conta_{{ mov.indice }}">
                                                 {% for item in contas %}

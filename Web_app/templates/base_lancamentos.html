@@ -157,7 +157,8 @@
         }
 
         input,
-        select {
+        select,
+        textarea {
             width: 100%;
             border: 1px solid var(--border);
             border-radius: 13px;
@@ -167,8 +168,14 @@
             font-family: inherit;
         }
 
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
         input:focus,
-        select:focus {
+        select:focus,
+        textarea:focus {
             outline: 2px solid #bfdbfe;
             border-color: #93c5fd;
             background: white;
@@ -473,7 +480,8 @@
             font-weight: 650;
         }
 
-        .edit-link {
+        .edit-link,
+        .quick-edit-button {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -486,10 +494,19 @@
             font-weight: 900;
             font-size: 12px;
             white-space: nowrap;
+            cursor: pointer;
         }
 
+        .quick-edit-button:hover,
         .edit-link:hover {
             background: #dbeafe;
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
         }
 
         .empty-state {
@@ -501,9 +518,97 @@
             border-radius: 16px;
         }
 
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.58);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 22px;
+            z-index: 1000;
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+        }
+
+        .modal {
+            width: min(980px, 100%);
+            max-height: 92vh;
+            overflow-y: auto;
+            background: white;
+            border-radius: 26px;
+            box-shadow: 0 28px 70px rgba(15, 23, 42, 0.30);
+            border: 1px solid var(--border);
+        }
+
+        .modal-header {
+            padding: 22px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: flex-start;
+        }
+
+        .modal-header h2 {
+            margin: 0 0 6px;
+            letter-spacing: -0.03em;
+        }
+
+        .modal-header p {
+            margin: 0;
+            color: var(--muted);
+            font-weight: 650;
+        }
+
+        .modal-close {
+            background: #e5e7eb;
+            color: #111827;
+            padding: 9px 13px;
+            border-radius: 999px;
+        }
+
+        .modal-close:hover {
+            background: #d1d5db;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .edit-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .edit-grid .wide {
+            grid-column: 1 / -1;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 22px;
+        }
+
+        .cancel-button {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .cancel-button:hover {
+            background: #d1d5db;
+        }
+
         @media (max-width: 1200px) {
             .filter-grid,
-            .summary {
+            .summary,
+            .edit-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -523,16 +628,17 @@
         <section class="hero">
             <h1>Dashboard Financeiro</h1>
             <p>
-                BASE_LANCAMENTOS: consulta, filtros, edição e exclusão da base oficial do sistema.
+                BASE_LANCAMENTOS: consulta, filtros, edição rápida e exclusão da base oficial do sistema.
             </p>
         </section>
 
         <nav class="nav">
             <a href="/">Início</a>
-            <a href="/financeiro">Visão Geral</a>
-            <a href="/financeiro/base-lancamentos" class="active">BASE_LANCAMENTOS</a>
-            <a href="/financeiro/extratos">Importar Extratos</a>
-            <a href="/financeiro/lancamento">Novo Lançamento</a>
+            <a href="/financeiro">Central Financeira</a>
+            <a href="/financeiro/extratos">1. Importar Extratos</a>
+            <a href="/financeiro/base-lancamentos" class="active">2. Revisar Base</a>
+            <a href="/financeiro/lancamento">3. Novo Lançamento</a>
+            <a href="/financeiro/analise">4. Análise Financeira</a>
         </nav>
 
         {% if mensagem %}
@@ -558,15 +664,9 @@
                     <div>
                         <label>Período</label>
                         <select name="periodo_tipo" id="periodo_tipo" onchange="alternarPeriodo()">
-                            <option value="todos" {% if filtros.periodo_tipo == "todos" %}selected{% endif %}>
-                                Todos os meses
-                            </option>
-                            <option value="mes_unico" {% if filtros.periodo_tipo == "mes_unico" %}selected{% endif %}>
-                                Mês específico
-                            </option>
-                            <option value="intervalo" {% if filtros.periodo_tipo == "intervalo" %}selected{% endif %}>
-                                Intervalo de meses
-                            </option>
+                            <option value="todos" {% if filtros.periodo_tipo == "todos" %}selected{% endif %}>Todos os meses</option>
+                            <option value="mes_unico" {% if filtros.periodo_tipo == "mes_unico" %}selected{% endif %}>Mês específico</option>
+                            <option value="intervalo" {% if filtros.periodo_tipo == "intervalo" %}selected{% endif %}>Intervalo de meses</option>
                         </select>
                     </div>
 
@@ -574,9 +674,7 @@
                         <label>Mês</label>
                         <select name="mes_unico">
                             {% for sigla, nome in meses_opcoes %}
-                                <option value="{{ sigla }}" {% if filtros.mes_unico == sigla %}selected{% endif %}>
-                                    {{ nome }}
-                                </option>
+                                <option value="{{ sigla }}" {% if filtros.mes_unico == sigla %}selected{% endif %}>{{ nome }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -585,9 +683,7 @@
                         <label>De</label>
                         <select name="mes_inicio">
                             {% for sigla, nome in meses_opcoes %}
-                                <option value="{{ sigla }}" {% if filtros.mes_inicio == sigla %}selected{% endif %}>
-                                    {{ nome }}
-                                </option>
+                                <option value="{{ sigla }}" {% if filtros.mes_inicio == sigla %}selected{% endif %}>{{ nome }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -596,9 +692,7 @@
                         <label>Até</label>
                         <select name="mes_fim">
                             {% for sigla, nome in meses_opcoes %}
-                                <option value="{{ sigla }}" {% if filtros.mes_fim == sigla %}selected{% endif %}>
-                                    {{ nome }}
-                                </option>
+                                <option value="{{ sigla }}" {% if filtros.mes_fim == sigla %}selected{% endif %}>{{ nome }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -613,9 +707,7 @@
                         <select name="tipo">
                             <option value="">Todos</option>
                             {% for item in tipos_opcoes %}
-                                <option value="{{ item }}" {% if filtros.tipo == item %}selected{% endif %}>
-                                    {{ item }}
-                                </option>
+                                <option value="{{ item }}" {% if filtros.tipo == item %}selected{% endif %}>{{ item }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -625,9 +717,7 @@
                         <select name="situacao">
                             <option value="">Todas</option>
                             {% for item in situacoes_opcoes %}
-                                <option value="{{ item }}" {% if filtros.situacao == item %}selected{% endif %}>
-                                    {{ item }}
-                                </option>
+                                <option value="{{ item }}" {% if filtros.situacao == item %}selected{% endif %}>{{ item }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -637,9 +727,7 @@
                         <select name="origem">
                             <option value="">Todas</option>
                             {% for item in origens_opcoes %}
-                                <option value="{{ item }}" {% if filtros.origem == item %}selected{% endif %}>
-                                    {{ item }}
-                                </option>
+                                <option value="{{ item }}" {% if filtros.origem == item %}selected{% endif %}>{{ item }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -649,21 +737,14 @@
                         <select name="categoria">
                             <option value="">Todas</option>
                             {% for item in categorias_opcoes %}
-                                <option value="{{ item }}" {% if filtros.categoria == item %}selected{% endif %}>
-                                    {{ item }}
-                                </option>
+                                <option value="{{ item }}" {% if filtros.categoria == item %}selected{% endif %}>{{ item }}</option>
                             {% endfor %}
                         </select>
                     </div>
 
                     <div>
                         <label>Buscar texto</label>
-                        <input
-                            type="text"
-                            name="texto"
-                            value="{{ filtros.texto }}"
-                            placeholder="Descrição, conta, observação..."
-                        />
+                        <input type="text" name="texto" value="{{ filtros.texto }}" placeholder="Descrição, conta, observação..." />
                     </div>
 
                     <div>
@@ -671,9 +752,7 @@
                     </div>
 
                     <div>
-                        <a class="clear-link" href="/financeiro/base-lancamentos">
-                            Limpar filtros
-                        </a>
+                        <a class="clear-link" href="/financeiro/base-lancamentos">Limpar filtros</a>
                     </div>
                 </div>
             </form>
@@ -719,11 +798,7 @@
                 </div>
             </div>
 
-            <form
-                method="post"
-                action="/financeiro/base-lancamentos/excluir-selecionados"
-                onsubmit="return confirmarExclusaoSelecionados();"
-            >
+            <form method="post" action="/financeiro/base-lancamentos/excluir-selecionados" onsubmit="return confirmarExclusaoSelecionados();">
                 <div class="table-actions">
                     <div class="table-actions-left">
                         <label style="margin: 0; display: flex; align-items: center; gap: 8px;">
@@ -772,19 +847,39 @@
                                     <tr class="{% if tipo_upper == 'DESPESA' %}row-despesa{% elif tipo_upper == 'RECEITA' %}row-receita{% elif tipo_upper == 'TRANSFERÊNCIA' or tipo_upper == 'TRANSFERENCIA' %}row-transferencia{% endif %}">
                                         <td class="select-col">
                                             {% if item.id %}
-                                                <input
-                                                    type="checkbox"
-                                                    name="lancamentos_ids"
-                                                    value="{{ item.id }}"
-                                                    class="check-lancamento"
-                                                />
+                                                <input type="checkbox" name="lancamentos_ids" value="{{ item.id }}" class="check-lancamento" />
                                             {% endif %}
                                         </td>
 
                                         <td>
-                                            <a class="edit-link" href="/financeiro/base-lancamentos/editar/{{ item.id }}">
-                                                Editar
-                                            </a>
+                                            <div class="actions-cell">
+                                                <button
+                                                    type="button"
+                                                    class="quick-edit-button"
+                                                    onclick="abrirEdicaoRapida(this)"
+                                                    data-id="{{ item.id|e }}"
+                                                    data-data="{{ item.data|e }}"
+                                                    data-mes="{{ item.mes|e }}"
+                                                    data-ano="{{ item.ano|e }}"
+                                                    data-tipo="{{ item.tipo|e }}"
+                                                    data-categoria="{{ item.categoria|e }}"
+                                                    data-subcategoria="{{ item.subcategoria|e }}"
+                                                    data-descricao="{{ item.descricao|e }}"
+                                                    data-valor-previsto="{{ item.valor_previsto_raw|e }}"
+                                                    data-valor-realizado="{{ item.valor_realizado_raw|e }}"
+                                                    data-situacao="{{ item.situacao|e }}"
+                                                    data-forma-pagamento="{{ item.forma_pagamento|e }}"
+                                                    data-conta="{{ item.conta|e }}"
+                                                    data-origem="{{ item.origem|e }}"
+                                                    data-observacao="{{ item.observacao|e }}"
+                                                >
+                                                    Editar rápido
+                                                </button>
+
+                                                <a class="edit-link" href="/financeiro/base-lancamentos/editar/{{ item.id }}">
+                                                    Completo
+                                                </a>
+                                            </div>
                                         </td>
 
                                         <td><strong>{{ item.data }}</strong></td>
@@ -844,6 +939,120 @@
         </section>
     </main>
 
+    <div class="modal-backdrop" id="modalEdicaoRapida">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h2>Editar lançamento</h2>
+                    <p>Altere os principais campos sem sair da BASE_LANCAMENTOS.</p>
+                </div>
+
+                <button type="button" class="modal-close" onclick="fecharEdicaoRapida()">Fechar</button>
+            </div>
+
+            <div class="modal-body">
+                <form method="post" id="formEdicaoRapida">
+                    <input
+                        type="hidden"
+                        name="return_url"
+                        value="{{ request.url.path }}{% if request.url.query %}?{{ request.url.query }}{% endif %}"
+                    />
+
+                    <div class="edit-grid">
+                        <div>
+                            <label>Data</label>
+                            <input type="text" name="data" id="edit_data" />
+                        </div>
+
+                        <div>
+                            <label>Mês</label>
+                            <select name="mes" id="edit_mes">
+                                {% for sigla, nome in meses_opcoes %}
+                                    <option value="{{ sigla }}">{{ nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Ano</label>
+                            <input type="text" name="ano" id="edit_ano" />
+                        </div>
+
+                        <div>
+                            <label>Tipo</label>
+                            <select name="tipo" id="edit_tipo">
+                                <option value="DESPESA">DESPESA</option>
+                                <option value="RECEITA">RECEITA</option>
+                                <option value="TRANSFERÊNCIA">TRANSFERÊNCIA</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Categoria</label>
+                            <input type="text" name="categoria" id="edit_categoria" />
+                        </div>
+
+                        <div>
+                            <label>Subcategoria</label>
+                            <input type="text" name="subcategoria" id="edit_subcategoria" />
+                        </div>
+
+                        <div class="wide">
+                            <label>Descrição</label>
+                            <input type="text" name="descricao" id="edit_descricao" />
+                        </div>
+
+                        <div>
+                            <label>Valor previsto</label>
+                            <input type="text" name="valor_previsto" id="edit_valor_previsto" />
+                        </div>
+
+                        <div>
+                            <label>Valor realizado</label>
+                            <input type="text" name="valor_realizado" id="edit_valor_realizado" />
+                        </div>
+
+                        <div>
+                            <label>Situação</label>
+                            <select name="situacao" id="edit_situacao">
+                                <option value="PAGO">PAGO</option>
+                                <option value="RECEBIDO">RECEBIDO</option>
+                                <option value="PENDENTE">PENDENTE</option>
+                                <option value="PREVISTO">PREVISTO</option>
+                                <option value="A CLASSIFICAR">A CLASSIFICAR</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Forma de pagamento</label>
+                            <input type="text" name="forma_pagamento" id="edit_forma_pagamento" />
+                        </div>
+
+                        <div>
+                            <label>Conta</label>
+                            <input type="text" name="conta" id="edit_conta" />
+                        </div>
+
+                        <div>
+                            <label>Origem</label>
+                            <input type="text" name="origem" id="edit_origem" />
+                        </div>
+
+                        <div class="wide">
+                            <label>Observação</label>
+                            <textarea name="observacao" id="edit_observacao"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="cancel-button" onclick="fecharEdicaoRapida()">Cancelar</button>
+                        <button type="submit">Salvar alteração</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         function alternarPeriodo() {
             const tipo = document.getElementById("periodo_tipo").value;
@@ -889,7 +1098,57 @@
             );
         }
 
+        function setValor(id, valor) {
+            const campo = document.getElementById(id);
+
+            if (campo) {
+                campo.value = valor || "";
+            }
+        }
+
+        function abrirEdicaoRapida(botao) {
+            const dados = botao.dataset;
+            const modal = document.getElementById("modalEdicaoRapida");
+            const form = document.getElementById("formEdicaoRapida");
+
+            form.action = "/financeiro/base-lancamentos/editar-rapido/" + encodeURIComponent(dados.id || "");
+
+            setValor("edit_data", dados.data);
+            setValor("edit_mes", dados.mes);
+            setValor("edit_ano", dados.ano);
+            setValor("edit_tipo", dados.tipo);
+            setValor("edit_categoria", dados.categoria);
+            setValor("edit_subcategoria", dados.subcategoria);
+            setValor("edit_descricao", dados.descricao);
+            setValor("edit_valor_previsto", dados.valorPrevisto);
+            setValor("edit_valor_realizado", dados.valorRealizado);
+            setValor("edit_situacao", dados.situacao);
+            setValor("edit_forma_pagamento", dados.formaPagamento);
+            setValor("edit_conta", dados.conta);
+            setValor("edit_origem", dados.origem);
+            setValor("edit_observacao", dados.observacao);
+
+            modal.classList.add("open");
+        }
+
+        function fecharEdicaoRapida() {
+            const modal = document.getElementById("modalEdicaoRapida");
+            modal.classList.remove("open");
+        }
+
         document.addEventListener("DOMContentLoaded", alternarPeriodo);
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                fecharEdicaoRapida();
+            }
+        });
+
+        document.getElementById("modalEdicaoRapida").addEventListener("click", function (event) {
+            if (event.target === this) {
+                fecharEdicaoRapida();
+            }
+        });
     </script>
 </body>
 </html>

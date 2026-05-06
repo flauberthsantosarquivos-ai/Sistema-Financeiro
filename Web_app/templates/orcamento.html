@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <title>Orçamento Mensal</title>
+
+    <style>
+        :root {
+            --bg: #f4f6fb;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --primary: #1d4ed8;
+            --primary-dark: #1e40af;
+            --green: #047857;
+            --green-bg: #ecfdf5;
+            --green-border: #bbf7d0;
+            --red: #b91c1c;
+            --red-bg: #fef2f2;
+            --red-border: #fecaca;
+            --amber: #b45309;
+            --amber-bg: #fffbeb;
+            --amber-border: #fde68a;
+            --border: #e5e7eb;
+            --shadow: 0 14px 30px rgba(15, 23, 42, 0.07);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .page {
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #0f172a, #1d4ed8);
+            color: white;
+            border-radius: 26px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .hero h1 {
+            margin: 0 0 8px;
+            font-size: 32px;
+            letter-spacing: -0.04em;
+        }
+
+        .hero p {
+            margin: 0;
+            color: #dbeafe;
+            line-height: 1.55;
+        }
+
+        .nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav a {
+            text-decoration: none;
+            background: white;
+            border: 1px solid var(--border);
+            color: #1e40af;
+            padding: 11px 15px;
+            border-radius: 999px;
+            font-weight: 800;
+            box-shadow: 0 8px 16px rgba(15, 23, 42, 0.04);
+        }
+
+        .nav a.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .alert {
+            padding: 15px 18px;
+            border-radius: 16px;
+            margin-bottom: 18px;
+            font-weight: 700;
+        }
+
+        .success {
+            background: var(--green-bg);
+            border: 1px solid var(--green-border);
+            color: #065f46;
+        }
+
+        .error {
+            background: var(--red-bg);
+            border: 1px solid var(--red-border);
+            color: #991b1b;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            padding: 22px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            margin: 0 0 7px;
+            font-size: 21px;
+            letter-spacing: -0.03em;
+        }
+
+        .section-subtitle {
+            margin: 0 0 16px;
+            color: var(--muted);
+            font-weight: 650;
+            line-height: 1.5;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .metric {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            padding: 16px;
+        }
+
+        .metric-title {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 22px;
+            font-weight: 950;
+            letter-spacing: -0.04em;
+        }
+
+        .green {
+            color: var(--green);
+        }
+
+        .red {
+            color: var(--red);
+        }
+
+        .amber {
+            color: var(--amber);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 12px;
+            align-items: end;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 12px;
+            align-items: end;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 900;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            display: block;
+            margin-bottom: 7px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 11px;
+            background: #f9fafb;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        button {
+            border: none;
+            background: var(--primary);
+            color: white;
+            border-radius: 13px;
+            padding: 12px 18px;
+            font-weight: 900;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+        }
+
+        .clear-link {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            background: #e5e7eb;
+            color: #111827;
+            border-radius: 13px;
+            padding: 12px 18px;
+            font-weight: 900;
+            width: 100%;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: white;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1100px;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #334155;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 11px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 11px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        .money {
+            text-align: right;
+            font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .pill {
+            display: inline-flex;
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: 900;
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #e2e8f0;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .edit-button {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+            padding: 7px 10px;
+            font-size: 12px;
+        }
+
+        .delete-button {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            padding: 7px 10px;
+            font-size: 12px;
+        }
+
+        .empty {
+            padding: 20px;
+            text-align: center;
+            color: var(--muted);
+            font-weight: 800;
+            background: #f8fafc;
+            border-radius: 14px;
+        }
+
+        @media (max-width: 1200px) {
+            .summary,
+            .form-grid,
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+        <section class="hero">
+            <h1>Orçamento Mensal</h1>
+            <p>
+                Cadastre os valores previstos por mês, categoria e subcategoria. Esses dados serão usados na análise financeira para comparar orçamento x realizado.
+            </p>
+        </section>
+
+        <nav class="nav">
+            <a href="/">Início</a>
+            <a href="/financeiro">Central Financeira</a>
+            <a href="/financeiro/extratos">1. Importar Extratos</a>
+            <a href="/financeiro/base-lancamentos">2. Revisar Base</a>
+            <a href="/financeiro/lancamento">3. Novo Lançamento</a>
+            <a href="/financeiro/orcamento" class="active">4. Orçamento</a>
+            <a href="/financeiro/analise">5. Análise Financeira</a>
+        </nav>
+
+        {% if mensagem %}
+            <div class="alert success">{{ mensagem }}</div>
+        {% endif %}
+
+        {% if erro %}
+            <div class="alert error">{{ erro }}</div>
+        {% endif %}
+
+        <section class="summary">
+            <div class="metric">
+                <div class="metric-title">Receitas previstas</div>
+                <div class="metric-value green">{{ resumo.total_receitas_fmt }}</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-title">Despesas previstas</div>
+                <div class="metric-value red">{{ resumo.total_despesas_fmt }}</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-title">Transferências previstas</div>
+                <div class="metric-value amber">{{ resumo.total_transferencias_fmt }}</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-title">Saldo previsto</div>
+                <div class="metric-value {% if resumo.saldo_previsto >= 0 %}green{% else %}red{% endif %}">
+                    {{ resumo.saldo_previsto_fmt }}
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2 class="section-title">Cadastrar orçamento</h2>
+            <p class="section-subtitle">
+                Cadastre uma linha para cada categoria/subcategoria planejada. Exemplo: ALIMENTAÇÃO / SUPERMERCADO / R$ 2.500,00.
+            </p>
+
+            <form method="post" action="/financeiro/orcamento/salvar" id="formOrcamento">
+                <input type="hidden" name="orcamento_id" id="orcamento_id" />
+
+                <div class="form-grid">
+                    <div>
+                        <label>Ano</label>
+                        <input type="number" name="ano" id="ano" value="{{ filtros.ano }}" required />
+                    </div>
+
+                    <div>
+                        <label>Mês</label>
+                        <select name="mes" id="mes" required>
+                            {% for sigla, nome in meses_opcoes %}
+                                <option value="{{ sigla }}" {% if filtros.mes == sigla %}selected{% endif %}>{{ nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label>Tipo</label>
+                        <select name="tipo" id="tipo" required>
+                            <option value="DESPESA">DESPESA</option>
+                            <option value="RECEITA">RECEITA</option>
+                            <option value="TRANSFERÊNCIA">TRANSFERÊNCIA</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label>Categoria</label>
+                        <input type="text" name="categoria" id="categoria" placeholder="Ex.: ALIMENTAÇÃO" required />
+                    </div>
+
+                    <div>
+                        <label>Subcategoria</label>
+                        <input type="text" name="subcategoria" id="subcategoria" placeholder="Ex.: SUPERMERCADO" />
+                    </div>
+
+                    <div>
+                        <label>Valor previsto</label>
+                        <input type="text" name="valor_previsto" id="valor_previsto" placeholder="Ex.: 2500,00" required />
+                    </div>
+
+                    <div style="grid-column: 1 / -1;">
+                        <label>Observação</label>
+                        <textarea name="observacao" id="observacao" placeholder="Ex.: orçamento mensal do cliente para supermercado"></textarea>
+                    </div>
+
+                    <div>
+                        <button type="submit" id="botaoSalvar">Salvar orçamento</button>
+                    </div>
+
+                    <div>
+                        <button type="button" onclick="limparFormulario()" style="background: #e5e7eb; color: #111827;">
+                            Limpar formulário
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2 class="section-title">Filtros</h2>
+            <p class="section-subtitle">
+                Filtre o orçamento cadastrado por ano, mês, tipo ou categoria.
+            </p>
+
+            <form method="get" action="/financeiro/orcamento">
+                <div class="filter-grid">
+                    <div>
+                        <label>Ano</label>
+                        <input type="number" name="ano" value="{{ filtros.ano }}" />
+                    </div>
+
+                    <div>
+                        <label>Mês</label>
+                        <select name="mes">
+                            <option value="">Todos</option>
+                            {% for sigla, nome in meses_opcoes %}
+                                <option value="{{ sigla }}" {% if filtros.mes == sigla %}selected{% endif %}>{{ nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label>Tipo</label>
+                        <select name="tipo">
+                            <option value="">Todos</option>
+                            <option value="DESPESA" {% if filtros.tipo == "DESPESA" %}selected{% endif %}>DESPESA</option>
+                            <option value="RECEITA" {% if filtros.tipo == "RECEITA" %}selected{% endif %}>RECEITA</option>
+                            <option value="TRANSFERÊNCIA" {% if filtros.tipo == "TRANSFERÊNCIA" %}selected{% endif %}>TRANSFERÊNCIA</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label>Categoria</label>
+                        <select name="categoria">
+                            <option value="">Todas</option>
+                            {% for categoria in categorias_existentes %}
+                                <option value="{{ categoria }}" {% if filtros.categoria == categoria %}selected{% endif %}>{{ categoria }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <button type="submit">Filtrar</button>
+                    </div>
+
+                    <div>
+                        <a href="/financeiro/orcamento" class="clear-link">Limpar</a>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2 class="section-title">Orçamento cadastrado</h2>
+            <p class="section-subtitle">
+                {{ total_registros }} item(ns) encontrado(s).
+            </p>
+
+            {% if registros %}
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ações</th>
+                                <th>Ano</th>
+                                <th>Mês</th>
+                                <th>Tipo</th>
+                                <th>Categoria</th>
+                                <th>Subcategoria</th>
+                                <th>Valor previsto</th>
+                                <th>Observação</th>
+                                <th>Criado em</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for item in registros %}
+                                <tr>
+                                    <td>
+                                        <div class="actions">
+                                            <button
+                                                type="button"
+                                                class="edit-button"
+                                                onclick="editarOrcamento(this)"
+                                                data-id="{{ item.ID|e }}"
+                                                data-ano="{{ item.ANO|e }}"
+                                                data-mes="{{ item.MES|e }}"
+                                                data-tipo="{{ item.TIPO|e }}"
+                                                data-categoria="{{ item.CATEGORIA|e }}"
+                                                data-subcategoria="{{ item.SUBCATEGORIA|e }}"
+                                                data-valor-previsto="{{ item.VALOR_PREVISTO_RAW|e }}"
+                                                data-observacao="{{ item.OBSERVACAO|e }}"
+                                            >
+                                                Editar
+                                            </button>
+
+                                            <form method="post" action="/financeiro/orcamento/excluir/{{ item.ID }}" onsubmit="return confirm('Excluir este item de orçamento?');">
+                                                <button type="submit" class="delete-button">
+                                                    Excluir
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+
+                                    <td>{{ item.ANO }}</td>
+                                    <td><span class="pill">{{ item.MES }}</span></td>
+                                    <td><span class="pill">{{ item.TIPO }}</span></td>
+                                    <td><strong>{{ item.CATEGORIA }}</strong></td>
+                                    <td>{{ item.SUBCATEGORIA }}</td>
+                                    <td class="money">{{ item.VALOR_PREVISTO_FMT }}</td>
+                                    <td>{{ item.OBSERVACAO }}</td>
+                                    <td>{{ item.CRIADO_EM }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty">
+                    Nenhum orçamento encontrado para os filtros aplicados.
+                </div>
+            {% endif %}
+        </section>
+    </main>
+
+    <script>
+        function setValor(id, valor) {
+            const campo = document.getElementById(id);
+
+            if (campo) {
+                campo.value = valor || "";
+            }
+        }
+
+        function editarOrcamento(botao) {
+            const dados = botao.dataset;
+
+            setValor("orcamento_id", dados.id);
+            setValor("ano", dados.ano);
+            setValor("mes", dados.mes);
+            setValor("tipo", dados.tipo);
+            setValor("categoria", dados.categoria);
+            setValor("subcategoria", dados.subcategoria);
+            setValor("valor_previsto", dados.valorPrevisto);
+            setValor("observacao", dados.observacao);
+
+            document.getElementById("botaoSalvar").textContent = "Salvar alteração";
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        }
+
+        function limparFormulario() {
+            setValor("orcamento_id", "");
+            setValor("categoria", "");
+            setValor("subcategoria", "");
+            setValor("valor_previsto", "");
+            setValor("observacao", "");
+
+            document.getElementById("tipo").value = "DESPESA";
+            document.getElementById("botaoSalvar").textContent = "Salvar orçamento";
+        }
+    </script>
+</body>
+</html>

@@ -1,40 +1,63 @@
+from __future__ import annotations
+
+from importlib import import_module
+from pathlib import Path
+
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from core.financeiro.configuracao_sistema import configuracao_runtime_existe
-from Web_app.routes_base_lancamentos import router as router_base_lancamentos
-from Web_app.routes_configuracoes import router as router_configuracoes
-from Web_app.routes_extratos import router as router_extratos
-from Web_app.routes_financeiro import router as router_financeiro
-from Web_app.routes_lancamentos import router as router_lancamentos
-from Web_app.routes_planejamento import router as router_planejamento
+
+BASE_DIR = Path(__file__).resolve().parent
+TEMPLATES_DIR = BASE_DIR / "templates"
+STATIC_DIR = BASE_DIR / "static"
+
 
 app = FastAPI(
     title="Sistema Financeiro",
-    description="Sistema Financeiro com dashboard, planejamento mensal, lançamentos e importação de extratos",
+    description="Sistema de gestão financeira com extratos, lançamentos, orçamento e análise.",
     version="1.0.0",
 )
 
-templates = Jinja2Templates(directory="Web_app/templates")
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
-app.include_router(router_financeiro)
-app.include_router(router_lancamentos)
-app.include_router(router_planejamento)
-app.include_router(router_configuracoes)
-app.include_router(router_extratos)
-app.include_router(router_base_lancamentos)
+
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+
+ROTAS_DO_SISTEMA = [
+    "Web_app.routes_financeiro",
+    "Web_app.routes_extratos",
+    "Web_app.routes_base_lancamentos",
+    "Web_app.routes_orcamento",
+]
+
+
+for modulo_nome in ROTAS_DO_SISTEMA:
+    try:
+        modulo = import_module(modulo_nome)
+        router = getattr(modulo, "router", None)
+
+        if router is not None:
+            app.include_router(router)
+
+    except ModuleNotFoundError:
+        print(f"Rota não encontrada, ignorando: {modulo_nome}")
+
+    except Exception as e:
+        print(f"Erro ao carregar rota {modulo_nome}: {e}")
 
 
 @app.get("/", response_class=HTMLResponse)
-def home(request: Request):
-    if not configuracao_runtime_existe():
-        return RedirectResponse(url="/financeiro/configuracoes", status_code=302)
+async def index(request: Request):
+    return RedirectResponse(url="/financeiro", status_code=303)
 
-    return templates.TemplateResponse(
-        request=request,
-        name="home.html",
-        context={
-            "titulo": "Sistema Financeiro",
-        },
-    )
+
+@app.get("/health")
+async def health():
+    return {
+        "status": "ok",
+        "sistema": "Sistema Financeiro",
+    }

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from urllib.parse import quote
 
 from fastapi import APIRouter, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -44,6 +45,12 @@ def normalizar(valor: str | None) -> str:
     return str(valor or "").strip().upper()
 
 
+def formatar_numero_brasil(valor: float) -> str:
+    if not valor:
+        return ""
+    return f"{valor:.2f}".replace(".", ",")
+
+
 def preparar_linhas(registros: list[dict]) -> list[dict]:
     linhas = []
 
@@ -63,6 +70,8 @@ def preparar_linhas(registros: list[dict]) -> list[dict]:
                 "descricao": item.get("DESCRICAO", ""),
                 "valor_previsto": valor_previsto,
                 "valor_realizado": valor_realizado,
+                "valor_previsto_raw": formatar_numero_brasil(valor_previsto),
+                "valor_realizado_raw": formatar_numero_brasil(valor_realizado),
                 "valor_previsto_fmt": formatar_moeda(valor_previsto),
                 "valor_realizado_fmt": formatar_moeda(valor_realizado),
                 "situacao": item.get("SITUACAO", ""),
@@ -176,6 +185,20 @@ def montar_opcoes_unicas(registros: list[dict], campo: str) -> list[str]:
             valores.add(valor)
 
     return sorted(valores)
+
+
+def montar_url_retorno(return_url: str, chave: str, mensagem: str) -> str:
+    """
+    Mantém o usuário na mesma tela/filtro depois da edição rápida.
+    Também evita redirecionamento para fora da área da BASE_LANCAMENTOS.
+    """
+    if not return_url or not return_url.startswith("/financeiro/base-lancamentos"):
+        return_url = "/financeiro/base-lancamentos"
+
+    separador = "&" if "?" in return_url else "?"
+    mensagem_segura = quote(str(mensagem or ""))
+
+    return f"{return_url}{separador}{chave}={mensagem_segura}"
 
 
 def localizar_lancamento_por_id(lancamento_id: str):
@@ -464,6 +487,73 @@ async def editar_lancamento_post(
                 "lancamento": None,
                 "meses_opcoes": MESES_OPCOES,
             },
+        )
+
+
+@router.post("/financeiro/base-lancamentos/editar-rapido/{lancamento_id}")
+async def editar_lancamento_rapido_post(
+    lancamento_id: str,
+    data: str = Form(""),
+    mes: str = Form(""),
+    ano: str = Form(""),
+    tipo: str = Form(""),
+    categoria: str = Form(""),
+    subcategoria: str = Form(""),
+    descricao: str = Form(""),
+    valor_previsto: str = Form(""),
+    valor_realizado: str = Form(""),
+    situacao: str = Form(""),
+    forma_pagamento: str = Form(""),
+    conta: str = Form(""),
+    origem: str = Form(""),
+    observacao: str = Form(""),
+    return_url: str = Form("/financeiro/base-lancamentos"),
+):
+    try:
+        aba, indice_linha, registro_antigo = localizar_lancamento_por_id(lancamento_id)
+
+        nova_linha = [
+            lancamento_id,
+            data,
+            mes,
+            ano,
+            tipo,
+            categoria,
+            subcategoria,
+            descricao,
+            valor_previsto,
+            valor_realizado,
+            situacao,
+            forma_pagamento,
+            conta,
+            origem,
+            observacao,
+            registro_antigo.get("CRIADO_EM", ""),
+        ]
+
+        aba.update(
+            f"A{indice_linha}:P{indice_linha}",
+            [nova_linha],
+            value_input_option="USER_ENTERED",
+        )
+
+        return RedirectResponse(
+            url=montar_url_retorno(
+                return_url=return_url,
+                chave="mensagem",
+                mensagem="Lançamento atualizado com sucesso.",
+            ),
+            status_code=303,
+        )
+
+    except Exception as e:
+        return RedirectResponse(
+            url=montar_url_retorno(
+                return_url=return_url,
+                chave="erro",
+                mensagem=f"Erro ao atualizar lançamento: {e}",
+            ),
+            status_code=303,
         )
 
 

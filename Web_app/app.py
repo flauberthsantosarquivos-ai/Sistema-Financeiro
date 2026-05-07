@@ -3,24 +3,20 @@ from __future__ import annotations
 from importlib import import_module
 from pathlib import Path
 
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 
 
 BASE_DIR = Path(__file__).resolve().parent
-TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
 
 
 app = FastAPI(
     title="Sistema Financeiro",
-    description="Sistema de gestão financeira com extratos, lançamentos, orçamento e análise.",
+    description="Sistema de gestão financeira com extratos, lançamentos, orçamento, configurações e análise.",
     version="1.0.0",
 )
-
-templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 
 if STATIC_DIR.exists():
@@ -32,6 +28,7 @@ ROTAS_DO_SISTEMA = [
     "Web_app.routes_extratos",
     "Web_app.routes_base_lancamentos",
     "Web_app.routes_orcamento",
+    "Web_app.routes_configuracoes",
 ]
 
 
@@ -42,6 +39,7 @@ for modulo_nome in ROTAS_DO_SISTEMA:
 
         if router is not None:
             app.include_router(router)
+            print(f"Rota carregada: {modulo_nome}")
 
     except ModuleNotFoundError:
         print(f"Rota não encontrada, ignorando: {modulo_nome}")
@@ -50,8 +48,8 @@ for modulo_nome in ROTAS_DO_SISTEMA:
         print(f"Erro ao carregar rota {modulo_nome}: {e}")
 
 
-@app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
+@app.get("/")
+async def index():
     return RedirectResponse(url="/financeiro", status_code=303)
 
 

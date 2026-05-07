@@ -13,6 +13,7 @@ from core.financeiro.dashboard_base import (
     ler_base_lancamentos,
     para_float,
 )
+from core.financeiro.orcamento_google import ler_orcamento_mensal
 
 
 router = APIRouter()
@@ -49,6 +50,8 @@ MESES_MAPA = {
     "NOV": "Novembro",
     "DEZ": "Dezembro",
 }
+
+ORDEM_MESES = [sigla for sigla, _ in MESES_OPCOES]
 
 
 CORES_CATEGORIAS = {
@@ -102,6 +105,13 @@ def valor_base_lancamento(item: dict) -> float:
     return previsto
 
 
+def valor_previsto_orcamento(item: dict) -> float:
+    if "VALOR_PREVISTO_NUM" in item:
+        return abs(float(item.get("VALOR_PREVISTO_NUM", 0) or 0))
+
+    return abs(para_float(item.get("VALOR_PREVISTO")))
+
+
 def obter_estilo_categoria(categoria: str, indice: int) -> dict:
     categoria_normalizada = normalizar(categoria)
 
@@ -126,14 +136,90 @@ def extrair_mes(item: dict) -> str:
         if len(partes) >= 2:
             try:
                 numero_mes = int(partes[1])
-                siglas = list(MESES_MAPA.keys())
 
                 if 1 <= numero_mes <= 12:
-                    return siglas[numero_mes - 1]
+                    return ORDEM_MESES[numero_mes - 1]
             except Exception:
                 pass
 
     return ""
+
+
+def filtrar_orcamento_por_periodo(
+    registros_orcamento: list[dict],
+    periodo_tipo: str,
+    mes_unico: str,
+    mes_inicio: str,
+    mes_fim: str,
+    ano: str,
+) -> list[dict]:
+    periodo_tipo = normalizar(periodo_tipo)
+    mes_unico = normalizar(mes_unico)
+    mes_inicio = normalizar(mes_inicio)
+    mes_fim = normalizar(mes_fim)
+    ano = str(ano or "").strip()
+
+    filtrados = []
+
+    indice_inicio = 0
+    indice_fim = len(ORDEM_MESES) - 1
+
+    if periodo_tipo == "MES_UNICO" and mes_unico in ORDEM_MESES:
+        indice_inicio = ORDEM_MESES.index(mes_unico)
+        indice_fim = indice_inicio
+
+    elif periodo_tipo == "INTERVALO":
+        if mes_inicio in ORDEM_MESES:
+            indice_inicio = ORDEM_MESES.index(mes_inicio)
+
+        if mes_fim in ORDEM_MESES:
+            indice_fim = ORDEM_MESES.index(mes_fim)
+
+        if indice_inicio > indice_fim:
+            indice_inicio, indice_fim = indice_fim, indice_inicio
+
+    for item in registros_orcamento:
+        item_ano = str(item.get("ANO", "")).strip()
+        item_mes = normalizar(item.get("MES"))
+
+        if ano and item_ano != ano:
+            continue
+
+        if item_mes not in ORDEM_MESES:
+            continue
+
+        indice_mes = ORDEM_MESES.index(item_mes)
+
+        if indice_inicio <= indice_mes <= indice_fim:
+            filtrados.append(item)
+
+    return filtrados
+
+
+def calcular_totais_previstos_orcamento(registros_orcamento: list[dict]) -> dict:
+    total_receitas = 0.0
+    total_despesas = 0.0
+    total_transferencias = 0.0
+
+    for item in registros_orcamento:
+        tipo = normalizar(item.get("TIPO"))
+        valor = valor_previsto_orcamento(item)
+
+        if valor <= 0:
+            continue
+
+        if tipo == "RECEITA":
+            total_receitas += valor
+        elif tipo == "DESPESA":
+            total_despesas += valor
+        elif tipo in {"TRANSFERÊNCIA", "TRANSFERENCIA"}:
+            total_transferencias += valor
+
+    return {
+        "receitas": total_receitas,
+        "despesas": total_despesas,
+        "transferencias": total_transferencias,
+    }
 
 
 def calcular_evolucao_mensal(registros: list[dict]) -> dict:
@@ -242,20 +328,22 @@ def calcular_evolucao_mensal(registros: list[dict]) -> dict:
     }
 
 
-def calcular_orcamento_por_categoria(registros: list[dict]) -> dict:
+def calcular_orcamento_por_categoria(
+    registros_realizados: list[dict],
+    registros_orcamento: list[dict],
+) -> dict:
     categorias = {}
 
-    for item in registros:
+    for item in registros_orcamento:
         tipo = normalizar(item.get("TIPO"))
 
         if tipo != "DESPESA":
             continue
 
-        categoria = str(item.get("CATEGORIA", "")).strip() or "SEM CATEGORIA"
-        previsto = valor_previsto(item)
-        realizado = valor_realizado(item)
+        categoria = str(item.get("CATEGORIA", "")).strip().upper() or "SEM CATEGORIA"
+        valor = valor_previsto_orcamento(item)
 
-        if previsto <= 0 and realizado <= 0:
+        if valor <= 0:
             continue
 
         categorias.setdefault(
@@ -263,13 +351,38 @@ def calcular_orcamento_por_categoria(registros: list[dict]) -> dict:
             {
                 "previsto": 0.0,
                 "realizado": 0.0,
-                "qtd_lancamentos": 0,
+                "qtd_previstos": 0,
+                "qtd_realizados": 0,
             },
         )
 
-        categorias[categoria]["previsto"] += previsto
+        categorias[categoria]["previsto"] += valor
+        categorias[categoria]["qtd_previstos"] += 1
+
+    for item in registros_realizados:
+        tipo = normalizar(item.get("TIPO"))
+
+        if tipo != "DESPESA":
+            continue
+
+        categoria = str(item.get("CATEGORIA", "")).strip().upper() or "SEM CATEGORIA"
+        realizado = valor_realizado(item)
+
+        if realizado <= 0:
+            continue
+
+        categorias.setdefault(
+            categoria,
+            {
+                "previsto": 0.0,
+                "realizado": 0.0,
+                "qtd_previstos": 0,
+                "qtd_realizados": 0,
+            },
+        )
+
         categorias[categoria]["realizado"] += realizado
-        categorias[categoria]["qtd_lancamentos"] += 1
+        categorias[categoria]["qtd_realizados"] += 1
 
     lista = []
 
@@ -288,19 +401,15 @@ def calcular_orcamento_por_categoria(registros: list[dict]) -> dict:
         if previsto <= 0 and realizado > 0:
             status = "Sem previsto"
             status_classe = "sem-previsto"
-            status_tipo = "atencao"
         elif execucao <= 100:
             status = "Dentro do previsto"
             status_classe = "dentro"
-            status_tipo = "positivo"
         elif execucao <= 115:
             status = "Atenção"
             status_classe = "atencao"
-            status_tipo = "atencao"
         else:
             status = "Acima do previsto"
             status_classe = "acima"
-            status_tipo = "alerta"
 
         estilo = obter_estilo_categoria(categoria, indice)
 
@@ -318,10 +427,11 @@ def calcular_orcamento_por_categoria(registros: list[dict]) -> dict:
                 "realizado_fmt": formatar_moeda(realizado),
                 "diferenca_fmt": formatar_moeda(abs(diferenca)),
                 "execucao_fmt": f"{execucao:.1f}".replace(".", ",") + "%" if previsto > 0 else "Sem previsto",
-                "qtd_lancamentos": valores["qtd_lancamentos"],
+                "qtd_previstos": valores["qtd_previstos"],
+                "qtd_realizados": valores["qtd_realizados"],
+                "qtd_lancamentos": valores["qtd_realizados"],
                 "status": status,
                 "status_classe": status_classe,
-                "status_tipo": status_tipo,
                 "cor": estilo["cor"],
                 "cor_fundo": estilo["fundo"],
                 "cor_borda": estilo["borda"],
@@ -353,14 +463,18 @@ def calcular_orcamento_por_categoria(registros: list[dict]) -> dict:
     }
 
 
-def preparar_analise(registros: list[dict], registros_ano: list[dict] | None = None) -> dict:
+def preparar_analise(
+    registros: list[dict],
+    registros_ano: list[dict] | None = None,
+    registros_orcamento: list[dict] | None = None,
+) -> dict:
+    registros_orcamento = registros_orcamento or []
+
     total_receitas = 0.0
     total_despesas = 0.0
     total_transferencias = 0.0
 
-    total_receitas_previsto = 0.0
     total_receitas_realizado = 0.0
-    total_despesas_previsto = 0.0
     total_despesas_realizado = 0.0
 
     qtd_receitas = 0
@@ -381,7 +495,6 @@ def preparar_analise(registros: list[dict], registros_ano: list[dict] | None = N
         data = str(item.get("DATA", "")).strip()
         situacao = str(item.get("SITUACAO", "")).strip()
 
-        previsto = valor_previsto(item)
         realizado = valor_realizado(item)
         valor = valor_base_lancamento(item)
 
@@ -403,16 +516,14 @@ def preparar_analise(registros: list[dict], registros_ano: list[dict] | None = N
 
         if tipo == "RECEITA":
             total_receitas += valor
-            total_receitas_previsto += previsto
-            total_receitas_realizado += realizado
+            total_receitas_realizado += realizado if realizado > 0 else valor
 
             qtd_receitas += 1
             receitas_por_categoria[categoria] = receitas_por_categoria.get(categoria, 0.0) + valor
 
         elif tipo == "DESPESA":
             total_despesas += valor
-            total_despesas_previsto += previsto
-            total_despesas_realizado += realizado
+            total_despesas_realizado += realizado if realizado > 0 else valor
 
             qtd_despesas += 1
             despesas_por_categoria[categoria] = despesas_por_categoria.get(categoria, 0.0) + valor
@@ -444,6 +555,11 @@ def preparar_analise(registros: list[dict], registros_ano: list[dict] | None = N
         elif tipo in {"TRANSFERÊNCIA", "TRANSFERENCIA"}:
             total_transferencias += valor
             qtd_transferencias += 1
+
+    totais_orcamento = calcular_totais_previstos_orcamento(registros_orcamento)
+
+    total_receitas_previsto = totais_orcamento["receitas"]
+    total_despesas_previsto = totais_orcamento["despesas"]
 
     saldo = total_receitas - total_despesas
 
@@ -587,7 +703,11 @@ def preparar_analise(registros: list[dict], registros_ano: list[dict] | None = N
 
     registros_para_evolucao = registros_ano if registros_ano is not None else registros
     evolucao_mensal = calcular_evolucao_mensal(registros_para_evolucao)
-    orcamento_por_categoria = calcular_orcamento_por_categoria(registros)
+
+    orcamento_por_categoria = calcular_orcamento_por_categoria(
+        registros_realizados=registros,
+        registros_orcamento=registros_orcamento,
+    )
 
     return {
         "total_receitas": total_receitas,
@@ -626,8 +746,8 @@ def preparar_analise(registros: list[dict], registros_ano: list[dict] | None = N
         "total_despesas_realizado_fmt": formatar_moeda(total_despesas_realizado),
         "diferenca_receitas_fmt": formatar_moeda(abs(diferenca_receitas)),
         "diferenca_despesas_fmt": formatar_moeda(abs(diferenca_despesas)),
-        "percentual_execucao_receitas_fmt": f"{percentual_execucao_receitas:.1f}".replace(".", ",") + "%",
-        "percentual_execucao_despesas_fmt": f"{percentual_execucao_despesas:.1f}".replace(".", ",") + "%",
+        "percentual_execucao_receitas_fmt": f"{percentual_execucao_receitas:.1f}".replace(".", ",") + "%" if total_receitas_previsto > 0 else "Sem previsto",
+        "percentual_execucao_despesas_fmt": f"{percentual_execucao_despesas:.1f}".replace(".", ",") + "%" if total_despesas_previsto > 0 else "Sem previsto",
 
         "maior_categoria": maior_categoria,
         "maior_categoria_valor": maior_categoria_valor,
@@ -810,9 +930,19 @@ async def analise_financeira_get(
 
     try:
         registros = ler_base_lancamentos()
+        registros_orcamento_todos = ler_orcamento_mensal()
 
         registros_filtrados = filtrar_por_periodo(
             registros=registros,
+            periodo_tipo=periodo_tipo,
+            mes_unico=mes_unico,
+            mes_inicio=mes_inicio,
+            mes_fim=mes_fim,
+            ano=ano_final,
+        )
+
+        registros_orcamento_filtrados = filtrar_orcamento_por_periodo(
+            registros_orcamento=registros_orcamento_todos,
             periodo_tipo=periodo_tipo,
             mes_unico=mes_unico,
             mes_inicio=mes_inicio,
@@ -832,6 +962,7 @@ async def analise_financeira_get(
         analise = preparar_analise(
             registros=registros_filtrados,
             registros_ano=registros_ano,
+            registros_orcamento=registros_orcamento_filtrados,
         )
 
         return templates.TemplateResponse(

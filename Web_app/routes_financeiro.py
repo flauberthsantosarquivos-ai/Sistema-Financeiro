@@ -62,10 +62,18 @@ CORES_CATEGORIAS = {
     "SAÚDE": {"cor": "#dc2626", "fundo": "#fef2f2", "borda": "#fecaca"},
     "EDUCAÇÃO": {"cor": "#7c3aed", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
     "COMUNICAÇÃO": {"cor": "#0891b2", "fundo": "#ecfeff", "borda": "#a5f3fc"},
-    "INVESTIMENTOS": {"cor": "#b45309", "fundo": "#fffbeb", "borda": "#fde68a"},
-    "INVESTIMENTOS / RESERVA": {"cor": "#b45309", "fundo": "#fffbeb", "borda": "#fde68a"},
-    "TRANSFERÊNCIA": {"cor": "#ca8a04", "fundo": "#fefce8", "borda": "#fef08a"},
-    "TRANSFERÊNCIA VIA PIX": {"cor": "#ca8a04", "fundo": "#fefce8", "borda": "#fef08a"},
+    "INVESTIMENTO": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
+    "INVESTIMENTOS": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
+    "RESERVA": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
+    "POUPANÇA": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
+    "RENDA FIXA": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
+    "RENDA VARIÁVEL": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
+    "TESOURO": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
+    "CDB": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
+    "TRANSFERÊNCIA": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
+    "TRANSFERÊNCIA VIA PIX": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
+    "CONTAS PRÓPRIAS": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
+    "MOVIMENTAÇÃO ENTRE CONTAS": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
     "OUTROS": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
     "SEM CATEGORIA": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
 }
@@ -83,8 +91,117 @@ PALETA_PADRAO = [
 ]
 
 
+CATEGORIAS_INVESTIMENTO = {
+    "INVESTIMENTO",
+    "INVESTIMENTOS",
+    "INVESTIMENTOS / RESERVA",
+    "RESERVA",
+    "RESERVA FINANCEIRA",
+    "RESERVA DE EMERGÊNCIA",
+    "POUPANÇA",
+    "POUPANCA",
+    "APLICAÇÃO",
+    "APLICACAO",
+    "APLICAÇÕES",
+    "APLICACOES",
+    "RENDA FIXA",
+    "RENDA VARIÁVEL",
+    "RENDA VARIAVEL",
+    "TESOURO",
+    "TESOURO DIRETO",
+    "CDB",
+    "LCI",
+    "LCA",
+    "PREVIDÊNCIA",
+    "PREVIDENCIA",
+    "AÇÕES",
+    "ACOES",
+    "FUNDOS",
+    "CRIPTO",
+    "CRIPTOATIVOS",
+}
+
+CATEGORIAS_MOVIMENTACAO_NEUTRA = {
+    "TRANSFERÊNCIA",
+    "TRANSFERENCIA",
+    "TRANSFERÊNCIAS",
+    "TRANSFERENCIAS",
+    "CONTAS PRÓPRIAS",
+    "CONTAS PROPRIAS",
+    "ENTRE CONTAS",
+    "MOVIMENTAÇÃO ENTRE CONTAS",
+    "MOVIMENTACAO ENTRE CONTAS",
+    "MOVIMENTAÇÃO",
+    "MOVIMENTACAO",
+}
+
+CATEGORIAS_PENDENTES = {
+    "",
+    "A CLASSIFICAR",
+    "SEM CATEGORIA",
+    "NÃO CLASSIFICADO",
+    "NAO CLASSIFICADO",
+}
+
+
 def normalizar(valor) -> str:
-    return str(valor or "").strip().upper()
+    texto = str(valor or "").strip().upper()
+
+    if texto == "TRANSFERENCIA":
+        return "TRANSFERÊNCIA"
+
+    return texto
+
+
+def contem_termo(texto: str, termos: set[str]) -> bool:
+    texto_normalizado = normalizar(texto)
+
+    for termo in termos:
+        termo_normalizado = normalizar(termo)
+
+        if termo_normalizado and termo_normalizado in texto_normalizado:
+            return True
+
+    return False
+
+
+def classificar_gerencialmente(item: dict) -> str:
+    tipo = normalizar(item.get("TIPO"))
+    categoria = normalizar(item.get("CATEGORIA"))
+    subcategoria = normalizar(item.get("SUBCATEGORIA"))
+    descricao = normalizar(item.get("DESCRICAO"))
+
+    texto_classificacao = " ".join(
+        [
+            tipo,
+            categoria,
+            subcategoria,
+            descricao,
+        ]
+    )
+
+    if tipo == "RECEITA":
+        return "RECEITA"
+
+    if tipo == "DESPESA":
+        return "DESPESA"
+
+    if tipo == "INVESTIMENTO":
+        return "INVESTIMENTO"
+
+    if contem_termo(texto_classificacao, CATEGORIAS_INVESTIMENTO):
+        return "INVESTIMENTO"
+
+    if tipo == "TRANSFERÊNCIA":
+        if categoria in CATEGORIAS_PENDENTES:
+            return "A_CLASSIFICAR"
+
+        if contem_termo(texto_classificacao, CATEGORIAS_MOVIMENTACAO_NEUTRA):
+            return "TRANSFERÊNCIA"
+
+        return "DESPESA"
+
+    return tipo
 
 
 def valor_previsto(item: dict) -> float:
@@ -110,6 +227,35 @@ def valor_previsto_orcamento(item: dict) -> float:
         return abs(float(item.get("VALOR_PREVISTO_NUM", 0) or 0))
 
     return abs(para_float(item.get("VALOR_PREVISTO")))
+
+
+def montar_detalhe_lancamento(
+    data: str,
+    descricao: str,
+    categoria: str,
+    subcategoria: str,
+    situacao: str,
+    tipo: str,
+    valor: float,
+) -> dict:
+    return {
+        "data": data,
+        "descricao": descricao,
+        "tipo": tipo,
+        "categoria": categoria,
+        "subcategoria": subcategoria,
+        "situacao": situacao,
+        "valor": valor,
+        "valor_fmt": formatar_moeda(valor),
+    }
+
+
+def ordenar_lancamentos_por_valor(lancamentos: list[dict]) -> list[dict]:
+    return sorted(
+        lancamentos,
+        key=lambda item: item.get("valor", 0),
+        reverse=True,
+    )
 
 
 def obter_estilo_categoria(categoria: str, indice: int) -> dict:
@@ -199,25 +345,29 @@ def filtrar_orcamento_por_periodo(
 def calcular_totais_previstos_orcamento(registros_orcamento: list[dict]) -> dict:
     total_receitas = 0.0
     total_despesas = 0.0
+    total_investimentos = 0.0
     total_transferencias = 0.0
 
     for item in registros_orcamento:
-        tipo = normalizar(item.get("TIPO"))
+        classificacao = classificar_gerencialmente(item)
         valor = valor_previsto_orcamento(item)
 
         if valor <= 0:
             continue
 
-        if tipo == "RECEITA":
+        if classificacao == "RECEITA":
             total_receitas += valor
-        elif tipo == "DESPESA":
+        elif classificacao == "DESPESA":
             total_despesas += valor
-        elif tipo in {"TRANSFERÊNCIA", "TRANSFERENCIA"}:
+        elif classificacao == "INVESTIMENTO":
+            total_investimentos += valor
+        elif classificacao == "TRANSFERÊNCIA":
             total_transferencias += valor
 
     return {
         "receitas": total_receitas,
         "despesas": total_despesas,
+        "investimentos": total_investimentos,
         "transferencias": total_transferencias,
     }
 
@@ -232,17 +382,22 @@ def calcular_evolucao_mensal(registros: list[dict]) -> dict:
                 "nome": nome,
                 "receitas": 0.0,
                 "despesas": 0.0,
+                "investimentos": 0.0,
                 "transferencias": 0.0,
                 "saldo": 0.0,
+                "disponivel_apos_investimentos": 0.0,
                 "comprometimento": 0.0,
                 "qtd_lancamentos": 0,
             }
         )
 
-    indice_por_mes = {item["mes"]: indice for indice, item in enumerate(meses)}
+    indice_por_mes = {
+        item["mes"]: indice
+        for indice, item in enumerate(meses)
+    }
 
     for item in registros:
-        tipo = normalizar(item.get("TIPO"))
+        classificacao = classificar_gerencialmente(item)
         mes = extrair_mes(item)
         valor = valor_base_lancamento(item)
 
@@ -251,15 +406,19 @@ def calcular_evolucao_mensal(registros: list[dict]) -> dict:
 
         indice = indice_por_mes[mes]
 
-        if tipo == "RECEITA":
+        if classificacao == "RECEITA":
             meses[indice]["receitas"] += valor
             meses[indice]["qtd_lancamentos"] += 1
 
-        elif tipo == "DESPESA":
+        elif classificacao == "DESPESA":
             meses[indice]["despesas"] += valor
             meses[indice]["qtd_lancamentos"] += 1
 
-        elif tipo in {"TRANSFERÊNCIA", "TRANSFERENCIA"}:
+        elif classificacao == "INVESTIMENTO":
+            meses[indice]["investimentos"] += valor
+            meses[indice]["qtd_lancamentos"] += 1
+
+        elif classificacao == "TRANSFERÊNCIA":
             meses[indice]["transferencias"] += valor
             meses[indice]["qtd_lancamentos"] += 1
 
@@ -267,6 +426,7 @@ def calcular_evolucao_mensal(registros: list[dict]) -> dict:
 
     for item in meses:
         item["saldo"] = item["receitas"] - item["despesas"]
+        item["disponivel_apos_investimentos"] = item["saldo"] - item["investimentos"]
 
         if item["receitas"] > 0:
             item["comprometimento"] = (item["despesas"] / item["receitas"]) * 100
@@ -275,7 +435,9 @@ def calcular_evolucao_mensal(registros: list[dict]) -> dict:
             maior_valor,
             item["receitas"],
             item["despesas"],
+            item["investimentos"],
             abs(item["saldo"]),
+            abs(item["disponivel_apos_investimentos"]),
         )
 
     meses_formatados = []
@@ -283,32 +445,46 @@ def calcular_evolucao_mensal(registros: list[dict]) -> dict:
     for item in meses:
         receitas_pct = (item["receitas"] / maior_valor * 100) if maior_valor > 0 else 0
         despesas_pct = (item["despesas"] / maior_valor * 100) if maior_valor > 0 else 0
+        investimentos_pct = (item["investimentos"] / maior_valor * 100) if maior_valor > 0 else 0
         saldo_pct = (abs(item["saldo"]) / maior_valor * 100) if maior_valor > 0 else 0
+        disponivel_pct = (
+            abs(item["disponivel_apos_investimentos"]) / maior_valor * 100
+            if maior_valor > 0
+            else 0
+        )
 
         meses_formatados.append(
             {
                 **item,
                 "receitas_fmt": formatar_moeda(item["receitas"]),
                 "despesas_fmt": formatar_moeda(item["despesas"]),
+                "investimentos_fmt": formatar_moeda(item["investimentos"]),
                 "transferencias_fmt": formatar_moeda(item["transferencias"]),
                 "saldo_fmt": formatar_moeda(item["saldo"]),
+                "disponivel_apos_investimentos_fmt": formatar_moeda(item["disponivel_apos_investimentos"]),
                 "comprometimento_fmt": f"{item['comprometimento']:.1f}".replace(".", ",") + "%",
                 "receitas_pct": receitas_pct,
                 "despesas_pct": despesas_pct,
+                "investimentos_pct": investimentos_pct,
                 "saldo_pct": saldo_pct,
+                "disponivel_pct": disponivel_pct,
             }
         )
 
     total_receitas = sum(item["receitas"] for item in meses)
     total_despesas = sum(item["despesas"] for item in meses)
+    total_investimentos = sum(item["investimentos"] for item in meses)
     saldo_total = total_receitas - total_despesas
+    disponivel_total = saldo_total - total_investimentos
 
     melhor_mes = None
     pior_mes = None
 
     meses_com_movimento = [
         item for item in meses_formatados
-        if item["receitas"] > 0 or item["despesas"] > 0
+        if item["receitas"] > 0
+        or item["despesas"] > 0
+        or item["investimentos"] > 0
     ]
 
     if meses_com_movimento:
@@ -319,10 +495,14 @@ def calcular_evolucao_mensal(registros: list[dict]) -> dict:
         "meses": meses_formatados,
         "total_receitas": total_receitas,
         "total_despesas": total_despesas,
+        "total_investimentos": total_investimentos,
         "saldo_total": saldo_total,
+        "disponivel_total": disponivel_total,
         "total_receitas_fmt": formatar_moeda(total_receitas),
         "total_despesas_fmt": formatar_moeda(total_despesas),
+        "total_investimentos_fmt": formatar_moeda(total_investimentos),
         "saldo_total_fmt": formatar_moeda(saldo_total),
+        "disponivel_total_fmt": formatar_moeda(disponivel_total),
         "melhor_mes": melhor_mes,
         "pior_mes": pior_mes,
     }
@@ -335,9 +515,9 @@ def calcular_orcamento_por_categoria(
     categorias = {}
 
     for item in registros_orcamento:
-        tipo = normalizar(item.get("TIPO"))
+        classificacao = classificar_gerencialmente(item)
 
-        if tipo != "DESPESA":
+        if classificacao != "DESPESA":
             continue
 
         categoria = str(item.get("CATEGORIA", "")).strip().upper() or "SEM CATEGORIA"
@@ -360,13 +540,16 @@ def calcular_orcamento_por_categoria(
         categorias[categoria]["qtd_previstos"] += 1
 
     for item in registros_realizados:
-        tipo = normalizar(item.get("TIPO"))
+        classificacao = classificar_gerencialmente(item)
 
-        if tipo != "DESPESA":
+        if classificacao != "DESPESA":
             continue
 
         categoria = str(item.get("CATEGORIA", "")).strip().upper() or "SEM CATEGORIA"
         realizado = valor_realizado(item)
+
+        if realizado <= 0:
+            realizado = valor_base_lancamento(item)
 
         if realizado <= 0:
             continue
@@ -385,7 +568,6 @@ def calcular_orcamento_por_categoria(
         categorias[categoria]["qtd_realizados"] += 1
 
     lista = []
-
     total_previsto = 0.0
     total_realizado = 0.0
 
@@ -472,23 +654,33 @@ def preparar_analise(
 
     total_receitas = 0.0
     total_despesas = 0.0
+    total_investimentos = 0.0
     total_transferencias = 0.0
 
     total_receitas_realizado = 0.0
     total_despesas_realizado = 0.0
+    total_investimentos_realizado = 0.0
 
     qtd_receitas = 0
     qtd_despesas = 0
+    qtd_investimentos = 0
     qtd_transferencias = 0
     qtd_a_classificar = 0
 
     despesas_por_categoria = {}
     despesas_por_categoria_subcategoria = {}
+    investimentos_por_categoria = {}
     receitas_por_categoria = {}
+
     top_despesas = []
+    lancamentos_receitas = []
+    lancamentos_despesas = []
+    lancamentos_investimentos = []
 
     for item in registros:
-        tipo = normalizar(item.get("TIPO"))
+        classificacao = classificar_gerencialmente(item)
+        tipo_original = normalizar(item.get("TIPO"))
+
         categoria = str(item.get("CATEGORIA", "")).strip() or "SEM CATEGORIA"
         subcategoria = str(item.get("SUBCATEGORIA", "")).strip() or "SEM SUBCATEGORIA"
         descricao = str(item.get("DESCRICAO", "")).strip()
@@ -501,6 +693,16 @@ def preparar_analise(
         if valor <= 0:
             continue
 
+        detalhe = montar_detalhe_lancamento(
+            data=data,
+            descricao=descricao,
+            categoria=categoria,
+            subcategoria=subcategoria,
+            situacao=situacao,
+            tipo=tipo_original,
+            valor=valor,
+        )
+
         texto_classificacao = normalizar(
             " ".join(
                 [
@@ -511,32 +713,24 @@ def preparar_analise(
             )
         )
 
-        if "A CLASSIFICAR" in texto_classificacao:
+        if "A CLASSIFICAR" in texto_classificacao or classificacao == "A_CLASSIFICAR":
             qtd_a_classificar += 1
 
-        if tipo == "RECEITA":
+        if classificacao == "RECEITA":
             total_receitas += valor
             total_receitas_realizado += realizado if realizado > 0 else valor
 
             qtd_receitas += 1
             receitas_por_categoria[categoria] = receitas_por_categoria.get(categoria, 0.0) + valor
+            lancamentos_receitas.append(detalhe)
 
-        elif tipo == "DESPESA":
+        elif classificacao == "DESPESA":
             total_despesas += valor
             total_despesas_realizado += realizado if realizado > 0 else valor
 
             qtd_despesas += 1
             despesas_por_categoria[categoria] = despesas_por_categoria.get(categoria, 0.0) + valor
-
-            detalhe = {
-                "data": data,
-                "descricao": descricao,
-                "categoria": categoria,
-                "subcategoria": subcategoria,
-                "situacao": situacao,
-                "valor": valor,
-                "valor_fmt": formatar_moeda(valor),
-            }
+            lancamentos_despesas.append(detalhe)
 
             despesas_por_categoria_subcategoria.setdefault(categoria, {})
             despesas_por_categoria_subcategoria[categoria].setdefault(
@@ -552,7 +746,19 @@ def preparar_analise(
 
             top_despesas.append(detalhe)
 
-        elif tipo in {"TRANSFERÊNCIA", "TRANSFERENCIA"}:
+        elif classificacao == "INVESTIMENTO":
+            total_investimentos += valor
+            total_investimentos_realizado += realizado if realizado > 0 else valor
+
+            qtd_investimentos += 1
+            investimentos_por_categoria[categoria] = investimentos_por_categoria.get(categoria, 0.0) + valor
+            lancamentos_investimentos.append(detalhe)
+
+        elif classificacao == "TRANSFERÊNCIA":
+            total_transferencias += valor
+            qtd_transferencias += 1
+
+        elif tipo_original == "TRANSFERÊNCIA":
             total_transferencias += valor
             qtd_transferencias += 1
 
@@ -560,8 +766,10 @@ def preparar_analise(
 
     total_receitas_previsto = totais_orcamento["receitas"]
     total_despesas_previsto = totais_orcamento["despesas"]
+    total_investimentos_previsto = totais_orcamento["investimentos"]
 
     saldo = total_receitas - total_despesas
+    disponivel_apos_investimentos = saldo - total_investimentos
 
     comprometimento = 0.0
     if total_receitas > 0:
@@ -570,6 +778,14 @@ def preparar_analise(
     saldo_percentual_receita = 0.0
     if total_receitas > 0:
         saldo_percentual_receita = (saldo / total_receitas) * 100
+
+    percentual_investimento_receita = 0.0
+    if total_receitas > 0:
+        percentual_investimento_receita = (total_investimentos / total_receitas) * 100
+
+    disponivel_percentual_receita = 0.0
+    if total_receitas > 0:
+        disponivel_percentual_receita = (disponivel_apos_investimentos / total_receitas) * 100
 
     media_despesas = 0.0
     if qtd_despesas > 0:
@@ -587,6 +803,14 @@ def preparar_analise(
     if total_receitas_previsto > 0:
         percentual_execucao_receitas = (total_receitas_realizado / total_receitas_previsto) * 100
 
+    diferenca_investimentos = total_investimentos_realizado - total_investimentos_previsto
+
+    percentual_execucao_investimentos = 0.0
+    if total_investimentos_previsto > 0:
+        percentual_execucao_investimentos = (
+            total_investimentos_realizado / total_investimentos_previsto
+        ) * 100
+
     categorias_ordenadas = sorted(
         despesas_por_categoria.items(),
         key=lambda item: item[1],
@@ -595,6 +819,12 @@ def preparar_analise(
 
     receitas_ordenadas = sorted(
         receitas_por_categoria.items(),
+        key=lambda item: item[1],
+        reverse=True,
+    )
+
+    investimentos_ordenados = sorted(
+        investimentos_por_categoria.items(),
         key=lambda item: item[1],
         reverse=True,
     )
@@ -688,7 +918,9 @@ def preparar_analise(
     diagnosticos = gerar_diagnostico(
         total_receitas=total_receitas,
         total_despesas=total_despesas,
+        total_investimentos=total_investimentos,
         saldo=saldo,
+        disponivel_apos_investimentos=disponivel_apos_investimentos,
         comprometimento=comprometimento,
         qtd_a_classificar=qtd_a_classificar,
         maior_categoria=maior_categoria,
@@ -698,6 +930,7 @@ def preparar_analise(
         diferenca_despesas=diferenca_despesas,
         percentual_execucao_despesas=percentual_execucao_despesas,
         saldo_percentual_receita=saldo_percentual_receita,
+        percentual_investimento_receita=percentual_investimento_receita,
         maior_despesa=maior_despesa,
     )
 
@@ -709,45 +942,78 @@ def preparar_analise(
         registros_orcamento=registros_orcamento,
     )
 
+    lancamentos_receitas = ordenar_lancamentos_por_valor(lancamentos_receitas)
+    lancamentos_despesas = ordenar_lancamentos_por_valor(lancamentos_despesas)
+    lancamentos_investimentos = ordenar_lancamentos_por_valor(lancamentos_investimentos)
+
     return {
         "total_receitas": total_receitas,
         "total_despesas": total_despesas,
+        "total_investimentos": total_investimentos,
         "total_transferencias": total_transferencias,
         "saldo": saldo,
+        "disponivel_apos_investimentos": disponivel_apos_investimentos,
         "comprometimento": comprometimento,
         "saldo_percentual_receita": saldo_percentual_receita,
+        "percentual_investimento_receita": percentual_investimento_receita,
+        "disponivel_percentual_receita": disponivel_percentual_receita,
         "media_despesas": media_despesas,
         "qtd_receitas": qtd_receitas,
         "qtd_despesas": qtd_despesas,
+        "qtd_investimentos": qtd_investimentos,
         "qtd_transferencias": qtd_transferencias,
         "qtd_a_classificar": qtd_a_classificar,
         "total_lancamentos": len(registros),
 
         "total_receitas_fmt": formatar_moeda(total_receitas),
         "total_despesas_fmt": formatar_moeda(total_despesas),
+        "total_investimentos_fmt": formatar_moeda(total_investimentos),
         "total_transferencias_fmt": formatar_moeda(total_transferencias),
         "saldo_fmt": formatar_moeda(saldo),
+        "disponivel_apos_investimentos_fmt": formatar_moeda(disponivel_apos_investimentos),
         "comprometimento_fmt": f"{comprometimento:.1f}".replace(".", ",") + "%",
         "saldo_percentual_receita_fmt": f"{saldo_percentual_receita:.1f}".replace(".", ",") + "%",
+        "percentual_investimento_receita_fmt": f"{percentual_investimento_receita:.1f}".replace(".", ",") + "%",
+        "disponivel_percentual_receita_fmt": f"{disponivel_percentual_receita:.1f}".replace(".", ",") + "%",
         "media_despesas_fmt": formatar_moeda(media_despesas),
 
         "total_receitas_previsto": total_receitas_previsto,
         "total_receitas_realizado": total_receitas_realizado,
         "total_despesas_previsto": total_despesas_previsto,
         "total_despesas_realizado": total_despesas_realizado,
+        "total_investimentos_previsto": total_investimentos_previsto,
+        "total_investimentos_realizado": total_investimentos_realizado,
         "diferenca_receitas": diferenca_receitas,
         "diferenca_despesas": diferenca_despesas,
+        "diferenca_investimentos": diferenca_investimentos,
         "percentual_execucao_receitas": percentual_execucao_receitas,
         "percentual_execucao_despesas": percentual_execucao_despesas,
+        "percentual_execucao_investimentos": percentual_execucao_investimentos,
 
         "total_receitas_previsto_fmt": formatar_moeda(total_receitas_previsto),
         "total_receitas_realizado_fmt": formatar_moeda(total_receitas_realizado),
         "total_despesas_previsto_fmt": formatar_moeda(total_despesas_previsto),
         "total_despesas_realizado_fmt": formatar_moeda(total_despesas_realizado),
+        "total_investimentos_previsto_fmt": formatar_moeda(total_investimentos_previsto),
+        "total_investimentos_realizado_fmt": formatar_moeda(total_investimentos_realizado),
         "diferenca_receitas_fmt": formatar_moeda(abs(diferenca_receitas)),
         "diferenca_despesas_fmt": formatar_moeda(abs(diferenca_despesas)),
-        "percentual_execucao_receitas_fmt": f"{percentual_execucao_receitas:.1f}".replace(".", ",") + "%" if total_receitas_previsto > 0 else "Sem previsto",
-        "percentual_execucao_despesas_fmt": f"{percentual_execucao_despesas:.1f}".replace(".", ",") + "%" if total_despesas_previsto > 0 else "Sem previsto",
+        "diferenca_investimentos_fmt": formatar_moeda(abs(diferenca_investimentos)),
+        "percentual_execucao_receitas_fmt": (
+            f"{percentual_execucao_receitas:.1f}".replace(".", ",") + "%"
+            if total_receitas_previsto > 0
+            else "Sem previsto"
+        ),
+        "percentual_execucao_despesas_fmt": (
+            f"{percentual_execucao_despesas:.1f}".replace(".", ",") + "%"
+            if total_despesas_previsto > 0
+            else "Sem previsto"
+        ),
+        "percentual_execucao_investimentos_fmt": (
+            f"{percentual_execucao_investimentos:.1f}".replace(".", ",") + "%"
+            if total_investimentos_previsto > 0
+            else "Sem previsto"
+        ),
 
         "maior_categoria": maior_categoria,
         "maior_categoria_valor": maior_categoria_valor,
@@ -763,17 +1029,30 @@ def preparar_analise(
             }
             for categoria, valor in receitas_ordenadas
         ],
+        "investimentos_por_categoria": [
+            {
+                "categoria": categoria,
+                "valor": valor,
+                "valor_fmt": formatar_moeda(valor),
+            }
+            for categoria, valor in investimentos_ordenados
+        ],
         "top_despesas": top_despesas,
         "diagnosticos": diagnosticos,
         "evolucao_mensal": evolucao_mensal,
         "orcamento_por_categoria": orcamento_por_categoria,
+        "lancamentos_receitas": lancamentos_receitas,
+        "lancamentos_despesas": lancamentos_despesas,
+        "lancamentos_investimentos": lancamentos_investimentos,
     }
 
 
 def gerar_diagnostico(
     total_receitas: float,
     total_despesas: float,
+    total_investimentos: float,
     saldo: float,
+    disponivel_apos_investimentos: float,
     comprometimento: float,
     qtd_a_classificar: int,
     maior_categoria: str,
@@ -783,6 +1062,7 @@ def gerar_diagnostico(
     diferenca_despesas: float,
     percentual_execucao_despesas: float,
     saldo_percentual_receita: float,
+    percentual_investimento_receita: float,
     maior_despesa: dict | None,
 ) -> list[dict]:
     diagnosticos = []
@@ -809,7 +1089,7 @@ def gerar_diagnostico(
                 {
                     "tipo": "atencao",
                     "titulo": "Comprometimento moderado",
-                    "texto": f"As despesas representam {comprometimento:.1f}% da receita. Ainda há saldo, mas vale revisar gastos variáveis.",
+                    "texto": f"As despesas representam {comprometimento:.1f}% da receita. Ainda há saldo operacional, mas vale revisar gastos variáveis.",
                 }
             )
         else:
@@ -825,18 +1105,44 @@ def gerar_diagnostico(
         diagnosticos.append(
             {
                 "tipo": "positivo",
-                "titulo": "Saldo positivo",
-                "texto": f"O saldo do período está positivo em {formatar_moeda(saldo)}. Isso representa {saldo_percentual_receita:.1f}% da receita.",
+                "titulo": "Saldo operacional positivo",
+                "texto": f"O saldo operacional do período está positivo em {formatar_moeda(saldo)}. Isso representa {saldo_percentual_receita:.1f}% da receita.",
             }
         )
     else:
         diagnosticos.append(
             {
                 "tipo": "alerta",
-                "titulo": "Saldo negativo",
-                "texto": f"O saldo do período está negativo em {formatar_moeda(abs(saldo))}. É necessário revisar despesas e lançamentos pendentes.",
+                "titulo": "Saldo operacional negativo",
+                "texto": f"O saldo operacional do período está negativo em {formatar_moeda(abs(saldo))}. É necessário revisar despesas e lançamentos pendentes.",
             }
         )
+
+    if total_investimentos > 0:
+        diagnosticos.append(
+            {
+                "tipo": "positivo",
+                "titulo": "Investimentos realizados",
+                "texto": f"Foram destinados {formatar_moeda(total_investimentos)} para investimentos ou reserva no período, equivalente a {percentual_investimento_receita:.1f}% da receita.",
+            }
+        )
+
+        if disponivel_apos_investimentos >= 0:
+            diagnosticos.append(
+                {
+                    "tipo": "info",
+                    "titulo": "Disponível após investimentos",
+                    "texto": f"Após despesas e investimentos, o disponível estimado ficou em {formatar_moeda(disponivel_apos_investimentos)}.",
+                }
+            )
+        else:
+            diagnosticos.append(
+                {
+                    "tipo": "atencao",
+                    "titulo": "Investimentos acima da folga operacional",
+                    "texto": f"Após despesas e investimentos, o disponível ficou negativo em {formatar_moeda(abs(disponivel_apos_investimentos))}. Avalie se houve uso de saldo anterior ou necessidade de ajuste no planejamento.",
+                }
+            )
 
     if qtd_a_classificar > 0:
         diagnosticos.append(
@@ -901,10 +1207,22 @@ def gerar_diagnostico(
 
 @router.get("/financeiro", response_class=HTMLResponse)
 async def financeiro_get(request: Request):
+    config = obter_configuracao_sistema()
+
+    planilha_google = str(config.get("planilha_google", "") or "").strip()
+    ano_base = str(config.get("ano_base", "") or "").strip()
+
+    configuracao_ok = bool(planilha_google)
+
     return templates.TemplateResponse(
         request=request,
         name="financeiro.html",
-        context={},
+        context={
+            "config": config,
+            "planilha_google": planilha_google,
+            "ano_base": ano_base,
+            "configuracao_ok": configuracao_ok,
+        },
     )
 
 

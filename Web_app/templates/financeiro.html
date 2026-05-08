@@ -42,7 +42,7 @@
         }
 
         .page {
-            max-width: 1450px;
+            max-width: 1500px;
             margin: 0 auto;
             padding: 32px;
         }
@@ -50,8 +50,8 @@
         .hero {
             background: linear-gradient(135deg, #0f172a, #1d4ed8);
             color: white;
-            border-radius: 28px;
-            padding: 34px;
+            border-radius: 30px;
+            padding: 36px;
             box-shadow: var(--shadow);
             margin-bottom: 22px;
             position: relative;
@@ -61,35 +61,37 @@
         .hero::after {
             content: "";
             position: absolute;
-            width: 260px;
-            height: 260px;
+            width: 280px;
+            height: 280px;
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.10);
-            right: -80px;
-            top: -90px;
+            right: -90px;
+            top: -95px;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
         }
 
         .hero h1 {
             margin: 0 0 10px;
-            font-size: 34px;
+            font-size: 36px;
             letter-spacing: -0.04em;
-            position: relative;
-            z-index: 1;
         }
 
         .hero p {
             margin: 0;
             color: #dbeafe;
-            max-width: 850px;
+            max-width: 900px;
             line-height: 1.55;
             font-size: 16px;
-            position: relative;
-            z-index: 1;
+            font-weight: 600;
         }
 
         .nav {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             margin-bottom: 22px;
             flex-wrap: wrap;
         }
@@ -101,7 +103,7 @@
             color: #1e40af;
             padding: 12px 16px;
             border-radius: 999px;
-            font-weight: 800;
+            font-weight: 850;
             box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
         }
 
@@ -137,9 +139,137 @@
             line-height: 1.5;
         }
 
+        .config-panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 26px;
+            box-shadow: var(--shadow);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .config-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 999px;
+            padding: 9px 13px;
+            font-size: 12px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border: 1px solid;
+            white-space: nowrap;
+        }
+
+        .status-ok {
+            background: var(--green-bg);
+            color: var(--green);
+            border-color: var(--green-border);
+        }
+
+        .status-pending {
+            background: var(--amber-bg);
+            color: var(--amber);
+            border-color: var(--amber-border);
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 0.6fr;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .config-item {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+        }
+
+        .config-label {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+
+        .config-value {
+            font-size: 15px;
+            font-weight: 850;
+            color: #111827;
+            word-break: break-word;
+        }
+
+        .config-empty {
+            color: var(--amber);
+        }
+
+        .config-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 14px;
+            padding: 13px 16px;
+            text-decoration: none;
+            font-weight: 900;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: #f8fafc;
+            color: #1e40af;
+            border-color: var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        .warning-box {
+            background: var(--amber-bg);
+            border: 1px solid var(--amber-border);
+            color: #92400e;
+            border-radius: 18px;
+            padding: 15px 16px;
+            font-weight: 750;
+            line-height: 1.5;
+            margin-top: 16px;
+        }
+
         .flow-grid {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 18px;
         }
 
@@ -149,7 +279,7 @@
             border-radius: 24px;
             padding: 22px;
             box-shadow: var(--shadow);
-            min-height: 265px;
+            min-height: 260px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -168,8 +298,8 @@
         }
 
         .step-number {
-            width: 42px;
-            height: 42px;
+            width: 44px;
+            height: 44px;
             border-radius: 16px;
             display: inline-flex;
             align-items: center;
@@ -203,6 +333,12 @@
             border: 1px solid var(--purple-border);
         }
 
+        .step-red .step-number {
+            background: var(--red-bg);
+            color: var(--red);
+            border: 1px solid var(--red-border);
+        }
+
         .step-card h3 {
             margin: 0 0 8px;
             font-size: 18px;
@@ -221,42 +357,13 @@
             margin-top: 20px;
         }
 
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+        .step-actions .btn {
             width: 100%;
-            border-radius: 14px;
-            padding: 13px 16px;
-            text-decoration: none;
-            font-weight: 900;
-            border: 1px solid transparent;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn-secondary {
-            background: #f8fafc;
-            color: #1e40af;
-            border-color: var(--border);
-        }
-
-        .btn-secondary:hover {
-            background: #eff6ff;
-            border-color: #bfdbfe;
         }
 
         .info-grid {
             display: grid;
-            grid-template-columns: 1.3fr 0.7fr;
+            grid-template-columns: 1.15fr 0.85fr;
             gap: 18px;
             margin-top: 24px;
         }
@@ -312,48 +419,6 @@
             justify-content: center;
             font-weight: 950;
             flex: 0 0 auto;
-            border: 1px solid var(--green-border);
-        }
-
-        .warning-box {
-            background: var(--amber-bg);
-            border: 1px solid var(--amber-border);
-            color: #92400e;
-            border-radius: 18px;
-            padding: 16px;
-            font-weight: 750;
-            line-height: 1.5;
-        }
-
-        .quick-links {
-            display: grid;
-            gap: 10px;
-            margin-top: 14px;
-        }
-
-        .quick-link {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 13px 14px;
-            border-radius: 16px;
-            background: #f8fafc;
-            border: 1px solid var(--border);
-            text-decoration: none;
-            color: #1f2937;
-            font-weight: 850;
-        }
-
-        .quick-link span {
-            color: var(--muted);
-            font-weight: 750;
-            font-size: 13px;
-        }
-
-        .quick-link:hover {
-            background: #eff6ff;
-            border-color: #bfdbfe;
         }
 
         @media (max-width: 1200px) {
@@ -361,6 +426,7 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
+            .config-grid,
             .info-grid {
                 grid-template-columns: 1fr;
             }
@@ -371,16 +437,12 @@
                 padding: 18px;
             }
 
-            .flow-grid {
-                grid-template-columns: 1fr;
-            }
-
             .hero {
                 padding: 26px;
             }
 
-            .hero h1 {
-                font-size: 28px;
+            .flow-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -389,28 +451,92 @@
 <body>
     <main class="page">
         <section class="hero">
-            <h1>Central Financeira</h1>
-            <p>
-                Siga o fluxo recomendado: importe o extrato, revise a base de lançamentos,
-                inclua ajustes manuais quando necessário e depois analise os gráficos e diagnósticos financeiros.
-            </p>
+            <div class="hero-content">
+                <h1>Central Financeira</h1>
+                <p>
+                    Fluxo completo para configurar a planilha, importar extratos, revisar lançamentos,
+                    cadastrar orçamento mensal e acompanhar a análise financeira.
+                </p>
+            </div>
         </section>
 
         <nav class="nav">
-            <a href="/">Início</a>
-            <a href="/financeiro" class="active">Central Financeira</a>
-            <a href="/financeiro/extratos">1. Importar Extratos</a>
-            <a href="/financeiro/base-lancamentos">2. Revisar Base</a>
-            <a href="/financeiro/lancamento">3. Novo Lançamento</a>
-            <a href="/financeiro/analise">4. Análise Financeira</a>
+            <a href="/financeiro" class="active">Início</a>
+            <a href="/financeiro/configuracoes">Configurações</a>
+            <a href="/financeiro/extratos">Extratos</a>
+            <a href="/financeiro/base-lancamentos">Base</a>
+            <a href="/financeiro/lancamento">Lançamento</a>
+            <a href="/financeiro/orcamento">Orçamento</a>
+            <a href="/financeiro/analise">Análise</a>
         </nav>
+
+        <section class="config-panel">
+            <div class="config-top">
+                <div>
+                    <h2 class="section-title">Etapa 0 — Configuração inicial</h2>
+                    <p class="section-subtitle">
+                        Antes de importar extratos ou lançar dados, confirme se a planilha Google está vinculada
+                        e se o ano base está correto.
+                    </p>
+                </div>
+
+                {% if configuracao_ok %}
+                    <span class="status-badge status-ok">Configuração OK</span>
+                {% else %}
+                    <span class="status-badge status-pending">Configuração pendente</span>
+                {% endif %}
+            </div>
+
+            <div class="config-grid">
+                <div class="config-item">
+                    <div class="config-label">Planilha vinculada</div>
+                    <div class="config-value {% if not planilha_google %}config-empty{% endif %}">
+                        {% if planilha_google %}
+                            {{ planilha_google }}
+                        {% else %}
+                            Nenhuma planilha vinculada.
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="config-item">
+                    <div class="config-label">Ano base</div>
+                    <div class="config-value {% if not ano_base %}config-empty{% endif %}">
+                        {% if ano_base %}
+                            {{ ano_base }}
+                        {% else %}
+                            Não definido.
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-actions">
+                {% if planilha_google %}
+                    <a class="btn btn-primary" href="{{ planilha_google }}" target="_blank">
+                        Abrir planilha vinculada
+                    </a>
+                {% endif %}
+
+                <a class="btn btn-secondary" href="/financeiro/configuracoes">
+                    Alterar/criar planilha
+                </a>
+            </div>
+
+            {% if not configuracao_ok %}
+                <div class="warning-box">
+                    Antes de usar o fluxo financeiro, configure ou crie uma planilha vinculada.
+                    Sem essa etapa, o sistema não terá onde gravar extratos, lançamentos e orçamento.
+                </div>
+            {% endif %}
+        </section>
 
         <section class="section">
             <div class="section-header">
                 <div>
-                    <h2 class="section-title">Fluxo recomendado de uso</h2>
+                    <h2 class="section-title">Fluxo de trabalho recomendado</h2>
                     <p class="section-subtitle">
-                        Esta sequência ajuda a manter a base organizada e evita análises com dados incompletos.
+                        Siga as etapas abaixo na ordem para manter a base organizada e a análise financeira confiável.
                     </p>
                 </div>
             </div>
@@ -421,19 +547,16 @@
                         <div class="step-top">
                             <div class="step-number">1</div>
                             <div>
-                                <h3>Importar Extratos</h3>
+                                <h3>Importar extrato</h3>
                                 <p>
-                                    Envie o arquivo XLS, XLSX ou CSV do banco. O sistema lê o extrato,
-                                    aplica regras de classificação e mostra uma prévia antes de gravar.
+                                    Leia o extrato bancário, aplique regras de classificação e gere uma prévia antes de gravar.
                                 </p>
                             </div>
                         </div>
                     </div>
 
                     <div class="step-actions">
-                        <a href="/financeiro/extratos" class="btn btn-primary">
-                            Importar agora
-                        </a>
+                        <a class="btn btn-primary" href="/financeiro/extratos">Ir para extratos</a>
                     </div>
                 </article>
 
@@ -442,19 +565,16 @@
                         <div class="step-top">
                             <div class="step-number">2</div>
                             <div>
-                                <h3>Revisar Base</h3>
+                                <h3>Revisar base de lançamentos</h3>
                                 <p>
-                                    Confira os lançamentos importados, ajuste categorias, resolva itens
-                                    “A CLASSIFICAR”, edite valores e exclua registros incorretos.
+                                    Ajuste tipo, categoria, subcategoria, situação e valores antes de analisar os dados.
                                 </p>
                             </div>
                         </div>
                     </div>
 
                     <div class="step-actions">
-                        <a href="/financeiro/base-lancamentos" class="btn btn-primary">
-                            Revisar base
-                        </a>
+                        <a class="btn btn-primary" href="/financeiro/base-lancamentos">Revisar base</a>
                     </div>
                 </article>
 
@@ -463,19 +583,16 @@
                         <div class="step-top">
                             <div class="step-number">3</div>
                             <div>
-                                <h3>Novo Lançamento</h3>
+                                <h3>Novo lançamento manual</h3>
                                 <p>
-                                    Cadastre manualmente receitas, despesas, previsões ou ajustes que
-                                    não vieram no extrato bancário.
+                                    Cadastre receitas, despesas, transferências ou ajustes que não vieram pelo extrato.
                                 </p>
                             </div>
                         </div>
                     </div>
 
                     <div class="step-actions">
-                        <a href="/financeiro/lancamento" class="btn btn-primary">
-                            Adicionar lançamento
-                        </a>
+                        <a class="btn btn-primary" href="/financeiro/lancamento">Novo lançamento</a>
                     </div>
                 </article>
 
@@ -484,19 +601,52 @@
                         <div class="step-top">
                             <div class="step-number">4</div>
                             <div>
-                                <h3>Análise Financeira</h3>
+                                <h3>Orçamento mensal</h3>
                                 <p>
-                                    Veja indicadores, gráficos, despesas por categoria, saldo do período
-                                    e diagnóstico financeiro com base nos lançamentos revisados.
+                                    Informe os valores previstos por mês, categoria e subcategoria para comparar com o realizado.
                                 </p>
                             </div>
                         </div>
                     </div>
 
                     <div class="step-actions">
-                        <a href="/financeiro/analise" class="btn btn-primary">
-                            Ver análise
-                        </a>
+                        <a class="btn btn-primary" href="/financeiro/orcamento">Cadastrar orçamento</a>
+                    </div>
+                </article>
+
+                <article class="step-card step-red">
+                    <div>
+                        <div class="step-top">
+                            <div class="step-number">5</div>
+                            <div>
+                                <h3>Análise financeira</h3>
+                                <p>
+                                    Veja indicadores, orçamento por categoria, evolução mensal, composição das despesas e diagnóstico.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-actions">
+                        <a class="btn btn-primary" href="/financeiro/analise">Abrir análise</a>
+                    </div>
+                </article>
+
+                <article class="step-card step-blue">
+                    <div>
+                        <div class="step-top">
+                            <div class="step-number">✓</div>
+                            <div>
+                                <h3>Conferência final</h3>
+                                <p>
+                                    Após a análise, volte à base para corrigir lançamentos a classificar ou categorias inconsistentes.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-actions">
+                        <a class="btn btn-secondary" href="/financeiro/base-lancamentos">Corrigir pendências</a>
                     </div>
                 </article>
             </div>
@@ -504,68 +654,64 @@
 
         <section class="info-grid">
             <article class="info-card">
-                <h2>Como usar no dia a dia</h2>
+                <h2>Como usar esta central</h2>
                 <p>
-                    A Central Financeira foi organizada para reduzir retrabalho. Primeiro os dados entram,
-                    depois são revisados, e só então os gráficos são usados para tomada de decisão.
+                    A Central Financeira foi organizada para evitar perda de sequência operacional.
+                    A configuração da planilha vem antes de qualquer etapa, porque todo o sistema depende dela.
+                </p>
+
+                <div class="checklist">
+                    <div class="check-item">
+                        <span class="check-icon">1</span>
+                        <span>Configure ou confirme a planilha vinculada.</span>
+                    </div>
+
+                    <div class="check-item">
+                        <span class="check-icon">2</span>
+                        <span>Importe o extrato e revise a prévia antes de gravar.</span>
+                    </div>
+
+                    <div class="check-item">
+                        <span class="check-icon">3</span>
+                        <span>Revise a base para corrigir classificações, tipos e situações.</span>
+                    </div>
+
+                    <div class="check-item">
+                        <span class="check-icon">4</span>
+                        <span>Cadastre o orçamento mensal para alimentar o previsto.</span>
+                    </div>
+
+                    <div class="check-item">
+                        <span class="check-icon">5</span>
+                        <span>Consulte a análise financeira com dados realizados e planejados.</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="info-card">
+                <h2>Estrutura de dados</h2>
+                <p>
+                    A análise financeira usa a base de lançamentos para o realizado e o orçamento mensal
+                    para os valores previstos.
                 </p>
 
                 <div class="checklist">
                     <div class="check-item">
                         <span class="check-icon">✓</span>
-                        <span>
-                            Importe o extrato do banco e confira a prévia antes de confirmar.
-                        </span>
+                        <span><strong>BASE_LANCAMENTOS</strong>: receitas, despesas, transferências e extratos importados.</span>
                     </div>
 
                     <div class="check-item">
                         <span class="check-icon">✓</span>
-                        <span>
-                            Use a Base de Lançamentos para corrigir classificações e excluir registros desnecessários.
-                        </span>
+                        <span><strong>ORCAMENTO_MENSAL</strong>: valores previstos por mês e categoria.</span>
                     </div>
 
                     <div class="check-item">
                         <span class="check-icon">✓</span>
-                        <span>
-                            Cadastre manualmente despesas ou receitas que não aparecem no extrato.
-                        </span>
-                    </div>
-
-                    <div class="check-item">
-                        <span class="check-icon">✓</span>
-                        <span>
-                            Depois de revisar a base, acesse a Análise Financeira para ver gráficos e diagnóstico.
-                        </span>
+                        <span><strong>Análise</strong>: compara previsto x realizado e gera diagnóstico.</span>
                     </div>
                 </div>
             </article>
-
-            <aside class="info-card">
-                <h2>Atenção</h2>
-
-                <div class="warning-box">
-                    Antes de analisar os gráficos, revise os lançamentos classificados como
-                    <strong>A CLASSIFICAR</strong>. Eles podem distorcer os diagnósticos financeiros.
-                </div>
-
-                <div class="quick-links">
-                    <a class="quick-link" href="/financeiro/base-lancamentos?texto=A%20CLASSIFICAR">
-                        Ver lançamentos a classificar
-                        <span>→</span>
-                    </a>
-
-                    <a class="quick-link" href="/financeiro/extratos">
-                        Importar novo extrato
-                        <span>→</span>
-                    </a>
-
-                    <a class="quick-link" href="/financeiro/base-lancamentos">
-                        Abrir base completa
-                        <span>→</span>
-                    </a>
-                </div>
-            </aside>
         </section>
     </main>
 </body>

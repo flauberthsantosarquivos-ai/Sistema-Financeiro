@@ -21,6 +21,44 @@ CABECALHOS_ORCAMENTO = [
     "CRIADO_EM",
 ]
 
+ORDEM_MESES = [
+    "JAN",
+    "FEV",
+    "MAR",
+    "ABR",
+    "MAI",
+    "JUN",
+    "JUL",
+    "AGO",
+    "SET",
+    "OUT",
+    "NOV",
+    "DEZ",
+]
+
+NOMES_MESES = {
+    "JAN": "Janeiro",
+    "FEV": "Fevereiro",
+    "MAR": "Março",
+    "ABR": "Abril",
+    "MAI": "Maio",
+    "JUN": "Junho",
+    "JUL": "Julho",
+    "AGO": "Agosto",
+    "SET": "Setembro",
+    "OUT": "Outubro",
+    "NOV": "Novembro",
+    "DEZ": "Dezembro",
+}
+
+TIPOS_ORCAMENTO = {
+    "RECEITA",
+    "DESPESA",
+    "INVESTIMENTO",
+    "TRANSFERÊNCIA",
+    "TRANSFERENCIA",
+}
+
 
 def obter_link_planilha_configurada() -> str:
     config = obter_configuracao_sistema()
@@ -68,6 +106,15 @@ def normalizar_upper(valor) -> str:
     return normalizar_texto(valor).upper()
 
 
+def normalizar_tipo(valor) -> str:
+    tipo = normalizar_upper(valor)
+
+    if tipo == "TRANSFERENCIA":
+        return "TRANSFERÊNCIA"
+
+    return tipo
+
+
 def para_float_brasil(valor) -> float:
     texto = str(valor or "").strip()
 
@@ -95,6 +142,29 @@ def formatar_numero_brasil(valor: float) -> str:
     return f"{numero:.2f}".replace(".", ",")
 
 
+def nome_mes(sigla: str) -> str:
+    sigla_normalizada = normalizar_upper(sigla)
+    return NOMES_MESES.get(sigla_normalizada, sigla_normalizada)
+
+
+def linha_para_registro(linha: list[str]) -> dict:
+    linha_completa = linha + [""] * (len(CABECALHOS_ORCAMENTO) - len(linha))
+
+    item = {
+        cabecalho: linha_completa[indice]
+        for indice, cabecalho in enumerate(CABECALHOS_ORCAMENTO)
+    }
+
+    valor_previsto = para_float_brasil(item.get("VALOR_PREVISTO"))
+
+    item["TIPO"] = normalizar_tipo(item.get("TIPO"))
+    item["VALOR_PREVISTO_NUM"] = valor_previsto
+    item["VALOR_PREVISTO_FMT"] = formatar_moeda(valor_previsto)
+    item["VALOR_PREVISTO_RAW"] = formatar_numero_brasil(valor_previsto)
+
+    return item
+
+
 def ler_orcamento_mensal() -> list[dict]:
     _, aba = abrir_planilha_e_orcamento()
 
@@ -106,19 +176,7 @@ def ler_orcamento_mensal() -> list[dict]:
     registros = []
 
     for linha in valores[1:]:
-        linha_completa = linha + [""] * (len(CABECALHOS_ORCAMENTO) - len(linha))
-
-        item = {
-            cabecalho: linha_completa[indice]
-            for indice, cabecalho in enumerate(CABECALHOS_ORCAMENTO)
-        }
-
-        valor_previsto = para_float_brasil(item.get("VALOR_PREVISTO"))
-
-        item["VALOR_PREVISTO_NUM"] = valor_previsto
-        item["VALOR_PREVISTO_FMT"] = formatar_moeda(valor_previsto)
-        item["VALOR_PREVISTO_RAW"] = formatar_numero_brasil(valor_previsto)
-
+        item = linha_para_registro(linha)
         registros.append(item)
 
     return registros
@@ -133,7 +191,7 @@ def filtrar_orcamento(
 ) -> list[dict]:
     ano = normalizar_texto(ano)
     mes = normalizar_upper(mes)
-    tipo = normalizar_upper(tipo)
+    tipo = normalizar_tipo(tipo)
     categoria = normalizar_upper(categoria)
 
     filtrados = []
@@ -141,7 +199,7 @@ def filtrar_orcamento(
     for item in registros:
         item_ano = normalizar_texto(item.get("ANO"))
         item_mes = normalizar_upper(item.get("MES"))
-        item_tipo = normalizar_upper(item.get("TIPO"))
+        item_tipo = normalizar_tipo(item.get("TIPO"))
         item_categoria = normalizar_upper(item.get("CATEGORIA"))
 
         if ano and item_ano != ano:
@@ -170,12 +228,7 @@ def localizar_orcamento_por_id(orcamento_id: str):
         raise ValueError("A aba ORCAMENTO_MENSAL está vazia.")
 
     for indice_linha, linha in enumerate(valores[1:], start=2):
-        linha_completa = linha + [""] * (len(CABECALHOS_ORCAMENTO) - len(linha))
-
-        registro = {
-            cabecalho: linha_completa[indice]
-            for indice, cabecalho in enumerate(CABECALHOS_ORCAMENTO)
-        }
+        registro = linha_para_registro(linha)
 
         if str(registro.get("ID", "")).strip() == str(orcamento_id).strip():
             return aba, indice_linha, registro
@@ -197,7 +250,7 @@ def salvar_orcamento(
 
     ano = normalizar_texto(ano)
     mes = normalizar_upper(mes)
-    tipo = normalizar_upper(tipo)
+    tipo = normalizar_tipo(tipo)
     categoria = normalizar_upper(categoria)
     subcategoria = normalizar_upper(subcategoria)
     valor_previsto_num = para_float_brasil(valor_previsto)
@@ -210,8 +263,14 @@ def salvar_orcamento(
     if not mes:
         raise ValueError("Informe o mês do orçamento.")
 
+    if mes not in ORDEM_MESES:
+        raise ValueError("Informe um mês válido.")
+
     if not tipo:
         raise ValueError("Informe o tipo do orçamento.")
+
+    if tipo not in TIPOS_ORCAMENTO:
+        raise ValueError("Informe um tipo válido: RECEITA, DESPESA, INVESTIMENTO ou TRANSFERÊNCIA.")
 
     if not categoria:
         raise ValueError("Informe a categoria do orçamento.")
@@ -272,28 +331,270 @@ def excluir_orcamento(orcamento_id: str) -> None:
 def montar_resumo_orcamento(registros: list[dict]) -> dict:
     total_receitas = 0.0
     total_despesas = 0.0
+    total_investimentos = 0.0
     total_transferencias = 0.0
 
     for item in registros:
-        tipo = normalizar_upper(item.get("TIPO"))
+        tipo = normalizar_tipo(item.get("TIPO"))
         valor = float(item.get("VALOR_PREVISTO_NUM", 0) or 0)
 
         if tipo == "RECEITA":
             total_receitas += valor
         elif tipo == "DESPESA":
             total_despesas += valor
-        elif tipo in {"TRANSFERÊNCIA", "TRANSFERENCIA"}:
+        elif tipo == "INVESTIMENTO":
+            total_investimentos += valor
+        elif tipo == "TRANSFERÊNCIA":
             total_transferencias += valor
 
-    saldo_previsto = total_receitas - total_despesas
+    saldo_previsto = total_receitas - total_despesas - total_investimentos
 
     return {
         "total_receitas": total_receitas,
         "total_despesas": total_despesas,
+        "total_investimentos": total_investimentos,
         "total_transferencias": total_transferencias,
         "saldo_previsto": saldo_previsto,
         "total_receitas_fmt": formatar_moeda(total_receitas),
         "total_despesas_fmt": formatar_moeda(total_despesas),
+        "total_investimentos_fmt": formatar_moeda(total_investimentos),
         "total_transferencias_fmt": formatar_moeda(total_transferencias),
         "saldo_previsto_fmt": formatar_moeda(saldo_previsto),
+    }
+
+
+def normalizar_meses_destino(meses_destino: list[str]) -> list[str]:
+    meses_normalizados = []
+
+    for mes in meses_destino:
+        mes_normalizado = normalizar_upper(mes)
+
+        if not mes_normalizado:
+            continue
+
+        if mes_normalizado not in ORDEM_MESES:
+            raise ValueError(f"Mês inválido informado: {mes}")
+
+        if mes_normalizado not in meses_normalizados:
+            meses_normalizados.append(mes_normalizado)
+
+    return meses_normalizados
+
+
+def existe_orcamento_no_mes(
+    registros: list[dict],
+    ano: str,
+    mes: str,
+) -> bool:
+    ano = normalizar_texto(ano)
+    mes = normalizar_upper(mes)
+
+    for item in registros:
+        if (
+            normalizar_texto(item.get("ANO")) == ano
+            and normalizar_upper(item.get("MES")) == mes
+        ):
+            return True
+
+    return False
+
+
+def obter_meses_com_orcamento_existente(
+    registros: list[dict],
+    ano: str,
+    meses_destino: list[str],
+) -> list[str]:
+    meses_com_orcamento = []
+
+    for mes in meses_destino:
+        if existe_orcamento_no_mes(registros, ano, mes):
+            meses_com_orcamento.append(mes)
+
+    return meses_com_orcamento
+
+
+def excluir_orcamento_por_ano_e_meses(
+    aba,
+    ano: str,
+    meses: list[str],
+) -> int:
+    valores = aba.get_all_values()
+
+    if not valores or len(valores) <= 1:
+        return 0
+
+    linhas_para_excluir = []
+
+    for indice_linha, linha in enumerate(valores[1:], start=2):
+        registro = linha_para_registro(linha)
+
+        if (
+            normalizar_texto(registro.get("ANO")) == normalizar_texto(ano)
+            and normalizar_upper(registro.get("MES")) in meses
+        ):
+            linhas_para_excluir.append(indice_linha)
+
+    for indice_linha in sorted(linhas_para_excluir, reverse=True):
+        aba.delete_rows(indice_linha)
+
+    return len(linhas_para_excluir)
+
+
+def montar_chave_orcamento(item: dict) -> tuple[str, str, str, str, str]:
+    return (
+        normalizar_texto(item.get("ANO")),
+        normalizar_upper(item.get("MES")),
+        normalizar_tipo(item.get("TIPO")),
+        normalizar_upper(item.get("CATEGORIA")),
+        normalizar_upper(item.get("SUBCATEGORIA")),
+    )
+
+
+def duplicar_orcamento_para_meses_escolhidos(
+    ano: str,
+    mes_origem: str,
+    meses_destino: list[str],
+    substituir_existentes: bool = False,
+) -> dict:
+    _, aba = abrir_planilha_e_orcamento()
+
+    ano = normalizar_texto(ano)
+    mes_origem = normalizar_upper(mes_origem)
+    meses_destino = normalizar_meses_destino(meses_destino)
+
+    if not ano:
+        raise ValueError("Informe o ano do orçamento.")
+
+    if not mes_origem:
+        raise ValueError("Informe o mês de origem.")
+
+    if mes_origem not in ORDEM_MESES:
+        raise ValueError("Mês de origem inválido.")
+
+    if not meses_destino:
+        raise ValueError("Selecione pelo menos um mês de destino.")
+
+    if mes_origem in meses_destino:
+        raise ValueError("O mês de origem não pode ser selecionado como destino.")
+
+    registros = ler_orcamento_mensal()
+
+    registros_origem = [
+        item
+        for item in registros
+        if normalizar_texto(item.get("ANO")) == ano
+        and normalizar_upper(item.get("MES")) == mes_origem
+    ]
+
+    if not registros_origem:
+        raise ValueError(
+            f"Não há orçamento cadastrado para {nome_mes(mes_origem)}/{ano}."
+        )
+
+    meses_com_orcamento_existente = obter_meses_com_orcamento_existente(
+        registros=registros,
+        ano=ano,
+        meses_destino=meses_destino,
+    )
+
+    if meses_com_orcamento_existente and not substituir_existentes:
+        nomes = ", ".join(nome_mes(mes) for mes in meses_com_orcamento_existente)
+
+        return {
+            "status": "bloqueado",
+            "mensagem": (
+                f"Já existe orçamento previsto para: {nomes}. "
+                f"Marque a opção de substituir orçamento existente se quiser sobrescrever esses meses."
+            ),
+            "mes_origem": mes_origem,
+            "meses_destino": meses_destino,
+            "meses_com_orcamento_existente": meses_com_orcamento_existente,
+            "itens_origem": len(registros_origem),
+            "criados": 0,
+            "pulados": 0,
+            "excluidos": 0,
+            "substituir_existentes": substituir_existentes,
+        }
+
+    excluidos = 0
+
+    if substituir_existentes and meses_com_orcamento_existente:
+        excluidos = excluir_orcamento_por_ano_e_meses(
+            aba=aba,
+            ano=ano,
+            meses=meses_com_orcamento_existente,
+        )
+
+        registros = ler_orcamento_mensal()
+
+    chaves_existentes = {
+        montar_chave_orcamento(item)
+        for item in registros
+    }
+
+    linhas_novas = []
+    pulados = 0
+
+    for mes_destino in meses_destino:
+        for item in registros_origem:
+            tipo = normalizar_tipo(item.get("TIPO"))
+            categoria = normalizar_upper(item.get("CATEGORIA"))
+            subcategoria = normalizar_upper(item.get("SUBCATEGORIA"))
+
+            chave = (
+                ano,
+                mes_destino,
+                tipo,
+                categoria,
+                subcategoria,
+            )
+
+            if chave in chaves_existentes:
+                pulados += 1
+                continue
+
+            valor_previsto = item.get("VALOR_PREVISTO_RAW") or item.get("VALOR_PREVISTO")
+            valor_previsto_num = para_float_brasil(valor_previsto)
+            valor_previsto_formatado = formatar_numero_brasil(valor_previsto_num)
+
+            observacao_original = normalizar_texto(item.get("OBSERVACAO"))
+
+            if observacao_original:
+                observacao = observacao_original
+            else:
+                observacao = f"Duplicado de {nome_mes(mes_origem)}/{ano}"
+
+            linhas_novas.append(
+                [
+                    str(uuid4()),
+                    ano,
+                    mes_destino,
+                    tipo,
+                    categoria,
+                    subcategoria,
+                    valor_previsto_formatado,
+                    observacao,
+                    datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+                ]
+            )
+
+            chaves_existentes.add(chave)
+
+    if linhas_novas:
+        aba.append_rows(
+            linhas_novas,
+            value_input_option="USER_ENTERED",
+        )
+
+    return {
+        "status": "ok",
+        "mensagem": "Orçamento duplicado com sucesso.",
+        "mes_origem": mes_origem,
+        "meses_destino": meses_destino,
+        "meses_com_orcamento_existente": meses_com_orcamento_existente,
+        "itens_origem": len(registros_origem),
+        "criados": len(linhas_novas),
+        "pulados": pulados,
+        "excluidos": excluidos,
+        "substituir_existentes": substituir_existentes,
     }

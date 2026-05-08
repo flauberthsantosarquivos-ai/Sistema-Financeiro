@@ -21,6 +21,12 @@
             --amber: #b45309;
             --amber-bg: #fffbeb;
             --amber-border: #fde68a;
+            --purple: #6d28d9;
+            --purple-bg: #f5f3ff;
+            --purple-border: #ddd6fe;
+            --slate: #475569;
+            --slate-bg: #f8fafc;
+            --slate-border: #cbd5e1;
             --blue-bg: #eff6ff;
             --blue-border: #bfdbfe;
             --border: #e5e7eb;
@@ -170,7 +176,7 @@
 
         .summary {
             display: grid;
-            grid-template-columns: repeat(6, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 14px;
             margin-bottom: 20px;
         }
@@ -181,6 +187,17 @@
             border-radius: 20px;
             box-shadow: var(--shadow);
             padding: 16px;
+        }
+
+        .metric-clickable {
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+
+        .metric-clickable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.11);
+            border-color: #bfdbfe;
         }
 
         .metric-title {
@@ -203,11 +220,14 @@
             font-size: 12px;
             color: var(--muted);
             font-weight: 700;
+            line-height: 1.35;
         }
 
         .green { color: var(--green); }
         .red { color: var(--red); }
         .amber { color: var(--amber); }
+        .purple { color: var(--purple); }
+        .slate { color: var(--slate); }
 
         .executive-grid {
             display: grid;
@@ -258,7 +278,7 @@
 
         .budget-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 14px;
         }
 
@@ -439,7 +459,7 @@
         .evolution-summary,
         .budget-category-summary {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 12px;
             margin-bottom: 16px;
         }
@@ -475,7 +495,7 @@
 
         .evolution-row {
             display: grid;
-            grid-template-columns: 105px 1fr 1fr 1fr 135px;
+            grid-template-columns: 105px 1fr 1fr 1fr 1fr 135px;
             gap: 12px;
             align-items: center;
             border: 1px solid var(--border);
@@ -525,6 +545,7 @@
 
         .fill-receita { background: var(--green); }
         .fill-despesa { background: var(--red); }
+        .fill-investimento { background: var(--purple); }
         .fill-saldo-pos { background: var(--primary); }
         .fill-saldo-neg { background: var(--amber); }
 
@@ -1195,12 +1216,14 @@
         </section>
 
         <nav class="nav">
-            <a href="/">Início</a>
+            <a href="/financeiro">Início</a>
             <a href="/financeiro">Central Financeira</a>
+            <a href="/financeiro/configuracoes">Configurações</a>
             <a href="/financeiro/extratos">1. Importar Extratos</a>
             <a href="/financeiro/base-lancamentos">2. Revisar Base</a>
             <a href="/financeiro/lancamento">3. Novo Lançamento</a>
-            <a href="/financeiro/analise" class="active">4. Análise Financeira</a>
+            <a href="/financeiro/orcamento">4. Orçamento</a>
+            <a href="/financeiro/analise" class="active">5. Análise Financeira</a>
         </nav>
 
         {% if erro %}
@@ -1264,36 +1287,46 @@
         </section>
 
         <section class="summary">
-            <div class="metric">
+            <div class="metric metric-clickable" onclick="abrirModalCategoria('modalReceitas')">
                 <div class="metric-title">Receitas</div>
                 <div class="metric-value green">{{ analise.total_receitas_fmt }}</div>
-                <div class="metric-note">{{ analise.qtd_receitas }} lançamento(s)</div>
+                <div class="metric-note">{{ analise.qtd_receitas }} lançamento(s) · clique para detalhar</div>
             </div>
 
-            <div class="metric">
+            <div class="metric metric-clickable" onclick="abrirModalCategoria('modalDespesas')">
                 <div class="metric-title">Despesas</div>
                 <div class="metric-value red">{{ analise.total_despesas_fmt }}</div>
-                <div class="metric-note">{{ analise.qtd_despesas }} lançamento(s)</div>
+                <div class="metric-note">{{ analise.qtd_despesas }} lançamento(s) · clique para detalhar</div>
+            </div>
+
+            <div class="metric metric-clickable" onclick="abrirModalCategoria('modalInvestimentos')">
+                <div class="metric-title">Investimentos</div>
+                <div class="metric-value purple">{{ analise.total_investimentos_fmt }}</div>
+                <div class="metric-note">
+                    {{ analise.qtd_investimentos }} lançamento(s) · {{ analise.percentual_investimento_receita_fmt }} da receita
+                </div>
             </div>
 
             <div class="metric">
-                <div class="metric-title">Saldo</div>
+                <div class="metric-title">Saldo operacional</div>
                 <div class="metric-value {% if analise.saldo >= 0 %}green{% else %}red{% endif %}">
                     {{ analise.saldo_fmt }}
                 </div>
-                <div class="metric-note">{{ analise.saldo_percentual_receita_fmt }} da receita</div>
+                <div class="metric-note">Receitas menos despesas</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-title">Disponível após investimentos</div>
+                <div class="metric-value {% if analise.disponivel_apos_investimentos >= 0 %}green{% else %}red{% endif %}">
+                    {{ analise.disponivel_apos_investimentos_fmt }}
+                </div>
+                <div class="metric-note">{{ analise.disponivel_percentual_receita_fmt }} da receita</div>
             </div>
 
             <div class="metric">
                 <div class="metric-title">Comprometimento</div>
                 <div class="metric-value amber">{{ analise.comprometimento_fmt }}</div>
                 <div class="metric-note">Despesas sobre receitas</div>
-            </div>
-
-            <div class="metric">
-                <div class="metric-title">Transferências</div>
-                <div class="metric-value amber">{{ analise.total_transferencias_fmt }}</div>
-                <div class="metric-note">{{ analise.qtd_transferencias }} lançamento(s)</div>
             </div>
 
             <div class="metric">
@@ -1330,11 +1363,11 @@
             </div>
 
             <div class="executive-card">
-                <div class="executive-title">Saldo sobre receita</div>
+                <div class="executive-title">Saldo operacional sobre receita</div>
                 <div class="executive-value {% if analise.saldo_percentual_receita >= 0 %}green{% else %}red{% endif %}">
                     {{ analise.saldo_percentual_receita_fmt }}
                 </div>
-                <div class="executive-sub">Quanto sobrou em relação à receita.</div>
+                <div class="executive-sub">Quanto sobrou antes dos investimentos.</div>
             </div>
         </section>
 
@@ -1354,7 +1387,7 @@
                     </div>
 
                     <div class="budget-line">
-                        <span class="budget-label">Realizado</span>
+                        <span class="budget-label">Recebido</span>
                         <span class="budget-value green">{{ analise.total_receitas_realizado_fmt }}</span>
                     </div>
 
@@ -1384,7 +1417,7 @@
                     </div>
 
                     <div class="budget-line">
-                        <span class="budget-label">Realizado</span>
+                       <span class="budget-label">Executado</span>
                         <span class="budget-value red">{{ analise.total_despesas_realizado_fmt }}</span>
                     </div>
 
@@ -1401,6 +1434,39 @@
                         </div>
                         <div class="progress-note">
                             Execução: {{ analise.percentual_execucao_despesas_fmt }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="budget-box">
+                    <h3>Investimentos</h3>
+
+                    <div class="budget-line">
+                        <span class="budget-label">Previsto</span>
+                        <span class="budget-value">{{ analise.total_investimentos_previsto_fmt }}</span>
+                    </div>
+
+                    <div class="budget-line">
+                        <span class="budget-label">Aplicado</span>
+                        <span class="budget-value purple">{{ analise.total_investimentos_realizado_fmt }}</span>
+                    </div>
+
+                    <div class="budget-line">
+                        <span class="budget-label">Diferença</span>
+                        <span class="budget-value {% if analise.diferenca_investimentos >= 0 %}purple{% else %}amber{% endif %}">
+                            {% if analise.diferenca_investimentos >= 0 %}+{% else %}-{% endif %}{{ analise.diferenca_investimentos_fmt }}
+                        </span>
+                    </div>
+
+                    <div class="progress-wrap">
+                        <div class="progress-track">
+                            <div
+                                class="progress-fill"
+                                style="width: {% if analise.percentual_execucao_investimentos > 100 %}100{% else %}{{ analise.percentual_execucao_investimentos }}{% endif %}%; background: var(--purple);"
+                            ></div>
+                        </div>
+                        <div class="progress-note">
+                            Execução: {{ analise.percentual_execucao_investimentos_fmt }}
                         </div>
                     </div>
                 </div>
@@ -1438,6 +1504,11 @@
                     <div class="budget-category-summary-value {% if analise.orcamento_por_categoria.diferenca_total <= 0 %}green{% else %}red{% endif %}">
                         {% if analise.orcamento_por_categoria.diferenca_total >= 0 %}+{% else %}-{% endif %}{{ analise.orcamento_por_categoria.diferenca_total_fmt }}
                     </div>
+                </div>
+
+                <div class="budget-category-summary-card">
+                    <div class="budget-category-summary-label">Categorias</div>
+                    <div class="budget-category-summary-value">{{ analise.orcamento_por_categoria.categorias|length }}</div>
                 </div>
             </div>
 
@@ -1558,7 +1629,7 @@
                 <div>
                     <h2 class="section-title">Evolução mês a mês</h2>
                     <p class="section-subtitle" style="margin-bottom: 0;">
-                        Comparativo anual de receitas, despesas, saldo e comprometimento.
+                        Comparativo anual de receitas, despesas, investimentos, saldo operacional e comprometimento.
                     </p>
                 </div>
 
@@ -1580,7 +1651,12 @@
                     </div>
 
                     <div class="evolution-summary-card">
-                        <div class="evolution-summary-label">Saldo acumulado</div>
+                        <div class="evolution-summary-label">Investimentos no ano</div>
+                        <div class="evolution-summary-value purple">{{ analise.evolucao_mensal.total_investimentos_fmt }}</div>
+                    </div>
+
+                    <div class="evolution-summary-card">
+                        <div class="evolution-summary-label">Saldo operacional acumulado</div>
                         <div class="evolution-summary-value {% if analise.evolucao_mensal.saldo_total >= 0 %}green{% else %}red{% endif %}">
                             {{ analise.evolucao_mensal.saldo_total_fmt }}
                         </div>
@@ -1617,7 +1693,17 @@
 
                             <div class="mini-bar-block">
                                 <div class="mini-bar-label">
-                                    <span>Saldo</span>
+                                    <span>Investimentos</span>
+                                    <strong>{{ mes.investimentos_fmt }}</strong>
+                                </div>
+                                <div class="mini-track">
+                                    <div class="mini-fill fill-investimento" style="width: {{ mes.investimentos_pct }}%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="mini-bar-block">
+                                <div class="mini-bar-label">
+                                    <span>Saldo operacional</span>
                                     <strong class="{% if mes.saldo >= 0 %}green{% else %}red{% endif %}">
                                         {{ mes.saldo_fmt }}
                                     </strong>
@@ -1803,6 +1889,210 @@
             </article>
         </section>
     </main>
+
+    <div class="modal-backdrop" id="modalReceitas">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title-area">
+                    <span class="category-chip" style="background: var(--green-bg); color: var(--green); border-color: var(--green-border);">
+                        <span class="category-chip-dot" style="background: var(--green);"></span>
+                        Receitas
+                    </span>
+                    <h2>Detalhamento das receitas</h2>
+                </div>
+
+                <button type="button" class="modal-close" onclick="fecharModalCategoria('modalReceitas')">
+                    Fechar
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="modal-summary">
+                    <div class="modal-summary-card">
+                        <div class="modal-summary-label">Total</div>
+                        <div class="modal-summary-value green">{{ analise.total_receitas_fmt }}</div>
+                    </div>
+
+                    <div class="modal-summary-card">
+                        <div class="modal-summary-label">Lançamentos</div>
+                        <div class="modal-summary-value">{{ analise.qtd_receitas }}</div>
+                    </div>
+
+                    <div class="modal-summary-card">
+                        <div class="modal-summary-label">Período</div>
+                        <div class="modal-summary-value">{{ filtros.ano }}</div>
+                    </div>
+                </div>
+
+                {% if analise.lancamentos_receitas %}
+                    <div class="detail-table-wrap">
+                        <table class="detail-table">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th>Categoria</th>
+                                    <th>Subcategoria</th>
+                                    <th>Situação</th>
+                                    <th>Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in analise.lancamentos_receitas %}
+                                    <tr>
+                                        <td>{{ item.data }}</td>
+                                        <td class="detail-desc">{{ item.descricao }}</td>
+                                        <td>{{ item.categoria }}</td>
+                                        <td>{{ item.subcategoria }}</td>
+                                        <td><span class="pill-mini">{{ item.situacao }}</span></td>
+                                        <td class="detail-money green">{{ item.valor_fmt }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty">Nenhuma receita encontrada no período.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="modalDespesas">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title-area">
+                    <span class="category-chip" style="background: var(--red-bg); color: var(--red); border-color: var(--red-border);">
+                        <span class="category-chip-dot" style="background: var(--red);"></span>
+                        Despesas
+                    </span>
+                    <h2>Detalhamento das despesas</h2>
+                </div>
+
+                <button type="button" class="modal-close" onclick="fecharModalCategoria('modalDespesas')">
+                    Fechar
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="modal-summary">
+                    <div class="modal-summary-card">
+                        <div class="modal-summary-label">Total</div>
+                        <div class="modal-summary-value red">{{ analise.total_despesas_fmt }}</div>
+                    </div>
+
+                    <div class="modal-summary-card">
+                        <div class="modal-summary-label">Lançamentos</div>
+                        <div class="modal-summary-value">{{ analise.qtd_despesas }}</div>
+                    </div>
+
+                    <div class="modal-summary-card">
+                        <div class="modal-summary-label">Média</div>
+                        <div class="modal-summary-value">{{ analise.media_despesas_fmt }}</div>
+                    </div>
+                </div>
+
+                {% if analise.lancamentos_despesas %}
+                    <div class="detail-table-wrap">
+                        <table class="detail-table">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th>Categoria</th>
+                                    <th>Subcategoria</th>
+                                    <th>Situação</th>
+                                    <th>Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in analise.lancamentos_despesas %}
+                                    <tr>
+                                        <td>{{ item.data }}</td>
+                                        <td class="detail-desc">{{ item.descricao }}</td>
+                                        <td>{{ item.categoria }}</td>
+                                        <td>{{ item.subcategoria }}</td>
+                                        <td><span class="pill-mini">{{ item.situacao }}</span></td>
+                                        <td class="detail-money red">{{ item.valor_fmt }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty">Nenhuma despesa encontrada no período.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="modalInvestimentos">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title-area">
+                    <span class="category-chip" style="background: var(--purple-bg); color: var(--purple); border-color: var(--purple-border);">
+                        <span class="category-chip-dot" style="background: var(--purple);"></span>
+                        Investimentos
+                    </span>
+                    <h2>Detalhamento dos investimentos</h2>
+                </div>
+
+                <button type="button" class="modal-close" onclick="fecharModalCategoria('modalInvestimentos')">
+                    Fechar
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="modal-summary">
+                    <div class="modal-summary-card">
+                        <div class="modal-summary-label">Total</div>
+                        <div class="modal-summary-value purple">{{ analise.total_investimentos_fmt }}</div>
+                    </div>
+
+                    <div class="modal-summary-card">
+                        <div class="modal-summary-label">Lançamentos</div>
+                        <div class="modal-summary-value">{{ analise.qtd_investimentos }}</div>
+                    </div>
+
+                    <div class="modal-summary-card">
+                        <div class="modal-summary-label">% da receita</div>
+                        <div class="modal-summary-value">{{ analise.percentual_investimento_receita_fmt }}</div>
+                    </div>
+                </div>
+
+                {% if analise.lancamentos_investimentos %}
+                    <div class="detail-table-wrap">
+                        <table class="detail-table">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th>Categoria</th>
+                                    <th>Subcategoria</th>
+                                    <th>Situação</th>
+                                    <th>Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in analise.lancamentos_investimentos %}
+                                    <tr>
+                                        <td>{{ item.data }}</td>
+                                        <td class="detail-desc">{{ item.descricao }}</td>
+                                        <td>{{ item.categoria }}</td>
+                                        <td>{{ item.subcategoria }}</td>
+                                        <td><span class="pill-mini">{{ item.situacao }}</span></td>
+                                        <td class="detail-money purple">{{ item.valor_fmt }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty">Nenhum investimento encontrado no período.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 
     {% for item in analise.despesas_por_categoria %}
         <div class="modal-backdrop" id="{{ item.modal_id }}">

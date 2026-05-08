@@ -8,6 +8,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from core.financeiro.orcamento_google import (
+    duplicar_orcamento_para_meses_escolhidos,
     excluir_orcamento,
     filtrar_orcamento,
     ler_orcamento_mensal,
@@ -37,6 +38,15 @@ MESES_OPCOES = [
 ]
 
 
+TIPOS_OPCOES = [
+    ("", "Todos"),
+    ("RECEITA", "RECEITA"),
+    ("DESPESA", "DESPESA"),
+    ("INVESTIMENTO", "INVESTIMENTO"),
+    ("TRANSFERÊNCIA", "TRANSFERÊNCIA"),
+]
+
+
 def montar_url_retorno(mensagem: str | None = None, erro: str | None = None) -> str:
     if mensagem:
         return f"/financeiro/orcamento?mensagem={quote(mensagem)}"
@@ -45,6 +55,15 @@ def montar_url_retorno(mensagem: str | None = None, erro: str | None = None) -> 
         return f"/financeiro/orcamento?erro={quote(erro)}"
 
     return "/financeiro/orcamento"
+
+
+def normalizar_tipo(valor: str) -> str:
+    tipo = str(valor or "").strip().upper()
+
+    if tipo == "TRANSFERENCIA":
+        return "TRANSFERÊNCIA"
+
+    return tipo
 
 
 @router.get("/financeiro/orcamento", response_class=HTMLResponse)
@@ -58,11 +77,12 @@ async def orcamento_get(
     erro: str | None = Query(None),
 ):
     ano_final = ano or str(date.today().year)
+    tipo_final = normalizar_tipo(tipo)
 
     filtros = {
         "ano": ano_final,
         "mes": mes,
-        "tipo": tipo,
+        "tipo": tipo_final,
         "categoria": categoria,
     }
 
@@ -73,7 +93,7 @@ async def orcamento_get(
             registros=registros,
             ano=ano_final,
             mes=mes,
-            tipo=tipo,
+            tipo=tipo_final,
             categoria=categoria,
         )
 
@@ -95,6 +115,7 @@ async def orcamento_get(
                 "mensagem": mensagem,
                 "filtros": filtros,
                 "meses_opcoes": MESES_OPCOES,
+                "tipos_opcoes": TIPOS_OPCOES,
                 "registros": registros_filtrados,
                 "resumo": resumo,
                 "categorias_existentes": categorias_existentes,
@@ -111,6 +132,7 @@ async def orcamento_get(
                 "mensagem": None,
                 "filtros": filtros,
                 "meses_opcoes": MESES_OPCOES,
+                "tipos_opcoes": TIPOS_OPCOES,
                 "registros": [],
                 "resumo": montar_resumo_orcamento([]),
                 "categorias_existentes": [],
@@ -131,10 +153,12 @@ async def orcamento_salvar_post(
     orcamento_id: str = Form(""),
 ):
     try:
+        tipo_final = normalizar_tipo(tipo)
+
         salvar_orcamento(
             ano=ano,
             mes=mes,
-            tipo=tipo,
+            tipo=tipo_final,
             categoria=categoria,
             subcategoria=subcategoria,
             valor_previsto=valor_previsto,
@@ -169,5 +193,55 @@ async def orcamento_excluir_post(
     except Exception as e:
         return RedirectResponse(
             url=montar_url_retorno(erro=f"Erro ao excluir orçamento: {e}"),
+            status_code=303,
+        )
+
+
+@router.post("/financeiro/orcamento/duplicar")
+async def orcamento_duplicar_post(
+    ano: str = Form(""),
+    mes_origem: str = Form(""),
+    meses_destino: list[str] = Form(default=[]),
+    substituir_existentes: str = Form(""),
+):
+    try:
+        substituir = substituir_existentes == "SIM"
+
+        resultado = duplicar_orcamento_para_meses_escolhidos(
+            ano=ano,
+            mes_origem=mes_origem,
+            meses_destino=meses_destino,
+            substituir_existentes=substituir,
+        )
+
+        if resultado.get("status") == "bloqueado":
+            return RedirectResponse(
+                url=montar_url_retorno(erro=resultado.get("mensagem")),
+                status_code=303,
+            )
+
+        meses_destino_txt = ", ".join(resultado.get("meses_destino", []))
+
+        mensagem = (
+            f"Orçamento duplicado com sucesso. "
+            f"Meses de destino: {meses_destino_txt}. "
+            f"Itens criados: {resultado.get('criados', 0)}. "
+            f"Itens ignorados: {resultado.get('pulados', 0)}."
+        )
+
+        if resultado.get("excluidos", 0) > 0:
+            mensagem += (
+                f" Itens substituídos/removidos antes da duplicação: "
+                f"{resultado.get('excluidos', 0)}."
+            )
+
+        return RedirectResponse(
+            url=montar_url_retorno(mensagem=mensagem),
+            status_code=303,
+        )
+
+    except Exception as e:
+        return RedirectResponse(
+            url=montar_url_retorno(erro=f"Erro ao duplicar orçamento: {e}"),
             status_code=303,
         )

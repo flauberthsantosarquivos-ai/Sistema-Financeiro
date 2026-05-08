@@ -21,6 +21,12 @@
             --amber: #b45309;
             --amber-bg: #fffbeb;
             --amber-border: #fde68a;
+            --purple: #6d28d9;
+            --purple-bg: #f5f3ff;
+            --purple-border: #ddd6fe;
+            --slate: #475569;
+            --slate-bg: #f8fafc;
+            --slate-border: #cbd5e1;
             --border: #e5e7eb;
             --shadow: 0 14px 30px rgba(15, 23, 42, 0.07);
         }
@@ -92,6 +98,7 @@
             border-radius: 16px;
             margin-bottom: 18px;
             font-weight: 700;
+            line-height: 1.45;
         }
 
         .success {
@@ -130,7 +137,7 @@
 
         .summary {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: 14px;
             margin-bottom: 20px;
         }
@@ -158,6 +165,14 @@
             letter-spacing: -0.04em;
         }
 
+        .metric-note {
+            margin-top: 7px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 750;
+            line-height: 1.35;
+        }
+
         .green {
             color: var(--green);
         }
@@ -168,6 +183,14 @@
 
         .amber {
             color: var(--amber);
+        }
+
+        .purple {
+            color: var(--purple);
+        }
+
+        .slate {
+            color: var(--slate);
         }
 
         .form-grid {
@@ -239,6 +262,153 @@
             width: 100%;
         }
 
+        .duplicate-card {
+            border-color: var(--purple-border);
+            background: linear-gradient(180deg, #ffffff, #faf7ff);
+        }
+
+        .duplicate-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .duplicate-badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            background: var(--purple-bg);
+            color: var(--purple);
+            border: 1px solid var(--purple-border);
+            white-space: nowrap;
+        }
+
+        .duplicate-grid {
+            display: grid;
+            grid-template-columns: 180px 220px 1fr 220px;
+            gap: 14px;
+            align-items: start;
+        }
+
+        .months-box {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: white;
+            padding: 14px;
+        }
+
+        .months-title {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 10px;
+        }
+
+        .months-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .month-check {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 10px;
+            cursor: pointer;
+        }
+
+        .month-check:hover {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        .month-check input {
+            width: auto;
+            margin: 0;
+        }
+
+        .month-check span {
+            font-size: 13px;
+            font-weight: 850;
+            color: #334155;
+        }
+
+        .replace-box {
+            border: 1px solid var(--amber-border);
+            background: var(--amber-bg);
+            color: #92400e;
+            border-radius: 16px;
+            padding: 14px;
+            min-height: 100%;
+        }
+
+        .replace-line {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .replace-line input {
+            width: auto;
+            margin-top: 2px;
+        }
+
+        .replace-line label {
+            margin: 0;
+            color: #92400e;
+            text-transform: none;
+            letter-spacing: 0;
+            font-size: 13px;
+            line-height: 1.45;
+            font-weight: 850;
+        }
+
+        .duplicate-help {
+            margin-top: 10px;
+            font-size: 12px;
+            line-height: 1.45;
+            font-weight: 700;
+            color: #92400e;
+        }
+
+        .duplicate-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .duplicate-button {
+            background: var(--purple);
+        }
+
+        .duplicate-button:hover {
+            background: #5b21b6;
+        }
+
+        .soft-button {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .soft-button:hover {
+            background: #d1d5db;
+        }
+
         .table-wrap {
             overflow-x: auto;
             border: 1px solid var(--border);
@@ -288,6 +458,30 @@
             border: 1px solid #e2e8f0;
         }
 
+        .pill-receita {
+            background: var(--green-bg);
+            color: var(--green);
+            border-color: var(--green-border);
+        }
+
+        .pill-despesa {
+            background: var(--red-bg);
+            color: var(--red);
+            border-color: var(--red-border);
+        }
+
+        .pill-investimento {
+            background: var(--purple-bg);
+            color: var(--purple);
+            border-color: var(--purple-border);
+        }
+
+        .pill-transferencia {
+            background: var(--slate-bg);
+            color: var(--slate);
+            border-color: var(--slate-border);
+        }
+
         .actions {
             display: flex;
             gap: 8px;
@@ -322,12 +516,23 @@
         @media (max-width: 1200px) {
             .summary,
             .form-grid,
-            .filter-grid {
+            .filter-grid,
+            .duplicate-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .months-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
             .page {
                 padding: 18px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .months-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -343,8 +548,8 @@
         </section>
 
         <nav class="nav">
-            <a href="/">Início</a>
-            <a href="/financeiro">Central Financeira</a>
+            <a href="/financeiro">Início</a>
+            <a href="/financeiro/configuracoes">Configurações</a>
             <a href="/financeiro/extratos">1. Importar Extratos</a>
             <a href="/financeiro/base-lancamentos">2. Revisar Base</a>
             <a href="/financeiro/lancamento">3. Novo Lançamento</a>
@@ -364,16 +569,25 @@
             <div class="metric">
                 <div class="metric-title">Receitas previstas</div>
                 <div class="metric-value green">{{ resumo.total_receitas_fmt }}</div>
+                <div class="metric-note">Entradas previstas no período filtrado.</div>
             </div>
 
             <div class="metric">
                 <div class="metric-title">Despesas previstas</div>
                 <div class="metric-value red">{{ resumo.total_despesas_fmt }}</div>
+                <div class="metric-note">Gastos e obrigações previstas.</div>
             </div>
 
             <div class="metric">
-                <div class="metric-title">Transferências previstas</div>
-                <div class="metric-value amber">{{ resumo.total_transferencias_fmt }}</div>
+                <div class="metric-title">Investimentos previstos</div>
+                <div class="metric-value purple">{{ resumo.total_investimentos_fmt }}</div>
+                <div class="metric-note">Reserva, poupança, aplicações e formação patrimonial.</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-title">Movimentações previstas</div>
+                <div class="metric-value slate">{{ resumo.total_transferencias_fmt }}</div>
+                <div class="metric-note">Transferências neutras entre contas próprias.</div>
             </div>
 
             <div class="metric">
@@ -381,6 +595,7 @@
                 <div class="metric-value {% if resumo.saldo_previsto >= 0 %}green{% else %}red{% endif %}">
                     {{ resumo.saldo_previsto_fmt }}
                 </div>
+                <div class="metric-note">Receitas menos despesas e investimentos.</div>
             </div>
         </section>
 
@@ -413,6 +628,7 @@
                         <select name="tipo" id="tipo" required>
                             <option value="DESPESA">DESPESA</option>
                             <option value="RECEITA">RECEITA</option>
+                            <option value="INVESTIMENTO">INVESTIMENTO</option>
                             <option value="TRANSFERÊNCIA">TRANSFERÊNCIA</option>
                         </select>
                     </div>
@@ -450,6 +666,88 @@
             </form>
         </section>
 
+        <section class="card duplicate-card">
+            <div class="duplicate-top">
+                <div>
+                    <h2 class="section-title">Duplicar orçamento</h2>
+                    <p class="section-subtitle" style="margin-bottom: 0;">
+                        Copie o orçamento de um mês para meses escolhidos. Se já existir orçamento no destino, o sistema alerta e só substitui se você marcar a opção.
+                    </p>
+                </div>
+
+                <span class="duplicate-badge">Automação mensal</span>
+            </div>
+
+            <form method="post" action="/financeiro/orcamento/duplicar" onsubmit="return confirmarDuplicacao();">
+                <div class="duplicate-grid">
+                    <div>
+                        <label>Ano</label>
+                        <input type="number" name="ano" value="{{ filtros.ano }}" required />
+                    </div>
+
+                    <div>
+                        <label>Mês de origem</label>
+                        <select name="mes_origem" id="mes_origem" required onchange="atualizarMesesDestino()">
+                            {% for sigla, nome in meses_opcoes %}
+                                <option value="{{ sigla }}" {% if filtros.mes == sigla %}selected{% endif %}>{{ nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="months-box">
+                        <div class="months-title">Meses de destino</div>
+
+                        <div class="months-grid">
+                            {% for sigla, nome in meses_opcoes %}
+                                <label class="month-check" data-mes="{{ sigla }}">
+                                    <input
+                                        type="checkbox"
+                                        name="meses_destino"
+                                        value="{{ sigla }}"
+                                        class="mes-destino"
+                                    />
+                                    <span>{{ nome }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="replace-box">
+                        <div class="replace-line">
+                            <input
+                                type="checkbox"
+                                name="substituir_existentes"
+                                value="SIM"
+                                id="substituir_existentes"
+                            />
+
+                            <label for="substituir_existentes">
+                                Substituir orçamento existente nos meses selecionados.
+                            </label>
+                        </div>
+
+                        <div class="duplicate-help">
+                            Sem essa opção, se algum mês selecionado já tiver orçamento previsto, a duplicação será bloqueada e o sistema mostrará o alerta.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="duplicate-actions">
+                    <button type="submit" class="duplicate-button">
+                        Duplicar orçamento
+                    </button>
+
+                    <button type="button" class="soft-button" onclick="marcarMesesRestantes()">
+                        Marcar meses seguintes
+                    </button>
+
+                    <button type="button" class="soft-button" onclick="limparMesesDestino()">
+                        Limpar meses
+                    </button>
+                </div>
+            </form>
+        </section>
+
         <section class="card">
             <h2 class="section-title">Filtros</h2>
             <p class="section-subtitle">
@@ -476,10 +774,17 @@
                     <div>
                         <label>Tipo</label>
                         <select name="tipo">
-                            <option value="">Todos</option>
-                            <option value="DESPESA" {% if filtros.tipo == "DESPESA" %}selected{% endif %}>DESPESA</option>
-                            <option value="RECEITA" {% if filtros.tipo == "RECEITA" %}selected{% endif %}>RECEITA</option>
-                            <option value="TRANSFERÊNCIA" {% if filtros.tipo == "TRANSFERÊNCIA" %}selected{% endif %}>TRANSFERÊNCIA</option>
+                            {% if tipos_opcoes %}
+                                {% for valor, rotulo in tipos_opcoes %}
+                                    <option value="{{ valor }}" {% if filtros.tipo == valor %}selected{% endif %}>{{ rotulo }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="">Todos</option>
+                                <option value="DESPESA" {% if filtros.tipo == "DESPESA" %}selected{% endif %}>DESPESA</option>
+                                <option value="RECEITA" {% if filtros.tipo == "RECEITA" %}selected{% endif %}>RECEITA</option>
+                                <option value="INVESTIMENTO" {% if filtros.tipo == "INVESTIMENTO" %}selected{% endif %}>INVESTIMENTO</option>
+                                <option value="TRANSFERÊNCIA" {% if filtros.tipo == "TRANSFERÊNCIA" %}selected{% endif %}>TRANSFERÊNCIA</option>
+                            {% endif %}
                         </select>
                     </div>
 
@@ -558,7 +863,19 @@
 
                                     <td>{{ item.ANO }}</td>
                                     <td><span class="pill">{{ item.MES }}</span></td>
-                                    <td><span class="pill">{{ item.TIPO }}</span></td>
+                                    <td>
+                                        {% if item.TIPO == "RECEITA" %}
+                                            <span class="pill pill-receita">{{ item.TIPO }}</span>
+                                        {% elif item.TIPO == "DESPESA" %}
+                                            <span class="pill pill-despesa">{{ item.TIPO }}</span>
+                                        {% elif item.TIPO == "INVESTIMENTO" %}
+                                            <span class="pill pill-investimento">{{ item.TIPO }}</span>
+                                        {% elif item.TIPO == "TRANSFERÊNCIA" or item.TIPO == "TRANSFERENCIA" %}
+                                            <span class="pill pill-transferencia">TRANSFERÊNCIA</span>
+                                        {% else %}
+                                            <span class="pill">{{ item.TIPO }}</span>
+                                        {% endif %}
+                                    </td>
                                     <td><strong>{{ item.CATEGORIA }}</strong></td>
                                     <td>{{ item.SUBCATEGORIA }}</td>
                                     <td class="money">{{ item.VALOR_PREVISTO_FMT }}</td>
@@ -578,6 +895,21 @@
     </main>
 
     <script>
+        const ORDEM_MESES = [
+            "JAN",
+            "FEV",
+            "MAR",
+            "ABR",
+            "MAI",
+            "JUN",
+            "JUL",
+            "AGO",
+            "SET",
+            "OUT",
+            "NOV",
+            "DEZ"
+        ];
+
         function setValor(id, valor) {
             const campo = document.getElementById(id);
 
@@ -616,6 +948,75 @@
             document.getElementById("tipo").value = "DESPESA";
             document.getElementById("botaoSalvar").textContent = "Salvar orçamento";
         }
+
+        function limparMesesDestino() {
+            document.querySelectorAll(".mes-destino").forEach(function (campo) {
+                campo.checked = false;
+            });
+        }
+
+        function atualizarMesesDestino() {
+            const mesOrigem = document.getElementById("mes_origem").value;
+
+            document.querySelectorAll(".mes-destino").forEach(function (campo) {
+                const label = campo.closest(".month-check");
+
+                if (campo.value === mesOrigem) {
+                    campo.checked = false;
+                    campo.disabled = true;
+                    label.style.opacity = "0.45";
+                    label.style.cursor = "not-allowed";
+                } else {
+                    campo.disabled = false;
+                    label.style.opacity = "1";
+                    label.style.cursor = "pointer";
+                }
+            });
+        }
+
+        function marcarMesesRestantes() {
+            const mesOrigem = document.getElementById("mes_origem").value;
+            const indiceOrigem = ORDEM_MESES.indexOf(mesOrigem);
+
+            document.querySelectorAll(".mes-destino").forEach(function (campo) {
+                const indiceCampo = ORDEM_MESES.indexOf(campo.value);
+
+                if (indiceCampo > indiceOrigem) {
+                    campo.checked = true;
+                } else {
+                    campo.checked = false;
+                }
+            });
+
+            atualizarMesesDestino();
+        }
+
+        function confirmarDuplicacao() {
+            const selecionados = Array.from(document.querySelectorAll(".mes-destino"))
+                .filter(function (campo) {
+                    return campo.checked && !campo.disabled;
+                });
+
+            if (selecionados.length === 0) {
+                alert("Selecione pelo menos um mês de destino para duplicar o orçamento.");
+                return false;
+            }
+
+            const substituir = document.getElementById("substituir_existentes").checked;
+
+            if (substituir) {
+                return confirm(
+                    "Você marcou a opção de substituir orçamento existente. " +
+                    "Se algum mês selecionado já tiver orçamento, ele será removido e recriado com base no mês de origem. Deseja continuar?"
+                );
+            }
+
+            return true;
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            atualizarMesesDestino();
+        });
     </script>
 </body>
 </html>

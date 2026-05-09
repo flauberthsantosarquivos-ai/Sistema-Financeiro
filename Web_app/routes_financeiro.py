@@ -621,10 +621,12 @@ def calcular_orcamento_por_categoria(
         )
 
     lista = sorted(
-        lista,
-        key=lambda item: item["diferenca"],
-        reverse=True,
-    )
+      lista,
+      key=lambda item: (
+        item["diferenca"] <= 0,
+        -item["diferenca"] if item["diferenca"] > 0 else -item["realizado"],
+    ),
+  )
 
     diferenca_total = total_realizado - total_previsto
 

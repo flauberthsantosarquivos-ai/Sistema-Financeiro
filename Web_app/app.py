@@ -29,6 +29,7 @@ ROTAS_DO_SISTEMA = [
     "Web_app.routes_base_lancamentos",
     "Web_app.routes_orcamento",
     "Web_app.routes_configuracoes",
+    "Web_app.routes_patrimonio",
 ]
 
 
@@ -41,8 +42,9 @@ for modulo_nome in ROTAS_DO_SISTEMA:
             app.include_router(router)
             print(f"Rota carregada: {modulo_nome}")
 
-    except ModuleNotFoundError:
+    except ModuleNotFoundError as e:
         print(f"Rota não encontrada, ignorando: {modulo_nome}")
+        print(f"Detalhe do erro: {e}")
 
     except Exception as e:
         print(f"Erro ao carregar rota {modulo_nome}: {e}")

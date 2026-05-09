@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8" />
-    <title>Análise Financeira</title>
+    <title>Painel Gerencial</title>
 
     <style>
         :root {
@@ -229,6 +229,117 @@
         .purple { color: var(--purple); }
         .slate { color: var(--slate); }
 
+
+        .executive-summary-card {
+    background: linear-gradient(135deg, #ffffff, #f8fafc);
+    border: 1px solid var(--border);
+    border-left: 6px solid var(--primary);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+    padding: 22px;
+    margin-bottom: 20px;
+}
+
+.executive-summary-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.executive-summary-label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+}
+
+.executive-summary-title {
+    margin: 0;
+    font-size: 23px;
+    letter-spacing: -0.035em;
+    color: #111827;
+}
+
+.executive-summary-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid;
+    white-space: nowrap;
+}
+
+.executive-summary-status.positivo {
+    background: var(--green-bg);
+    color: var(--green);
+    border-color: var(--green-border);
+}
+
+.executive-summary-status.atencao {
+    background: var(--amber-bg);
+    color: var(--amber);
+    border-color: var(--amber-border);
+}
+
+.executive-summary-status.alerta {
+    background: var(--red-bg);
+    color: var(--red);
+    border-color: var(--red-border);
+}
+
+.executive-summary-text {
+    margin: 0;
+    color: #334155;
+    font-size: 15px;
+    line-height: 1.6;
+    font-weight: 700;
+}
+
+.executive-summary-points {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.executive-summary-point {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 13px;
+}
+
+.executive-summary-point-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 6px;
+}
+
+.executive-summary-point-value {
+    font-size: 15px;
+    color: #111827;
+    font-weight: 950;
+    line-height: 1.35;
+}
+
+@media (max-width: 1300px) {
+    .executive-summary-points {
+        grid-template-columns: 1fr;
+    }
+}
         .executive-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -270,10 +381,11 @@
         }
 
         .grid-2 {
-            display: grid;
-            grid-template-columns: 1.08fr 0.92fr;
-            gap: 18px;
-            margin-bottom: 20px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 18px;
+          margin-bottom: 20px;
+        }
         }
 
         .budget-grid {
@@ -543,11 +655,105 @@
             border-radius: 999px;
         }
 
-        .fill-receita { background: var(--green); }
+        .evolution-chartita { background: var(--green); }
         .fill-despesa { background: var(--red); }
         .fill-investimento { background: var(--purple); }
         .fill-saldo-pos { background: var(--primary); }
         .fill-saldo-neg { background: var(--amber); }
+
+        .evolution-chart {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(64px, 1fr));
+    gap: 14px;
+    align-items: end;
+    overflow-x: auto;
+    padding: 10px 4px 6px;
+}
+
+.evolution-chart-month {
+    min-width: 64px;
+    display: grid;
+    gap: 10px;
+}
+
+.evolution-bars {
+    height: 230px;
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 8px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+}
+
+.evolution-bar {
+    width: 18px;
+    min-height: 4px;
+    border-radius: 2px;
+}
+
+.evolution-bar.receita {
+    background: var(--green);
+}
+    
+.evolution-bar.despesa {
+    background: var(--red);
+}
+
+.evolution-bar.investimento {
+    background: var(--purple);
+}
+
+.evolution-bar.saldo-pos {
+    background: var(--primary);
+}
+
+.evolution-bar.saldo-neg {
+    background: var(--amber);
+}
+
+.evolution-month-label {
+    text-align: center;
+    font-weight: 950;
+    color: #334155;
+    font-size: 13px;
+}
+
+.evolution-month-label span {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 800;
+    margin-top: 2px;
+}
+
+.evolution-chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 14px 0 16px;
+}
+
+.evolution-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    color: #334155;
+    font-weight: 850;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 7px 10px;
+}
+
+.evolution-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+}
 
         .evolution-comp {
             text-align: right;
@@ -648,10 +854,10 @@
             display: inline-flex;
             justify-content: center;
             align-items: center;
-            padding: 7px 10px;
+            padding: 5px 8px;
             border-radius: 999px;
-            font-size: 11px;
-            font-weight: 950;
+            font-size: 8px;
+            font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 0.04em;
             border: 1px solid;
@@ -823,27 +1029,93 @@
         }
 
         .diagnostics {
-            display: grid;
-            gap: 10px;
-        }
+    display: grid;
+    gap: 12px;
+}
 
-        .diag {
-            border-radius: 16px;
-            padding: 14px;
-            border: 1px solid var(--border);
-        }
+.diag {
+    border-radius: 18px;
+    padding: 15px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+}
 
-        .diag h3 {
-            margin: 0 0 5px;
-            font-size: 15px;
-        }
+.diag h3 {
+    margin: 0 0 6px;
+    font-size: 15px;
+    letter-spacing: -0.02em;
+}
 
-        .diag p {
-            margin: 0;
-            color: #334155;
-            font-weight: 650;
-            line-height: 1.45;
-        }
+.diag p {
+    margin: 0;
+    color: #334155;
+    font-weight: 650;
+    line-height: 1.5;
+}
+
+.diag::before {
+    content: "";
+    position: absolute;
+    left: 10px;
+    top: 16px;
+    bottom: 16px;
+    width: 4px;
+    border-radius: 999px;
+}
+
+.diag-positivo::before {
+    background: var(--green);
+}
+
+.diag-alerta::before {
+    background: var(--red);
+}
+
+.diag-atencao::before {
+    background: var(--amber);
+}
+
+.diag-info::before {
+    background: var(--primary);
+}
+
+.diag-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.diag-label-positivo {
+    color: var(--green);
+    background: var(--green-bg);
+    border: 1px solid var(--green-border);
+}
+
+.diag-label-alerta {
+    color: var(--red);
+    background: var(--red-bg);
+    border: 1px solid var(--red-border);
+}
+
+.diag-label-atencao {
+    color: var(--amber);
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+}
+
+.diag-label-info {
+    color: var(--primary);
+    background: var(--blue-bg);
+    border: 1px solid var(--blue-border);
+}
 
         .diag-positivo {
             background: var(--green-bg);
@@ -1209,7 +1481,7 @@
 <body>
     <main class="page">
         <section class="hero">
-            <h1>Análise Financeira</h1>
+            <h1>Painel Gerencial</h1>
             <p>
                 Indicadores, orçamento, maiores despesas, evolução mensal e diagnóstico automático com base na BASE_LANCAMENTOS revisada.
             </p>
@@ -1223,7 +1495,7 @@
             <a href="/financeiro/base-lancamentos">2. Revisar Base</a>
             <a href="/financeiro/lancamento">3. Novo Lançamento</a>
             <a href="/financeiro/orcamento">4. Orçamento</a>
-            <a href="/financeiro/analise" class="active">5. Análise Financeira</a>
+            <a href="/financeiro/analise" class="active">5. Painel Gerencial</a>
         </nav>
 
         {% if erro %}
@@ -1280,12 +1552,80 @@
                     </div>
 
                     <div>
-                        <button type="submit">Atualizar análise</button>
+                        <button type="submit">Atualizar Painel</button>
                     </div>
                 </div>
             </form>
         </section>
 
+
+                <section class="executive-summary-card">
+            <div class="executive-summary-top">
+                <div>
+                    <div class="executive-summary-label">Resumo executivo</div>
+                    <h2 class="executive-summary-title">Leitura gerencial do período</h2>
+                </div>
+
+                {% if analise.saldo < 0 or analise.disponivel_apos_investimentos < 0 %}
+                    <span class="executive-summary-status alerta">Atenção crítica</span>
+                {% elif analise.qtd_a_classificar > 0 or analise.percentual_execucao_despesas > 100 %}
+                    <span class="executive-summary-status atencao">Revisar período</span>
+                {% else %}
+                    <span class="executive-summary-status positivo">Situação controlada</span>
+                {% endif %}
+            </div>
+
+            {% if analise.saldo < 0 %}
+                <p class="executive-summary-text">
+                    O período apresenta saldo operacional negativo. As despesas superaram as receitas,
+                    o que exige revisão das maiores categorias de gasto e conferência dos lançamentos do período.
+                </p>
+            {% elif analise.disponivel_apos_investimentos < 0 %}
+                <p class="executive-summary-text">
+                    O saldo operacional está positivo, mas o disponível após investimentos ficou negativo.
+                    Isso indica que os investimentos ou reservas superaram a folga financeira do período.
+                </p>
+            {% elif analise.percentual_execucao_despesas > 100 %}
+                <p class="executive-summary-text">
+                    O período apresenta saldo operacional positivo, porém as despesas realizadas ficaram acima
+                    do orçamento previsto. Recomenda-se revisar as categorias que ultrapassaram o limite planejado.
+                </p>
+            {% elif analise.qtd_a_classificar > 0 %}
+                <p class="executive-summary-text">
+                    O período apresenta indicadores gerais controlados, mas ainda existem lançamentos pendentes
+                    de classificação. Revise esses itens antes de considerar o mês fechado.
+                </p>
+            {% else %}
+                <p class="executive-summary-text">
+                    O período apresenta boa saúde financeira: as receitas superaram as despesas, o saldo operacional
+                    está positivo e não há pendências relevantes de classificação identificadas no painel.
+                </p>
+            {% endif %}
+
+            <div class="executive-summary-points">
+                <div class="executive-summary-point">
+                    <div class="executive-summary-point-label">Saldo operacional</div>
+                    <div class="executive-summary-point-value {% if analise.saldo >= 0 %}green{% else %}red{% endif %}">
+                        {{ analise.saldo_fmt }}
+                    </div>
+                </div>
+
+                <div class="executive-summary-point">
+                    <div class="executive-summary-point-label">Execução das despesas</div>
+                    <div class="executive-summary-point-value {% if analise.percentual_execucao_despesas <= 100 %}green{% elif analise.percentual_execucao_despesas <= 115 %}amber{% else %}red{% endif %}">
+                        {{ analise.percentual_execucao_despesas_fmt }}
+                    </div>
+                </div>
+
+                <div class="executive-summary-point">
+                    <div class="executive-summary-point-label">Pendências</div>
+                    <div class="executive-summary-point-value {% if analise.qtd_a_classificar > 0 %}red{% else %}green{% endif %}">
+                        {{ analise.qtd_a_classificar }} lançamento(s) a classificar
+                    </div>
+                </div>
+            </div>
+        </section>
+        
         <section class="summary">
             <div class="metric metric-clickable" onclick="abrirModalCategoria('modalReceitas')">
                 <div class="metric-title">Receitas</div>
@@ -1349,7 +1689,11 @@
                 <div class="executive-title">Maior despesa individual</div>
                 {% if analise.maior_despesa %}
                     <div class="executive-value">{{ analise.maior_despesa.valor_fmt }}</div>
-                    <div class="executive-sub">{{ analise.maior_despesa.descricao }}</div>
+                    {{ analise.maior_despesa.categoria }}
+                    {% if analise.maior_despesa.subcategoria %}
+                        · {{ analise.maior_despesa.subcategoria }}
+                    {% endif %}
+                    </div>
                 {% else %}
                     <div class="executive-value">Sem despesa</div>
                     <div class="executive-sub">Nenhuma despesa encontrada no período.</div>
@@ -1382,17 +1726,17 @@
                     <h3>Receitas</h3>
 
                     <div class="budget-line">
-                        <span class="budget-label">Previsto</span>
+                        <span class="budget-label">Prevista</span>
                         <span class="budget-value">{{ analise.total_receitas_previsto_fmt }}</span>
                     </div>
 
                     <div class="budget-line">
-                        <span class="budget-label">Recebido</span>
+                        <span class="budget-label">Recebida</span>
                         <span class="budget-value green">{{ analise.total_receitas_realizado_fmt }}</span>
                     </div>
 
                     <div class="budget-line">
-                        <span class="budget-label">Diferença</span>
+                        <span class="budget-label">Resta</span>
                         <span class="budget-value {% if analise.diferenca_receitas >= 0 %}green{% else %}red{% endif %}">
                             {% if analise.diferenca_receitas >= 0 %}+{% else %}-{% endif %}{{ analise.diferenca_receitas_fmt }}
                         </span>
@@ -1412,17 +1756,17 @@
                     <h3>Despesas</h3>
 
                     <div class="budget-line">
-                        <span class="budget-label">Previsto</span>
+                        <span class="budget-label">Prevista</span>
                         <span class="budget-value">{{ analise.total_despesas_previsto_fmt }}</span>
                     </div>
 
                     <div class="budget-line">
-                       <span class="budget-label">Executado</span>
+                       <span class="budget-label">Executada</span>
                         <span class="budget-value red">{{ analise.total_despesas_realizado_fmt }}</span>
                     </div>
 
                     <div class="budget-line">
-                        <span class="budget-label">Diferença</span>
+                        <span class="budget-label">Resta</span>
                         <span class="budget-value {% if analise.diferenca_despesas <= 0 %}green{% else %}red{% endif %}">
                             {% if analise.diferenca_despesas >= 0 %}+{% else %}-{% endif %}{{ analise.diferenca_despesas_fmt }}
                         </span>
@@ -1452,7 +1796,7 @@
                     </div>
 
                     <div class="budget-line">
-                        <span class="budget-label">Diferença</span>
+                        <span class="budget-label">Saldo</span>
                         <span class="budget-value {% if analise.diferenca_investimentos >= 0 %}purple{% else %}amber{% endif %}">
                             {% if analise.diferenca_investimentos >= 0 %}+{% else %}-{% endif %}{{ analise.diferenca_investimentos_fmt }}
                         </span>
@@ -1500,7 +1844,7 @@
                 </div>
 
                 <div class="budget-category-summary-card">
-                    <div class="budget-category-summary-label">Diferença</div>
+                    <div class="budget-category-summary-label">Resta</div>
                     <div class="budget-category-summary-value {% if analise.orcamento_por_categoria.diferenca_total <= 0 %}green{% else %}red{% endif %}">
                         {% if analise.orcamento_por_categoria.diferenca_total >= 0 %}+{% else %}-{% endif %}{{ analise.orcamento_por_categoria.diferenca_total_fmt }}
                     </div>
@@ -1554,7 +1898,11 @@
 
                             <div>
                                 <div class="budget-difference {% if item.diferenca <= 0 %}green{% else %}red{% endif %}">
-                                    {% if item.diferenca >= 0 %}+{% else %}-{% endif %}{{ item.diferenca_fmt }}
+                                  {% if item.diferenca <= 0 %}
+                                     Resta {{ item.diferenca_fmt }}
+                                {% else %}
+                                  Ultrapassou {{ item.diferenca_fmt }}
+                                    {% endif %}
                                 </div>
 
                                 <span class="status-pill status-{{ item.status_classe }}">
@@ -1625,108 +1973,112 @@
         </section>
 
         <section class="evolution-card">
-            <div class="evolution-header">
-                <div>
-                    <h2 class="section-title">Evolução mês a mês</h2>
-                    <p class="section-subtitle" style="margin-bottom: 0;">
-                        Comparativo anual de receitas, despesas, investimentos, saldo operacional e comprometimento.
-                    </p>
-                </div>
+    <div class="evolution-header">
+        <div>
+            <h2 class="section-title">Evolução mês a mês</h2>
+            <p class="section-subtitle" style="margin-bottom: 0;">
+                Comparativo anual em gráfico de barras com receitas, despesas, investimentos e saldo operacional.
+            </p>
+        </div>
 
-                <button type="button" class="toggle-button" onclick="alternarEvolucao(this)">
-                    Ver evolução mensal ▼
-                </button>
+        <button type="button" class="toggle-button" onclick="alternarEvolucao(this)">
+            Ver evolução mensal ▼
+        </button>
+    </div>
+
+    <div class="evolution-content" id="evolucaoMensal">
+        <div class="evolution-summary">
+            <div class="evolution-summary-card">
+                <div class="evolution-summary-label">Receitas no ano</div>
+                <div class="evolution-summary-value green">{{ analise.evolucao_mensal.total_receitas_fmt }}</div>
             </div>
 
-            <div class="evolution-content" id="evolucaoMensal">
-                <div class="evolution-summary">
-                    <div class="evolution-summary-card">
-                        <div class="evolution-summary-label">Receitas no ano</div>
-                        <div class="evolution-summary-value green">{{ analise.evolucao_mensal.total_receitas_fmt }}</div>
-                    </div>
+            <div class="evolution-summary-card">
+                <div class="evolution-summary-label">Despesas no ano</div>
+                <div class="evolution-summary-value red">{{ analise.evolucao_mensal.total_despesas_fmt }}</div>
+            </div>
 
-                    <div class="evolution-summary-card">
-                        <div class="evolution-summary-label">Despesas no ano</div>
-                        <div class="evolution-summary-value red">{{ analise.evolucao_mensal.total_despesas_fmt }}</div>
-                    </div>
+            <div class="evolution-summary-card">
+                <div class="evolution-summary-label">Investimentos no ano</div>
+                <div class="evolution-summary-value purple">{{ analise.evolucao_mensal.total_investimentos_fmt }}</div>
+            </div>
 
-                    <div class="evolution-summary-card">
-                        <div class="evolution-summary-label">Investimentos no ano</div>
-                        <div class="evolution-summary-value purple">{{ analise.evolucao_mensal.total_investimentos_fmt }}</div>
-                    </div>
-
-                    <div class="evolution-summary-card">
-                        <div class="evolution-summary-label">Saldo operacional acumulado</div>
-                        <div class="evolution-summary-value {% if analise.evolucao_mensal.saldo_total >= 0 %}green{% else %}red{% endif %}">
-                            {{ analise.evolucao_mensal.saldo_total_fmt }}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="evolution-list">
-                    {% for mes in analise.evolucao_mensal.meses %}
-                        <div class="evolution-row">
-                            <div class="evolution-month">
-                                {{ mes.mes }}
-                                <span>{{ mes.nome }}</span>
-                            </div>
-
-                            <div class="mini-bar-block">
-                                <div class="mini-bar-label">
-                                    <span>Receitas</span>
-                                    <strong>{{ mes.receitas_fmt }}</strong>
-                                </div>
-                                <div class="mini-track">
-                                    <div class="mini-fill fill-receita" style="width: {{ mes.receitas_pct }}%;"></div>
-                                </div>
-                            </div>
-
-                            <div class="mini-bar-block">
-                                <div class="mini-bar-label">
-                                    <span>Despesas</span>
-                                    <strong>{{ mes.despesas_fmt }}</strong>
-                                </div>
-                                <div class="mini-track">
-                                    <div class="mini-fill fill-despesa" style="width: {{ mes.despesas_pct }}%;"></div>
-                                </div>
-                            </div>
-
-                            <div class="mini-bar-block">
-                                <div class="mini-bar-label">
-                                    <span>Investimentos</span>
-                                    <strong>{{ mes.investimentos_fmt }}</strong>
-                                </div>
-                                <div class="mini-track">
-                                    <div class="mini-fill fill-investimento" style="width: {{ mes.investimentos_pct }}%;"></div>
-                                </div>
-                            </div>
-
-                            <div class="mini-bar-block">
-                                <div class="mini-bar-label">
-                                    <span>Saldo operacional</span>
-                                    <strong class="{% if mes.saldo >= 0 %}green{% else %}red{% endif %}">
-                                        {{ mes.saldo_fmt }}
-                                    </strong>
-                                </div>
-                                <div class="mini-track">
-                                    <div
-                                        class="mini-fill {% if mes.saldo >= 0 %}fill-saldo-pos{% else %}fill-saldo-neg{% endif %}"
-                                        style="width: {{ mes.saldo_pct }}%;"
-                                    ></div>
-                                </div>
-                            </div>
-
-                            <div class="evolution-comp">
-                                {{ mes.comprometimento_fmt }}
-                                <span>{{ mes.qtd_lancamentos }} lançamento(s)</span>
-                            </div>
-                        </div>
-                    {% endfor %}
+            <div class="evolution-summary-card">
+                <div class="evolution-summary-label">Saldo operacional acumulado</div>
+                <div class="evolution-summary-value {% if analise.evolucao_mensal.saldo_total >= 0 %}green{% else %}red{% endif %}">
+                    {{ analise.evolucao_mensal.saldo_total_fmt }}
                 </div>
             </div>
-        </section>
+        </div>
 
-        <section class="grid-2">
+        <div class="evolution-chart-legend">
+            <div class="evolution-legend-item">
+                <span class="evolution-legend-dot" style="background: var(--green);"></span>
+                Receitas
+            </div>
+
+            <div class="evolution-legend-item">
+                <span class="evolution-legend-dot" style="background: var(--red);"></span>
+                Despesas
+            </div>
+
+            <div class="evolution-legend-item">
+                <span class="evolution-legend-dot" style="background: var(--purple);"></span>
+                Investimentos
+            </div>
+
+            <div class="evolution-legend-item">
+                <span class="evolution-legend-dot" style="background: var(--primary);"></span>
+                Saldo positivo
+            </div>
+
+            <div class="evolution-legend-item">
+                <span class="evolution-legend-dot" style="background: var(--amber);"></span>
+                Saldo negativo
+            </div>
+        </div>
+
+        <div class="evolution-chart">
+           {% for mes in analise.evolucao_mensal.meses %}
+           {% if mes.qtd_lancamentos > 0 %}
+             <div class="evolution-chart-month">
+                    <div class="evolution-bars">
+                        <div
+                            class="evolution-bar receita"
+                            title="Receitas: {{ mes.receitas_fmt }}"
+                            style="height: {{ mes.receitas_pct }}%;"
+                        ></div>
+
+                        <div
+                            class="evolution-bar despesa"
+                            title="Despesas: {{ mes.despesas_fmt }}"
+                            style="height: {{ mes.despesas_pct }}%;"
+                        ></div>
+
+                        <div
+                            class="evolution-bar investimento"
+                            title="Investimentos: {{ mes.investimentos_fmt }}"
+                            style="height: {{ mes.investimentos_pct }}%;"
+                        ></div>
+
+                        <div
+                            class="evolution-bar {% if mes.saldo >= 0 %}saldo-pos{% else %}saldo-neg{% endif %}"
+                            title="Saldo operacional: {{ mes.saldo_fmt }}"
+                            style="height: {{ mes.saldo_pct }}%;"
+                        ></div>
+                    </div>
+
+                    <div class="evolution-month-label">
+                        {{ mes.mes }}
+                        <span>{{ mes.comprometimento_fmt }}</span>
+                    </div>
+                            </div>
+                              {% endif %}
+                                {% endfor %}
+                    </div>
+         </section>
+        
+  
             <article class="card">
                 <h2 class="section-title">Despesas por categoria</h2>
                 <p class="section-subtitle">
@@ -1784,30 +2136,40 @@
                 {% else %}
                     <div class="empty">Nenhuma despesa encontrada no período.</div>
                 {% endif %}
-            </article>
-
-            <article class="card">
-                <h2 class="section-title">Diagnóstico automático</h2>
-                <p class="section-subtitle">
-                    Leitura rápida dos principais pontos do período.
-                </p>
-
-                <div class="diagnostics">
-                    {% for diag in analise.diagnosticos %}
-                        <div class="diag diag-{{ diag.tipo }}">
-                            <h3>{{ diag.titulo }}</h3>
-                            <p>{{ diag.texto }}</p>
-                        </div>
-                    {% endfor %}
-                </div>
-
-                {% if analise.qtd_a_classificar > 0 %}
-                    <a class="quick-link" href="/financeiro/base-lancamentos?texto=A%20CLASSIFICAR">
-                        Revisar lançamentos a classificar
-                    </a>
-                {% endif %}
-            </article>
+                       
         </section>
+
+        <section class="card">
+            <h2 class="section-title">Parecer gerencial automático</h2>
+    <p class="section-subtitle">
+        Leitura interpretativa dos principais pontos do período, organizada por nível de atenção.
+    </p>
+
+    <div class="diagnostics">
+        {% for diag in analise.diagnosticos %}
+            <div class="diag diag-{{ diag.tipo }}">
+                {% if diag.tipo == "positivo" %}
+                    <span class="diag-label diag-label-positivo">Ponto positivo</span>
+                {% elif diag.tipo == "alerta" %}
+                    <span class="diag-label diag-label-alerta">Alerta</span>
+                {% elif diag.tipo == "atencao" %}
+                    <span class="diag-label diag-label-atencao">Atenção</span>
+                {% else %}
+                    <span class="diag-label diag-label-info">Informação</span>
+                {% endif %}
+
+                <h3>{{ diag.titulo }}</h3>
+                <p>{{ diag.texto }}</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if analise.qtd_a_classificar > 0 %}
+        <a class="quick-link" href="/financeiro/base-lancamentos?texto=A%20CLASSIFICAR">
+            Revisar lançamentos a classificar
+        </a>
+    {% endif %}
+
 
         <section class="grid-2">
             <article class="card">

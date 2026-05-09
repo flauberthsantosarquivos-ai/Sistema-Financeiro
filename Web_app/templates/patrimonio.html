@@ -1,0 +1,2056 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <title>Patrimônio Financeiro</title>
+
+    <style>
+        :root {
+            --bg: #f4f6fb;
+            --card: #ffffff;
+            --text: #172033;
+            --muted: #64748b;
+
+            --primary: #1d4ed8;
+            --primary-dark: #1e40af;
+            --primary-soft: #eff6ff;
+            --primary-border: #bfdbfe;
+
+            --green: #047857;
+            --green-bg: #ecfdf5;
+            --green-border: #bbf7d0;
+
+            --red: #b91c1c;
+            --red-bg: #fef2f2;
+            --red-border: #fecaca;
+
+            --amber: #b45309;
+            --amber-bg: #fffbeb;
+            --amber-border: #fde68a;
+
+            --border: #e5e7eb;
+            --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+            --shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(29, 78, 216, 0.10), transparent 32%),
+                radial-gradient(circle at top right, rgba(109, 40, 217, 0.08), transparent 30%),
+                var(--bg);
+            color: var(--text);
+        }
+
+        .page {
+            max-width: 1580px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #0f172a, #1d4ed8);
+            color: white;
+            border-radius: 32px;
+            padding: 34px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            min-height: 220px;
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 28px;
+            align-items: center;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            width: 420px;
+            height: 420px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            right: -150px;
+            top: -180px;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            right: 140px;
+            bottom: -170px;
+        }
+
+        .hero-content,
+        .hero-side {
+            position: relative;
+            z-index: 1;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.13);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #dbeafe;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 {
+            margin: 0 0 12px;
+            font-size: 40px;
+            letter-spacing: -0.05em;
+            line-height: 1.05;
+        }
+
+        .hero p {
+            margin: 0;
+            color: #dbeafe;
+            max-width: 850px;
+            line-height: 1.6;
+            font-size: 16px;
+            font-weight: 650;
+        }
+
+        .hero-side {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 24px;
+            padding: 22px;
+            backdrop-filter: blur(8px);
+        }
+
+        .hero-side-title {
+            font-size: 13px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #bfdbfe;
+            margin-bottom: 10px;
+        }
+
+        .hero-side-main {
+            font-size: 30px;
+            font-weight: 950;
+            letter-spacing: -0.04em;
+            margin-bottom: 8px;
+        }
+
+        .hero-side-text {
+            color: #dbeafe;
+            font-weight: 650;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .nav a {
+            text-decoration: none;
+            background: white;
+            border: 1px solid var(--border);
+            color: #1e40af;
+            padding: 12px 16px;
+            border-radius: 999px;
+            font-weight: 900;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+        }
+
+        .nav a.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .alert {
+            padding: 15px 18px;
+            border-radius: 16px;
+            margin-bottom: 18px;
+            font-weight: 750;
+            line-height: 1.5;
+        }
+
+        .alert-error {
+            background: var(--red-bg);
+            border: 1px solid var(--red-border);
+            color: #991b1b;
+        }
+
+        .alert-success {
+            background: var(--green-bg);
+            border: 1px solid var(--green-border);
+            color: var(--green);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1.2fr repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .metric-card,
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .metric-card {
+            padding: 20px;
+        }
+
+        .metric-card.main {
+            background: linear-gradient(135deg, #0f172a, #1d4ed8);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card.main::after {
+            content: "";
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.10);
+            right: -90px;
+            top: -110px;
+        }
+
+        .metric-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+
+        .metric-card.main .metric-label {
+            color: #bfdbfe;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 950;
+            letter-spacing: -0.04em;
+            color: #111827;
+        }
+
+        .metric-card.main .metric-value {
+            color: white;
+            font-size: 38px;
+        }
+
+        .metric-note {
+            margin-top: 8px;
+            color: var(--muted);
+            font-weight: 750;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .metric-card.main .metric-note {
+            color: #dbeafe;
+        }
+
+        .green { color: var(--green); }
+        .red { color: var(--red); }
+        .amber { color: var(--amber); }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 0.95fr 1.05fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .card {
+            padding: 24px;
+            margin-bottom: 22px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .section-title {
+            margin: 0 0 6px;
+            font-size: 24px;
+            letter-spacing: -0.035em;
+        }
+
+        .section-subtitle {
+            margin: 0;
+            color: var(--muted);
+            font-weight: 650;
+            line-height: 1.5;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .action-panel {
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            background: #ffffff;
+            padding: 16px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .action-panel-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .action-panel-title {
+            font-weight: 950;
+            color: #111827;
+            font-size: 16px;
+        }
+
+        .action-panel-subtitle {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            margin-top: 3px;
+        }
+
+        .edit-grid,
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        .filter-panel {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .filter-title {
+            font-weight: 950;
+            color: #111827;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .reference-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary-soft);
+            border: 1px solid var(--primary-border);
+            color: var(--primary);
+            border-radius: 999px;
+            padding: 7px 11px;
+            font-size: 12px;
+            font-weight: 950;
+        }
+
+        .month-summary {
+            display: grid;
+            grid-template-columns: 0.9fr 1.3fr;
+            gap: 18px;
+            align-items: stretch;
+            margin-bottom: 18px;
+        }
+
+        .month-summary-card {
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 18px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .month-summary-title {
+            font-size: 18px;
+            font-weight: 950;
+            letter-spacing: -0.03em;
+            margin-bottom: 12px;
+        }
+
+        .month-summary-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .month-summary-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            border-bottom: 1px dashed #dbe3ef;
+            padding-bottom: 8px;
+            font-weight: 850;
+            color: #334155;
+        }
+
+        .month-summary-line:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .month-summary-line strong {
+            color: #111827;
+            font-weight: 950;
+        }
+
+        .pie-card {
+            display: grid;
+            grid-template-columns: minmax(360px, 1.1fr) minmax(260px, 0.9fr);
+            gap: 18px;
+            align-items: center;
+            background:
+                radial-gradient(circle at top left, rgba(29, 78, 216, 0.07), transparent 30%),
+                #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 18px;
+            box-shadow: var(--shadow-soft);
+            min-height: 420px;
+        }
+
+        .pie-chart-box {
+            min-height: 380px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, #f8fafc, #ffffff);
+            border: 1px solid #e2e8f0;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pie-chart-box::before {
+            content: "";
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            border-radius: 999px;
+            background: rgba(29, 78, 216, 0.08);
+            top: -90px;
+            right: -80px;
+        }
+
+        #graficoPizzaPatrimonio {
+            width: 100%;
+            height: 380px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pie-legend {
+            display: grid;
+            gap: 10px;
+            max-height: 350px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .pie-legend-item {
+            display: grid;
+            grid-template-columns: 12px 1fr auto;
+            gap: 10px;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 850;
+            color: #334155;
+        }
+
+        .pie-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+        }
+
+        .pie-legend-value {
+            text-align: right;
+            color: #111827;
+            font-weight: 950;
+        }
+
+        .chart-fallback {
+            display: none;
+        }
+
+        .cadastro-patrimonio-box {
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            background: #ffffff;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .cadastro-patrimonio-box summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 18px 20px;
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            font-weight: 950;
+            color: #111827;
+        }
+
+        .cadastro-patrimonio-box summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .cadastro-patrimonio-box summary span {
+            font-size: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .cadastro-patrimonio-box summary small {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .cadastro-patrimonio-box summary::after {
+            content: "Cadastrar patrimônio";
+            font-size: 11px;
+            font-weight: 950;
+            text-transform: uppercase;
+            color: var(--primary);
+            background: var(--primary-soft);
+            border: 1px solid var(--primary-border);
+            border-radius: 999px;
+            padding: 8px 11px;
+        }
+
+        .cadastro-patrimonio-box[open] summary::after {
+            content: "Ocultar formulário";
+        }
+
+        .cadastro-patrimonio-box form {
+            padding: 18px;
+            border-top: 1px solid var(--border);
+        }
+
+        .form-grid-top {
+            display: grid;
+            grid-template-columns: 0.7fr 1fr 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 950;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 7px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px;
+            background: #f8fafc;
+            color: #111827;
+            font-size: 15px;
+            font-family: inherit;
+            font-weight: 700;
+        }
+
+        textarea {
+            min-height: 76px;
+            resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: 2px solid #bfdbfe;
+            border-color: #93c5fd;
+            background: white;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            padding: 13px 16px;
+            text-decoration: none;
+            font-weight: 950;
+            border: 1px solid transparent;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 10px 22px rgba(29, 78, 216, 0.20);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: #f8fafc;
+            color: #1e40af;
+            border-color: var(--border);
+        }
+
+        .small-help {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.4;
+            margin-top: 7px;
+        }
+
+        .asset-form-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .asset-form-group {
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: #ffffff;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .asset-form-summary-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 105px;
+            gap: 12px;
+            align-items: end;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 14px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .asset-summary-title {
+            font-size: 15px;
+            font-weight: 950;
+            color: #111827;
+            padding-bottom: 13px;
+        }
+
+        .asset-summary-title span {
+            display: block;
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .asset-summary-total input {
+            background: #eef2ff;
+            color: #1e3a8a;
+            font-weight: 950;
+            cursor: default;
+        }
+
+        .asset-detail-box {
+            display: none;
+            margin-top: 8px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: #f8fafc;
+            gap: 12px;
+        }
+
+        .asset-detail-box.open {
+            display: grid;
+        }
+
+        .asset-detail-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            align-items: end;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px;
+        }
+
+        .asset-form-direct-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            align-items: end;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 14px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .asset-direct-title,
+        .asset-subtitle {
+            font-size: 15px;
+            font-weight: 950;
+            color: #111827;
+            padding-bottom: 13px;
+        }
+
+        .asset-direct-title span,
+        .asset-subtitle span {
+            display: block;
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .asset-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .asset-item {
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 14px;
+            background: #f8fafc;
+            display: grid;
+            grid-template-columns: 1fr 140px 140px 140px 105px;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .asset-name {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 950;
+            color: #111827;
+        }
+
+        .asset-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            background: var(--primary);
+            flex: 0 0 auto;
+        }
+
+        .asset-meta {
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        .asset-value {
+            text-align: right;
+            font-size: 15px;
+            font-weight: 950;
+            color: #111827;
+        }
+
+        .asset-value span {
+            display: block;
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 850;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .detail-button {
+            border: 1px solid var(--primary-border);
+            background: var(--primary-soft);
+            color: var(--primary);
+            border-radius: 999px;
+            padding: 8px 11px;
+            font-size: 11px;
+            font-weight: 950;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .asset-bar-wrap {
+            grid-column: 1 / -1;
+            display: grid;
+            gap: 6px;
+        }
+
+        .asset-bar-label {
+            display: flex;
+            justify-content: space-between;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .asset-track {
+            height: 12px;
+            background: #e5e7eb;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .asset-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 999px;
+        }
+
+        .subdivision-list {
+            display: none;
+            grid-column: 1 / -1;
+            border-top: 1px solid var(--border);
+            margin-top: 8px;
+            padding-top: 12px;
+            gap: 8px;
+        }
+
+        .subdivision-list.open {
+            display: grid;
+        }
+
+        .subdivision-row {
+            display: grid;
+            grid-template-columns: 1fr 150px 150px 150px;
+            gap: 12px;
+            align-items: center;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 11px;
+        }
+
+        .subdivision-name {
+            font-weight: 900;
+            color: #334155;
+        }
+
+        .evolution-chart {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(86px, 1fr));
+            gap: 14px;
+            align-items: end;
+            overflow-x: auto;
+            padding: 8px 4px 4px;
+        }
+
+        .evolution-month {
+            display: grid;
+            gap: 10px;
+            min-width: 86px;
+        }
+
+        .evolution-bar-box {
+            height: 240px;
+            display: flex;
+            align-items: end;
+            justify-content: center;
+            padding: 12px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .evolution-bar {
+            width: 34px;
+            min-height: 4px;
+            border-radius: 7px 7px 2px 2px;
+        }
+
+        .evolution-label {
+            text-align: center;
+        }
+
+        .evolution-label strong {
+            display: block;
+            font-size: 13px;
+            color: #334155;
+            font-weight: 950;
+        }
+
+        .evolution-label span {
+            display: block;
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .history-table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: white;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1300px;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #334155;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 11px 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .money {
+            text-align: right;
+            font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .empty {
+            padding: 22px;
+            text-align: center;
+            color: var(--muted);
+            font-weight: 850;
+            background: #f8fafc;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+        }
+
+        @media (max-width: 1250px) {
+            .hero,
+            .summary-grid,
+            .layout-grid,
+            .form-grid-top,
+            .edit-grid,
+            .filter-grid,
+            .month-summary,
+            .pie-card,
+            .asset-form-direct-row,
+            .asset-form-summary-row,
+            .asset-detail-row,
+            .asset-item,
+            .subdivision-row {
+                grid-template-columns: 1fr;
+            }
+
+            .asset-direct-title,
+            .asset-summary-title,
+            .asset-subtitle {
+                padding-bottom: 0;
+            }
+
+            .asset-value,
+            .money {
+                text-align: left;
+            }
+
+            .cadastro-patrimonio-box summary {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            #graficoPizzaPatrimonio {
+                height: 340px;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .page {
+                padding: 18px;
+            }
+
+            .hero {
+                padding: 26px;
+            }
+
+            .hero h1 {
+                font-size: 31px;
+            }
+
+            #graficoPizzaPatrimonio {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+        <section class="hero">
+            <div class="hero-content">
+                <div class="eyebrow">Módulo patrimonial</div>
+                <h1>Patrimônio Financeiro</h1>
+                <p>
+                    Registre o patrimônio financeiro no início e no fim de cada mês. A tela principal mostra os ativos
+                    consolidados, enquanto as subdivisões ficam disponíveis apenas no detalhamento.
+                </p>
+            </div>
+
+            <aside class="hero-side">
+                <div class="hero-side-title">Patrimônio final consultado</div>
+                <div class="hero-side-main">{{ resumo.total_fim_atual_fmt }}</div>
+                <div class="hero-side-text">
+                    {% if resumo.tem_dados_mes_resumo and resumo.ultimo %}
+                        Referência:
+                        {{ resumo.mes_resumo }}/{{ resumo.ano_resumo }}.
+                        {% if resumo.diferenca_atual >= 0 %}
+                            Crescimento de {{ resumo.diferenca_atual_fmt }} no mês.
+                        {% else %}
+                            Redução de {{ resumo.diferenca_atual_fmt }} no mês.
+                        {% endif %}
+                    {% else %}
+                        Não há patrimônio cadastrado para o mês consultado.
+                    {% endif %}
+                </div>
+            </aside>
+        </section>
+
+        <nav class="nav">
+            <a href="/financeiro">Início</a>
+            <a href="/financeiro/configuracoes">Configurações</a>
+            <a href="/financeiro/extratos">Extratos</a>
+            <a href="/financeiro/base-lancamentos">Base</a>
+            <a href="/financeiro/lancamento">Lançamento</a>
+            <a href="/financeiro/orcamento">Orçamento</a>
+            <a href="/financeiro/analise">Painel Gerencial</a>
+            <a href="/financeiro/patrimonio" class="active">Patrimônio</a>
+        </nav>
+
+        {% if erro %}
+            <div class="alert alert-error">{{ erro }}</div>
+        {% endif %}
+
+        {% if salvo %}
+            <div class="alert alert-success">
+                Patrimônio financeiro {{ salvo }} com sucesso.
+            </div>
+        {% endif %}
+
+        <section class="summary-grid">
+            <article class="metric-card main">
+                <div class="metric-content">
+                    <div class="metric-label">Patrimônio final consultado</div>
+                    <div class="metric-value">{{ resumo.total_fim_atual_fmt }}</div>
+                    <div class="metric-note">
+                        Soma dos ativos financeiros no fim de {{ resumo.mes_resumo }}/{{ resumo.ano_resumo }}.
+                    </div>
+                </div>
+            </article>
+
+            <article class="metric-card">
+                <div class="metric-label">Patrimônio inicial</div>
+                <div class="metric-value">{{ resumo.total_inicio_atual_fmt }}</div>
+                <div class="metric-note">
+                    Total registrado no início do mês consultado.
+                </div>
+            </article>
+
+            <article class="metric-card">
+                <div class="metric-label">Variação no mês</div>
+                <div class="metric-value {% if resumo.diferenca_atual >= 0 %}green{% else %}red{% endif %}">
+                    {% if resumo.diferenca_atual >= 0 %}+{% else %}-{% endif %}{{ resumo.diferenca_atual_fmt }}
+                </div>
+                <div class="metric-note">
+                    {{ resumo.percentual_variacao_atual_fmt }} em relação ao início do mês.
+                </div>
+            </article>
+
+            <article class="metric-card">
+                <div class="metric-label">Referência</div>
+                <div class="metric-value">{{ resumo.mes_resumo }}/{{ resumo.ano_resumo }}</div>
+                <div class="metric-note">
+                    Mês usado na composição e no histórico detalhado.
+                </div>
+            </article>
+        </section>
+
+        <section class="card">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Resumo do mês consultado</h2>
+                    <p class="section-subtitle">
+                        Visão executiva de {{ resumo.mes_resumo }}/{{ resumo.ano_resumo }} com distribuição dos ativos.
+                    </p>
+                </div>
+
+                <span class="reference-pill">
+                    {{ resumo.mes_resumo }}/{{ resumo.ano_resumo }}
+                </span>
+            </div>
+
+            {% if resumo.tem_dados_mes_resumo %}
+                <div class="month-summary">
+                    <div class="month-summary-card">
+                        <div class="month-summary-title">Resumo financeiro</div>
+
+                        <div class="month-summary-list">
+                            <div class="month-summary-line">
+                                <span>Patrimônio inicial</span>
+                                <strong>{{ resumo.total_inicio_atual_fmt }}</strong>
+                            </div>
+
+                            <div class="month-summary-line">
+                                <span>Patrimônio final</span>
+                                <strong>{{ resumo.total_fim_atual_fmt }}</strong>
+                            </div>
+
+                            <div class="month-summary-line">
+                                <span>Variação no mês</span>
+                                <strong class="{% if resumo.diferenca_atual >= 0 %}green{% else %}red{% endif %}">
+                                    {% if resumo.diferenca_atual >= 0 %}+{% else %}-{% endif %}{{ resumo.diferenca_atual_fmt }}
+                                </strong>
+                            </div>
+
+                            <div class="month-summary-line">
+                                <span>Variação percentual</span>
+                                <strong class="{% if resumo.diferenca_atual >= 0 %}green{% else %}red{% endif %}">
+                                    {{ resumo.percentual_variacao_atual_fmt }}
+                                </strong>
+                            </div>
+
+                            {% if resumo.maior_ativo %}
+                                <div class="month-summary-line">
+                                    <span>Maior ativo</span>
+                                    <strong>{{ resumo.maior_ativo.nome }}</strong>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="pie-card">
+                        <div class="pie-chart-box">
+                            <div id="graficoPizzaPatrimonio"></div>
+                            <div class="chart-fallback empty" id="graficoPizzaFallback">
+                                Não foi possível carregar o gráfico interativo.
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="month-summary-title">Composição dos ativos</div>
+
+                            {% if resumo.pizza_ativos.tem_dados %}
+                                <div class="pie-legend">
+                                    {% for fatia in resumo.pizza_ativos.fatias %}
+                                        <div class="pie-legend-item">
+                                            <span class="pie-dot" style="background: {{ fatia.cor }};"></span>
+                                            <span>{{ fatia.nome }} — {{ fatia.percentual_fmt }}</span>
+                                            <span class="pie-legend-value">{{ fatia.valor_fmt }}</span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="empty">
+                                    Sem dados suficientes para montar o gráfico.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty">
+                    Nenhum resumo disponível para {{ resumo.mes_resumo }}/{{ resumo.ano_resumo }}.
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="layout-grid">
+            <article class="card">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Cadastro mensal</h2>
+                        <p class="section-subtitle">
+                            Cadastre um novo mês ou consulte um mês já lançado para atualização.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <div class="action-panel">
+                        <div class="action-panel-header">
+                            <div>
+                                <div class="action-panel-title">Consultar / Atualizar mês cadastrado</div>
+                                <div class="action-panel-subtitle">
+                                    Escolha o ano e o mês para carregar os dados já salvos no formulário.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="edit-grid">
+                            <div>
+                                <label>Ano</label>
+                                <input type="number" id="ano_edicao" value="{{ ano }}" />
+                            </div>
+
+                            <div>
+                                <label>Mês</label>
+                                <select id="mes_edicao">
+                                    {% for sigla, nome in meses_opcoes %}
+                                        <option value="{{ sigla }}" {% if mes == sigla %}selected{% endif %}>
+                                            {{ nome }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <button type="button" class="btn btn-secondary" onclick="carregarMesParaEdicao()">
+                                Carregar mês
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <details class="cadastro-patrimonio-box" {% if erro or (formulario_aberto and not salvo) %}open{% endif %}>
+                    <summary>
+                        {% if modo == "editar" %}
+                            <span>Atualizando patrimônio de {{ mes }}/{{ ano }}</span>
+                            <small>Dados carregados para consulta ou atualização</small>
+                        {% else %}
+                            <span>Cadastro Patrimônio Mensal</span>
+                            <small>Abre formulário limpo para cadastrar um novo mês</small>
+                        {% endif %}
+                    </summary>
+
+                    <form method="post" action="/financeiro/patrimonio/salvar">
+                        <div class="form-grid-top">
+                            <div>
+                                <label>Ano</label>
+                                <input type="number" name="ano" value="{{ dados_formulario.ANO or ano }}" required />
+                            </div>
+
+                            <div>
+                                <label>Mês</label>
+                                <select name="mes" required>
+                                    {% for sigla, nome in meses_opcoes %}
+                                        <option value="{{ sigla }}" {% if (dados_formulario.MES or mes) == sigla %}selected{% endif %}>
+                                            {{ nome }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Data início</label>
+                                <input
+                                    type="text"
+                                    name="data_inicio"
+                                    placeholder="Ex.: 01/05/2026"
+                                    value="{{ dados_formulario.DATA_INICIO }}"
+                                />
+                            </div>
+
+                            <div>
+                                <label>Data fim</label>
+                                <input
+                                    type="text"
+                                    name="data_fim"
+                                    placeholder="Ex.: 31/05/2026"
+                                    value="{{ dados_formulario.DATA_FIM }}"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="asset-form-list">
+                            {% for ativo in ativos_patrimonio %}
+                                {% set itens_ativo = [] %}
+
+                                {% for item in dados_formulario.ITENS %}
+                                    {% if item.ATIVO == ativo %}
+                                        {% set _ = itens_ativo.append(item) %}
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if itens_ativo %}
+                                    {% set tem_detalhamento = itens_ativo|length > 1 or itens_ativo[0].SUBDIVISAO != "GERAL" %}
+
+                                    {% if tem_detalhamento %}
+                                        <div class="asset-form-group" data-asset-group="{{ ativo }}">
+                                            <div class="asset-form-summary-row">
+                                                <div class="asset-summary-title">
+                                                    {{ ativo }}
+                                                    <span>{{ itens_ativo|length }} item(ns) no detalhamento</span>
+                                                </div>
+
+                                                <div class="asset-summary-total">
+                                                    <label>Total início</label>
+                                                    <input type="text" class="total-inicio" value="0,00" disabled />
+                                                </div>
+
+                                                <div class="asset-summary-total">
+                                                    <label>Total fim</label>
+                                                    <input type="text" class="total-fim" value="0,00" disabled />
+                                                </div>
+
+                                                <div>
+                                                    <button type="button" class="detail-button" onclick="alternarDetalheFormulario(this)">
+                                                        Detalhar
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="asset-detail-box">
+                                                {% for item in itens_ativo %}
+                                                    <div class="asset-detail-row">
+                                                        <div class="asset-subtitle">
+                                                            {{ item.SUBDIVISAO }}
+                                                            <span>{{ item.ATIVO }}</span>
+                                                            <input type="hidden" name="ativo[]" value="{{ item.ATIVO }}" />
+                                                            <input type="hidden" name="subdivisao[]" value="{{ item.SUBDIVISAO }}" />
+                                                        </div>
+
+                                                        <div>
+                                                            <label>Início do mês</label>
+                                                            <input
+                                                                type="text"
+                                                                name="valor_inicio[]"
+                                                                class="valor-inicio-detalhe money-input"
+                                                                placeholder="0,00"
+                                                                value="{{ item.VALOR_INICIO }}"
+                                                                oninput="recalcularTotaisPatrimonio()"
+                                                                onblur="formatarCampoMoeda(this)"
+                                                            />
+                                                        </div>
+
+                                                        <div>
+                                                            <label>Fim do mês</label>
+                                                            <input
+                                                                type="text"
+                                                                name="valor_fim[]"
+                                                                class="valor-fim-detalhe money-input"
+                                                                placeholder="0,00"
+                                                                value="{{ item.VALOR_FIM }}"
+                                                                oninput="recalcularTotaisPatrimonio()"
+                                                                onblur="formatarCampoMoeda(this)"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        {% set item = itens_ativo[0] %}
+
+                                        <div class="asset-form-direct-row">
+                                            <div class="asset-direct-title">
+                                                {{ ativo }}
+                                                <span>Sem subdivisão</span>
+                                                <input type="hidden" name="ativo[]" value="{{ item.ATIVO }}" />
+                                                <input type="hidden" name="subdivisao[]" value="{{ item.SUBDIVISAO }}" />
+                                            </div>
+
+                                            <div>
+                                                <label>Início do mês</label>
+                                                <input
+                                                    type="text"
+                                                    name="valor_inicio[]"
+                                                    class="money-input"
+                                                    placeholder="0,00"
+                                                    value="{{ item.VALOR_INICIO }}"
+                                                    onblur="formatarCampoMoeda(this)"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label>Fim do mês</label>
+                                                <input
+                                                    type="text"
+                                                    name="valor_fim[]"
+                                                    class="money-input"
+                                                    placeholder="0,00"
+                                                    value="{{ item.VALOR_FIM }}"
+                                                    onblur="formatarCampoMoeda(this)"
+                                                />
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <div style="margin-top: 14px;">
+                            <label>Observação geral</label>
+                            <textarea name="observacao" placeholder="Ex.: fechamento do mês, conferência manual, saldos aproximados...">{{ dados_formulario.OBSERVACAO }}</textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                {% if modo == "editar" %}
+                                    Salvar atualização
+                                {% else %}
+                                    Salvar patrimônio
+                                {% endif %}
+                            </button>
+
+                            <a class="btn btn-secondary" href="/financeiro/patrimonio">
+                                Novo cadastro limpo
+                            </a>
+
+                            {% if planilha_google %}
+                                <a class="btn btn-secondary" href="{{ planilha_google }}" target="_blank">
+                                    Abrir planilha
+                                </a>
+                            {% endif %}
+                        </div>
+
+                        <div class="small-help">
+                            Use vírgula ou ponto para os valores. Exemplo: 1250,50 ou 1250.50.
+                        </div>
+                    </form>
+                </details>
+            </article>
+
+            <article class="card">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Composição final dos ativos</h2>
+                        <p class="section-subtitle">
+                            Consulte a composição consolidada de qualquer mês cadastrado.
+                        </p>
+                    </div>
+
+                    <span class="reference-pill">
+                        {{ resumo.mes_resumo }}/{{ resumo.ano_resumo }}
+                    </span>
+                </div>
+
+                <div class="filter-panel">
+                    <div class="filter-title">Consultar composição e histórico</div>
+
+                    <div class="filter-grid">
+                        <div>
+                            <label>Ano</label>
+                            <input type="number" id="ano_resumo" value="{{ ano_resumo }}" />
+                        </div>
+
+                        <div>
+                            <label>Mês</label>
+                            <select id="mes_resumo">
+                                {% for sigla, nome in meses_opcoes %}
+                                    <option value="{{ sigla }}" {% if mes_resumo == sigla %}selected{% endif %}>
+                                        {{ nome }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <button type="button" class="btn btn-primary" onclick="consultarResumoPatrimonial()">
+                            Consultar
+                        </button>
+                    </div>
+                </div>
+
+                {% if resumo.ativos %}
+                    <div class="asset-list">
+                        {% for ativo in resumo.ativos %}
+                            <div class="asset-item">
+                                <div>
+                                    <div class="asset-name">
+                                        <span class="asset-dot"></span>
+                                        {{ ativo.nome }}
+                                    </div>
+                                    <div class="asset-meta">
+                                        {{ ativo.participacao_fmt }} do patrimônio final
+                                    </div>
+                                </div>
+
+                                <div class="asset-value">
+                                    {{ ativo.inicio_fmt }}
+                                    <span>Início</span>
+                                </div>
+
+                                <div class="asset-value">
+                                    {{ ativo.fim_fmt }}
+                                    <span>Fim</span>
+                                </div>
+
+                                <div class="asset-value {% if ativo.diferenca >= 0 %}green{% else %}red{% endif %}">
+                                    {{ ativo.sinal }}{{ ativo.diferenca_fmt }}
+                                    <span>Variação</span>
+                                </div>
+
+                                <div>
+                                    {% if ativo.tem_subdivisoes %}
+                                        <button type="button" class="detail-button" onclick="alternarDetalhe('detalhe-{{ loop.index }}', this)">
+                                            Detalhar
+                                        </button>
+                                    {% else %}
+                                        <span class="asset-meta">Sem subdivisão</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="asset-bar-wrap">
+                                    <div class="asset-bar-label">
+                                        <span>Participação no patrimônio final</span>
+                                        <strong>{{ ativo.participacao_fmt }}</strong>
+                                    </div>
+
+                                    <div class="asset-track">
+                                        <div class="asset-fill" style="width: {{ ativo.participacao }}%;"></div>
+                                    </div>
+                                </div>
+
+                                {% if ativo.tem_subdivisoes %}
+                                    <div class="subdivision-list" id="detalhe-{{ loop.index }}">
+                                        {% for sub in ativo.subdivisoes %}
+                                            <div class="subdivision-row">
+                                                <div class="subdivision-name">{{ sub.nome }}</div>
+
+                                                <div class="asset-value">
+                                                    {{ sub.inicio_fmt }}
+                                                    <span>Início</span>
+                                                </div>
+
+                                                <div class="asset-value">
+                                                    {{ sub.fim_fmt }}
+                                                    <span>Fim</span>
+                                                </div>
+
+                                                <div class="asset-value {% if sub.diferenca >= 0 %}green{% else %}red{% endif %}">
+                                                    {{ sub.sinal }}{{ sub.diferenca_fmt }}
+                                                    <span>Variação</span>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty">
+                        Nenhum patrimônio encontrado para {{ resumo.mes_resumo }}/{{ resumo.ano_resumo }}.
+                    </div>
+                {% endif %}
+            </article>
+        </section>
+
+        <section class="card">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Evolução mês a mês</h2>
+                    <p class="section-subtitle">
+                        Acompanhe o patrimônio financeiro final no ano consultado. Cada mês tem uma cor própria.
+                    </p>
+                </div>
+            </div>
+
+            {% if resumo.evolucao %}
+                <div class="evolution-chart">
+                    {% for item in resumo.evolucao %}
+                        <div class="evolution-month">
+                            <div class="evolution-bar-box">
+                                <div
+                                    class="evolution-bar"
+                                    title="{{ item.mes }}/{{ item.ano }} — {{ item.total_fim_fmt }}"
+                                    style="height: {{ item.percentual_barra }}%; background: {{ item.cor_barra }};"
+                                ></div>
+                            </div>
+
+                            <div class="evolution-label">
+                                <strong>{{ item.mes }}</strong>
+                                <span>{{ item.total_fim_fmt }}</span>
+                                <span class="{% if item.diferenca >= 0 %}green{% else %}red{% endif %}">
+                                    {{ item.sinal }}{{ item.diferenca_fmt }}
+                                </span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty">
+                    Nenhum histórico disponível para o ano consultado.
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="card">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Histórico patrimonial detalhado</h2>
+                    <p class="section-subtitle">
+                        Registros detalhados do mês consultado: {{ resumo.mes_resumo }}/{{ resumo.ano_resumo }}.
+                    </p>
+                </div>
+
+                <span class="reference-pill">
+                    {{ resumo.mes_resumo }}/{{ resumo.ano_resumo }}
+                </span>
+            </div>
+
+            {% if resumo.registros %}
+                <div class="history-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ano</th>
+                                <th>Mês</th>
+                                <th>Data início</th>
+                                <th>Data fim</th>
+                                <th>Ativo</th>
+                                <th>Subdivisão</th>
+                                <th>Valor início</th>
+                                <th>Valor fim</th>
+                                <th>Diferença</th>
+                                <th>Variação %</th>
+                                <th>Observação</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for registro in resumo.registros %}
+                                <tr>
+                                    <td>{{ registro.ANO }}</td>
+                                    <td>{{ registro.MES }}</td>
+                                    <td>{{ registro.DATA_INICIO }}</td>
+                                    <td>{{ registro.DATA_FIM }}</td>
+                                    <td>{{ registro.ATIVO }}</td>
+                                    <td>{{ registro.SUBDIVISAO }}</td>
+                                    <td class="money">{{ registro.VALOR_INICIO_FMT }}</td>
+                                    <td class="money">{{ registro.VALOR_FIM_FMT }}</td>
+
+                                    <td class="money {% if registro.DIFERENCA_NUM >= 0 %}green{% else %}red{% endif %}">
+                                        {% if registro.DIFERENCA_NUM >= 0 %}+{% else %}-{% endif %}{{ registro.DIFERENCA_FMT }}
+                                    </td>
+
+                                    <td class="{% if registro.PERCENTUAL_VARIACAO_NUM >= 0 %}green{% else %}red{% endif %}">
+                                        {{ registro.PERCENTUAL_VARIACAO_FMT }}
+                                    </td>
+
+                                    <td>{{ registro.OBSERVACAO }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty">
+                    Nenhum registro detalhado encontrado para {{ resumo.mes_resumo }}/{{ resumo.ano_resumo }}.
+                </div>
+            {% endif %}
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+
+    <script>
+        function valorParaNumero(valor) {
+            if (!valor) {
+                return 0;
+            }
+
+            let texto = String(valor)
+                .replace("R$", "")
+                .replace(/\s/g, "")
+                .trim();
+
+            if (!texto) {
+                return 0;
+            }
+
+            if (texto.includes(",")) {
+                texto = texto.replace(/\./g, "").replace(",", ".");
+            }
+
+            const numero = Number(texto);
+
+            if (Number.isNaN(numero)) {
+                return 0;
+            }
+
+            return numero;
+        }
+
+        function formatarMoedaBR(valor) {
+            return valor.toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function formatarCampoMoeda(input) {
+            const numero = valorParaNumero(input.value);
+            input.value = formatarMoedaBR(numero);
+        }
+
+        function recalcularTotaisPatrimonio() {
+            const grupos = document.querySelectorAll("[data-asset-group]");
+
+            grupos.forEach((grupo) => {
+                let totalInicio = 0;
+                let totalFim = 0;
+
+                grupo.querySelectorAll(".valor-inicio-detalhe").forEach((input) => {
+                    totalInicio += valorParaNumero(input.value);
+                });
+
+                grupo.querySelectorAll(".valor-fim-detalhe").forEach((input) => {
+                    totalFim += valorParaNumero(input.value);
+                });
+
+                const campoInicio = grupo.querySelector(".total-inicio");
+                const campoFim = grupo.querySelector(".total-fim");
+
+                if (campoInicio) {
+                    campoInicio.value = formatarMoedaBR(totalInicio);
+                }
+
+                if (campoFim) {
+                    campoFim.value = formatarMoedaBR(totalFim);
+                }
+            });
+        }
+
+        function alternarDetalheFormulario(botao) {
+            const grupo = botao.closest("[data-asset-group]");
+
+            if (!grupo) {
+                return;
+            }
+
+            const detalhe = grupo.querySelector(".asset-detail-box");
+
+            if (!detalhe) {
+                return;
+            }
+
+            const aberto = detalhe.classList.contains("open");
+
+            if (aberto) {
+                detalhe.classList.remove("open");
+                botao.textContent = "Detalhar";
+            } else {
+                detalhe.classList.add("open");
+                botao.textContent = "Ocultar";
+            }
+        }
+
+        function alternarDetalhe(id, botao) {
+            const bloco = document.getElementById(id);
+
+            if (!bloco) {
+                return;
+            }
+
+            const aberto = bloco.classList.contains("open");
+
+            if (aberto) {
+                bloco.classList.remove("open");
+                botao.textContent = "Detalhar";
+            } else {
+                bloco.classList.add("open");
+                botao.textContent = "Ocultar";
+            }
+        }
+
+        function carregarMesParaEdicao() {
+            const ano = document.getElementById("ano_edicao").value;
+            const mes = document.getElementById("mes_edicao").value;
+
+            if (!ano || !mes) {
+                alert("Informe o ano e o mês para consultar ou atualizar.");
+                return;
+            }
+
+            window.location.href = `/financeiro/patrimonio?ano=${ano}&mes=${mes}&modo=editar&ano_resumo=${ano}&mes_resumo=${mes}`;
+        }
+
+        function consultarResumoPatrimonial() {
+            const anoResumo = document.getElementById("ano_resumo").value;
+            const mesResumo = document.getElementById("mes_resumo").value;
+
+            if (!anoResumo || !mesResumo) {
+                alert("Informe o ano e o mês para consultar a composição.");
+                return;
+            }
+
+            const params = new URLSearchParams(window.location.search);
+
+            const anoCadastro = params.get("ano") || "{{ ano }}";
+            const mesCadastro = params.get("mes") || "{{ mes }}";
+            const modoAtual = params.get("modo") || "{{ modo }}";
+
+            let url = `/financeiro/patrimonio?ano_resumo=${anoResumo}&mes_resumo=${mesResumo}`;
+
+            if (modoAtual === "editar") {
+                url += `&ano=${anoCadastro}&mes=${mesCadastro}&modo=editar`;
+            }
+
+            window.location.href = url;
+        }
+
+        function montarGraficoPizzaPatrimonio() {
+            const container = document.getElementById("graficoPizzaPatrimonio");
+            const fallback = document.getElementById("graficoPizzaFallback");
+
+            if (!container) {
+                return;
+            }
+
+            const dadosPizzaBrutos = {{ resumo.pizza_ativos.fatias | tojson }};
+
+            if (!window.echarts || !Array.isArray(dadosPizzaBrutos) || dadosPizzaBrutos.length === 0) {
+                if (fallback) {
+                    fallback.style.display = "block";
+                }
+                return;
+            }
+
+            const maiorValor = Math.max(...dadosPizzaBrutos.map((item) => Number(item.valor || 0)));
+
+            const dadosPizza = dadosPizzaBrutos.map((item) => {
+                const valor = Number(item.valor || 0);
+
+                return {
+                    name: item.nome,
+                    value: valor,
+                    selected: valor === maiorValor,
+                    itemStyle: {
+                        color: item.cor,
+                        borderColor: "#ffffff",
+                        borderWidth: 4,
+                        borderRadius: 10,
+                        shadowBlur: valor === maiorValor ? 28 : 14,
+                        shadowColor: valor === maiorValor
+                            ? "rgba(15, 23, 42, 0.36)"
+                            : "rgba(15, 23, 42, 0.20)",
+                        shadowOffsetY: valor === maiorValor ? 12 : 6
+                    },
+                    label: {
+                        fontWeight: valor === maiorValor ? 900 : 700,
+                    },
+                    emphasis: {
+                        scale: true,
+                        scaleSize: 12,
+                        itemStyle: {
+                            shadowBlur: 34,
+                            shadowColor: "rgba(15, 23, 42, 0.42)"
+                        }
+                    }
+                };
+            });
+
+            const grafico = echarts.init(container);
+
+            const option = {
+                backgroundColor: "transparent",
+                tooltip: {
+                    trigger: "item",
+                    backgroundColor: "rgba(15, 23, 42, 0.92)",
+                    borderColor: "rgba(255, 255, 255, 0.14)",
+                    borderWidth: 1,
+                    textStyle: {
+                        color: "#ffffff",
+                        fontWeight: 700
+                    },
+                    formatter: function (params) {
+                        const itemOriginal = dadosPizzaBrutos.find((item) => item.nome === params.name);
+
+                        if (!itemOriginal) {
+                            return params.name + ": " + params.percent + "%";
+                        }
+
+                        return `
+                            <strong>${params.name}</strong><br/>
+                            ${itemOriginal.valor_fmt}<br/>
+                            ${itemOriginal.percentual_fmt} do patrimônio
+                        `;
+                    }
+                },
+                series: [
+                    {
+                        name: "Composição dos ativos",
+                        type: "pie",
+                        radius: ["38%", "72%"],
+                        center: ["50%", "52%"],
+                        avoidLabelOverlap: true,
+                        selectedMode: "single",
+                        selectedOffset: 24,
+                        startAngle: 110,
+                        minAngle: 5,
+                        padAngle: 2,
+                        roseType: false,
+                        stillShowZeroSum: false,
+                        label: {
+                            show: true,
+                            position: "outside",
+                            formatter: function (params) {
+                                if (params.percent < 6) {
+                                    return "";
+                                }
+
+                                return `{nome|${params.name}}\n{perc|${params.percent.toFixed(1).replace(".", ",")}%}`;
+                            },
+                            rich: {
+                                nome: {
+                                    fontSize: 12,
+                                    fontWeight: 900,
+                                    color: "#334155",
+                                    lineHeight: 18
+                                },
+                                perc: {
+                                    fontSize: 12,
+                                    fontWeight: 950,
+                                    color: "#0f172a",
+                                    lineHeight: 18
+                                }
+                            }
+                        },
+                        labelLine: {
+                            show: true,
+                            length: 18,
+                            length2: 14,
+                            smooth: true,
+                            lineStyle: {
+                                width: 2,
+                                color: "rgba(100, 116, 139, 0.55)"
+                            }
+                        },
+                        data: dadosPizza
+                    },
+                    {
+                        name: "Sombra 3D",
+                        type: "pie",
+                        radius: ["38%", "72%"],
+                        center: ["50%", "59%"],
+                        silent: true,
+                        z: -1,
+                        label: {
+                            show: false
+                        },
+                        labelLine: {
+                            show: false
+                        },
+                        itemStyle: {
+                            color: "rgba(15, 23, 42, 0.16)",
+                            borderWidth: 0
+                        },
+                        data: dadosPizza.map((item) => ({
+                            name: item.name,
+                            value: item.value
+                        }))
+                    }
+                ],
+                graphic: [
+                    {
+                        type: "text",
+                        left: "center",
+                        top: "43%",
+                        style: {
+                            text: "Ativos",
+                            fill: "#64748b",
+                            fontSize: 13,
+                            fontWeight: 800,
+                            textAlign: "center"
+                        }
+                    },
+                    {
+                        type: "text",
+                        left: "center",
+                        top: "49%",
+                        style: {
+                            text: "{{ resumo.total_fim_atual_fmt }}",
+                            fill: "#0f172a",
+                            fontSize: 18,
+                            fontWeight: 950,
+                            textAlign: "center"
+                        }
+                    }
+                ]
+            };
+
+            grafico.setOption(option);
+
+            window.addEventListener("resize", function () {
+                grafico.resize();
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".money-input").forEach((input) => {
+                formatarCampoMoeda(input);
+            });
+
+            recalcularTotaisPatrimonio();
+            montarGraficoPizzaPatrimonio();
+        });
+    </script>
+</body>
+</html>

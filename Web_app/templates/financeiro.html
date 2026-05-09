@@ -8,26 +8,35 @@
         :root {
             --bg: #f4f6fb;
             --card: #ffffff;
-            --text: #1f2937;
-            --muted: #6b7280;
+            --text: #172033;
+            --muted: #64748b;
+            --muted-2: #94a3b8;
+
             --primary: #1d4ed8;
             --primary-dark: #1e40af;
+            --primary-soft: #eff6ff;
+            --primary-border: #bfdbfe;
+
             --green: #047857;
             --green-bg: #ecfdf5;
             --green-border: #bbf7d0;
+
             --red: #b91c1c;
             --red-bg: #fef2f2;
             --red-border: #fecaca;
+
             --amber: #b45309;
             --amber-bg: #fffbeb;
             --amber-border: #fde68a;
-            --blue-bg: #eff6ff;
-            --blue-border: #bfdbfe;
+
             --purple: #6d28d9;
             --purple-bg: #f5f3ff;
             --purple-border: #ddd6fe;
+
+            --slate-bg: #f8fafc;
             --border: #e5e7eb;
             --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+            --shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.06);
         }
 
         * {
@@ -37,56 +46,126 @@
         body {
             margin: 0;
             font-family: "Segoe UI", Arial, sans-serif;
-            background: var(--bg);
+            background:
+                radial-gradient(circle at top left, rgba(29, 78, 216, 0.10), transparent 32%),
+                radial-gradient(circle at top right, rgba(109, 40, 217, 0.08), transparent 30%),
+                var(--bg);
             color: var(--text);
         }
 
         .page {
-            max-width: 1500px;
+            max-width: 1520px;
             margin: 0 auto;
             padding: 32px;
         }
 
         .hero {
-            background: linear-gradient(135deg, #0f172a, #1d4ed8);
+            background:
+                linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(29, 78, 216, 0.95)),
+                linear-gradient(135deg, #0f172a, #1d4ed8);
             color: white;
-            border-radius: 30px;
-            padding: 36px;
+            border-radius: 32px;
+            padding: 34px;
             box-shadow: var(--shadow);
-            margin-bottom: 22px;
+            margin-bottom: 20px;
             position: relative;
             overflow: hidden;
+            min-height: 230px;
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 28px;
+            align-items: center;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            width: 420px;
+            height: 420px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            right: -150px;
+            top: -180px;
         }
 
         .hero::after {
             content: "";
             position: absolute;
-            width: 280px;
-            height: 280px;
+            width: 260px;
+            height: 260px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.10);
-            right: -90px;
-            top: -95px;
+            background: rgba(255, 255, 255, 0.08);
+            right: 140px;
+            bottom: -170px;
         }
 
-        .hero-content {
+        .hero-content,
+        .hero-side {
             position: relative;
             z-index: 1;
         }
 
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.13);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #dbeafe;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 16px;
+        }
+
         .hero h1 {
-            margin: 0 0 10px;
-            font-size: 36px;
-            letter-spacing: -0.04em;
+            margin: 0 0 12px;
+            font-size: 40px;
+            letter-spacing: -0.05em;
+            line-height: 1.05;
         }
 
         .hero p {
             margin: 0;
             color: #dbeafe;
-            max-width: 900px;
-            line-height: 1.55;
+            max-width: 850px;
+            line-height: 1.6;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 650;
+        }
+
+        .hero-side {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 24px;
+            padding: 22px;
+            backdrop-filter: blur(8px);
+        }
+
+        .hero-side-title {
+            font-size: 13px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #bfdbfe;
+            margin-bottom: 10px;
+        }
+
+        .hero-side-main {
+            font-size: 25px;
+            font-weight: 950;
+            letter-spacing: -0.03em;
+            margin-bottom: 8px;
+        }
+
+        .hero-side-text {
+            color: #dbeafe;
+            font-weight: 650;
+            line-height: 1.5;
+            font-size: 14px;
         }
 
         .nav {
@@ -103,8 +182,15 @@
             color: #1e40af;
             padding: 12px 16px;
             border-radius: 999px;
-            font-weight: 850;
+            font-weight: 900;
             box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+
+        .nav a:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 22px rgba(15, 23, 42, 0.08);
+            background: #f8fafc;
         }
 
         .nav a.active {
@@ -129,7 +215,7 @@
         .section-title {
             margin: 0 0 6px;
             font-size: 24px;
-            letter-spacing: -0.03em;
+            letter-spacing: -0.035em;
         }
 
         .section-subtitle {
@@ -139,13 +225,86 @@
             line-height: 1.5;
         }
 
-        .config-panel {
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 14px;
+            padding: 13px 16px;
+            text-decoration: none;
+            font-weight: 950;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 10px 22px rgba(29, 78, 216, 0.20);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: #f8fafc;
+            color: #1e40af;
+            border-color: var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        .btn-success {
+            background: var(--green);
+            color: white;
+            box-shadow: 0 10px 22px rgba(4, 120, 87, 0.18);
+        }
+
+        .btn-success:hover {
+            background: #065f46;
+        }
+
+        .btn-dark {
+            background: #0f172a;
+            color: white;
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.18);
+        }
+
+        .btn-dark:hover {
+            background: #111827;
+        }
+
+        .top-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .config-panel,
+        .quick-panel,
+        .info-card,
+        .module-card,
+        .timeline-panel {
             background: white;
             border: 1px solid var(--border);
             border-radius: 26px;
             box-shadow: var(--shadow);
+        }
+
+        .config-panel {
             padding: 24px;
-            margin-bottom: 24px;
         }
 
         .config-top {
@@ -223,39 +382,6 @@
             flex-wrap: wrap;
         }
 
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            border-radius: 14px;
-            padding: 13px 16px;
-            text-decoration: none;
-            font-weight: 900;
-            border: 1px solid transparent;
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn-secondary {
-            background: #f8fafc;
-            color: #1e40af;
-            border-color: var(--border);
-        }
-
-        .btn-secondary:hover {
-            background: #eff6ff;
-            border-color: #bfdbfe;
-        }
-
         .warning-box {
             background: var(--amber-bg);
             border: 1px solid var(--amber-border);
@@ -267,37 +393,168 @@
             margin-top: 16px;
         }
 
-        .flow-grid {
+        .quick-panel {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 100%;
+        }
+
+        .quick-title {
+            margin: 0 0 8px;
+            font-size: 22px;
+            letter-spacing: -0.03em;
+        }
+
+        .quick-text {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.55;
+            font-weight: 650;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .quick-action {
+            text-decoration: none;
+            border: 1px solid var(--border);
+            background: #f8fafc;
+            border-radius: 18px;
+            padding: 16px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            color: var(--text);
+            transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+        }
+
+        .quick-action:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-soft);
+            border-color: #bfdbfe;
+        }
+
+        .quick-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 950;
+            flex: 0 0 auto;
+            background: var(--primary-soft);
+            color: var(--primary);
+            border: 1px solid var(--primary-border);
+        }
+
+        .quick-action strong {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .quick-action span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.4;
+            font-weight: 700;
+        }
+
+        .quick-action.analysis {
+            background: #0f172a;
+            color: white;
+            border-color: #0f172a;
+            grid-column: span 2;
+        }
+
+        .quick-action.analysis .quick-icon {
+            background: rgba(255, 255, 255, 0.13);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.20);
+        }
+
+        .quick-action.analysis span {
+            color: #cbd5e1;
+        }
+
+        .module-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 18px;
         }
 
-        .step-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 24px;
+        .module-card {
             padding: 22px;
-            box-shadow: var(--shadow);
-            min-height: 260px;
+            min-height: 250px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             transition: transform 0.18s ease, box-shadow 0.18s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        .step-card:hover {
+        .module-card::after {
+            content: "";
+            position: absolute;
+            width: 110px;
+            height: 110px;
+            border-radius: 999px;
+            right: -45px;
+            top: -45px;
+            opacity: 0.7;
+        }
+
+        .module-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 22px 46px rgba(15, 23, 42, 0.11);
         }
 
-        .step-top {
-            display: flex;
-            gap: 14px;
-            align-items: flex-start;
+        .module-card.blue::after {
+            background: var(--primary-soft);
         }
 
-        .step-number {
+        .module-card.amber::after {
+            background: var(--amber-bg);
+        }
+
+        .module-card.green::after {
+            background: var(--green-bg);
+        }
+
+        .module-card.purple::after {
+            background: var(--purple-bg);
+        }
+
+        .module-card.red::after {
+            background: var(--red-bg);
+        }
+
+        .module-card.dark::after {
+            background: #e2e8f0;
+        }
+
+        .module-top {
+            position: relative;
+            z-index: 1;
+        }
+
+        .module-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .module-number {
             width: 44px;
             height: 44px;
             border-radius: 16px;
@@ -309,56 +566,215 @@
             flex: 0 0 auto;
         }
 
-        .step-blue .step-number {
-            background: var(--blue-bg);
+        .blue .module-number {
+            background: var(--primary-soft);
             color: var(--primary);
-            border: 1px solid var(--blue-border);
+            border: 1px solid var(--primary-border);
         }
 
-        .step-amber .step-number {
+        .amber .module-number {
             background: var(--amber-bg);
             color: var(--amber);
             border: 1px solid var(--amber-border);
         }
 
-        .step-green .step-number {
+        .green .module-number {
             background: var(--green-bg);
             color: var(--green);
             border: 1px solid var(--green-border);
         }
 
-        .step-purple .step-number {
+        .purple .module-number {
             background: var(--purple-bg);
             color: var(--purple);
             border: 1px solid var(--purple-border);
         }
 
-        .step-red .step-number {
+        .red .module-number {
             background: var(--red-bg);
             color: var(--red);
             border: 1px solid var(--red-border);
         }
 
-        .step-card h3 {
-            margin: 0 0 8px;
-            font-size: 18px;
-            letter-spacing: -0.02em;
+        .dark .module-number {
+            background: #f1f5f9;
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
         }
 
-        .step-card p {
+        .module-label {
+            font-size: 11px;
+            font-weight: 950;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .module-card h3 {
+            margin: 0 0 8px;
+            font-size: 20px;
+            letter-spacing: -0.03em;
+        }
+
+        .module-card p {
             margin: 0;
             color: var(--muted);
-            line-height: 1.5;
+            line-height: 1.52;
             font-weight: 650;
             font-size: 14px;
         }
 
-        .step-actions {
-            margin-top: 20px;
+        .module-actions {
+            position: relative;
+            z-index: 1;
+            margin-top: 22px;
         }
 
-        .step-actions .btn {
+        .module-actions .btn {
             width: 100%;
+        }
+
+        .analysis-feature {
+            display: grid;
+            grid-template-columns: 0.85fr 1.15fr;
+            gap: 18px;
+            margin-top: 24px;
+        }
+
+        .timeline-panel {
+            padding: 24px;
+        }
+
+        .timeline-title {
+            margin: 0 0 8px;
+            font-size: 22px;
+            letter-spacing: -0.03em;
+        }
+
+        .timeline-subtitle {
+            margin: 0 0 18px;
+            color: var(--muted);
+            line-height: 1.5;
+            font-weight: 650;
+        }
+
+        .timeline {
+            display: grid;
+            gap: 12px;
+        }
+
+        .timeline-item {
+            display: grid;
+            grid-template-columns: 42px 1fr;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .timeline-dot {
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            background: var(--primary-soft);
+            border: 1px solid var(--primary-border);
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 950;
+            font-size: 13px;
+        }
+
+        .timeline-content {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 13px 14px;
+        }
+
+        .timeline-content strong {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .timeline-content span {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.45;
+            font-weight: 650;
+        }
+
+        .analysis-card {
+            background: linear-gradient(135deg, #111827, #1d4ed8);
+            color: white;
+            border-radius: 26px;
+            padding: 28px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .analysis-card::after {
+            content: "";
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            border-radius: 999px;
+            right: -100px;
+            top: -130px;
+            background: rgba(255, 255, 255, 0.11);
+        }
+
+        .analysis-card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .analysis-card h2 {
+            margin: 0 0 10px;
+            font-size: 28px;
+            letter-spacing: -0.04em;
+        }
+
+        .analysis-card p {
+            margin: 0;
+            color: #dbeafe;
+            line-height: 1.58;
+            font-weight: 650;
+            max-width: 780px;
+        }
+
+        .analysis-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+            margin-bottom: 22px;
+        }
+
+        .analysis-item {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 16px;
+            padding: 12px;
+            color: #eff6ff;
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        .analysis-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .analysis-actions .btn {
+            background: white;
+            color: #1e40af;
+        }
+
+        .analysis-actions .btn:hover {
+            background: #eff6ff;
         }
 
         .info-grid {
@@ -369,11 +785,7 @@
         }
 
         .info-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 24px;
             padding: 24px;
-            box-shadow: var(--shadow);
         }
 
         .info-card h2 {
@@ -419,15 +831,22 @@
             justify-content: center;
             font-weight: 950;
             flex: 0 0 auto;
+            font-size: 12px;
         }
 
         @media (max-width: 1200px) {
-            .flow-grid {
+            .hero,
+            .top-grid,
+            .analysis-feature,
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .module-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
-            .config-grid,
-            .info-grid {
+            .config-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -441,8 +860,18 @@
                 padding: 26px;
             }
 
-            .flow-grid {
+            .hero h1 {
+                font-size: 31px;
+            }
+
+            .module-grid,
+            .quick-actions,
+            .analysis-list {
                 grid-template-columns: 1fr;
+            }
+
+            .quick-action.analysis {
+                grid-column: span 1;
             }
         }
     </style>
@@ -452,12 +881,23 @@
     <main class="page">
         <section class="hero">
             <div class="hero-content">
+                <div class="eyebrow">Painel inicial</div>
                 <h1>Central Financeira</h1>
                 <p>
-                    Fluxo completo para configurar a planilha, importar extratos, revisar lançamentos,
-                    cadastrar orçamento mensal e acompanhar a análise financeira.
+                    Organize extratos, lançamentos, orçamento mensal, patrimônio financeiro e Painel Gerencial Financeiro
+                    em um único fluxo. Esta tela funciona como a porta de entrada do sistema, mantendo os módulos
+                    separados e a visão gerencial concentrada no painel próprio.
                 </p>
             </div>
+
+            <aside class="hero-side">
+                <div class="hero-side-title">Próxima ação recomendada</div>
+                <div class="hero-side-main">Painel Gerencial</div>
+                <div class="hero-side-text">
+                    Depois de importar extratos, revisar a base, cadastrar o orçamento e registrar o patrimônio,
+                    use os painéis para visualizar a situação financeira e patrimonial do mês.
+                </div>
+            </aside>
         </section>
 
         <nav class="nav">
@@ -467,189 +907,362 @@
             <a href="/financeiro/base-lancamentos">Base</a>
             <a href="/financeiro/lancamento">Lançamento</a>
             <a href="/financeiro/orcamento">Orçamento</a>
-            <a href="/financeiro/analise">Análise</a>
+            <a href="/financeiro/analise">Painel Gerencial</a>
+            <a href="/financeiro/patrimonio">Patrimônio</a>
         </nav>
 
-        <section class="config-panel">
-            <div class="config-top">
+        <section class="top-grid">
+            <article class="config-panel">
+                <div class="config-top">
+                    <div>
+                        <h2 class="section-title">Configuração do sistema</h2>
+                        <p class="section-subtitle">
+                            Confirme a planilha vinculada e o ano base antes de executar as rotinas financeiras.
+                        </p>
+                    </div>
+
+                    {% if configuracao_ok %}
+                        <span class="status-badge status-ok">Configuração OK</span>
+                    {% else %}
+                        <span class="status-badge status-pending">Configuração pendente</span>
+                    {% endif %}
+                </div>
+
+                <div class="config-grid">
+                    <div class="config-item">
+                        <div class="config-label">Planilha vinculada</div>
+                        <div class="config-value {% if not planilha_google %}config-empty{% endif %}">
+                            {% if planilha_google %}
+                                {{ planilha_google }}
+                            {% else %}
+                                Nenhuma planilha vinculada.
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="config-item">
+                        <div class="config-label">Ano base</div>
+                        <div class="config-value {% if not ano_base %}config-empty{% endif %}">
+                            {% if ano_base %}
+                                {{ ano_base }}
+                            {% else %}
+                                Não definido.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="config-actions">
+                    {% if planilha_google %}
+                        <a class="btn btn-primary" href="{{ planilha_google }}" target="_blank">
+                            Abrir planilha
+                        </a>
+                    {% endif %}
+
+                    <a class="btn btn-secondary" href="/financeiro/configuracoes">
+                        Alterar configurações
+                    </a>
+                </div>
+
+                {% if not configuracao_ok %}
+                    <div class="warning-box">
+                        Antes de usar o fluxo financeiro, configure ou crie uma planilha vinculada.
+                        Sem essa etapa, o sistema não terá onde gravar extratos, lançamentos, orçamento e patrimônio.
+                    </div>
+                {% endif %}
+            </article>
+
+            <aside class="quick-panel">
                 <div>
-                    <h2 class="section-title">Etapa 0 — Configuração inicial</h2>
-                    <p class="section-subtitle">
-                        Antes de importar extratos ou lançar dados, confirme se a planilha Google está vinculada
-                        e se o ano base está correto.
+                    <h2 class="quick-title">Acesso rápido</h2>
+                    <p class="quick-text">
+                        Use estes atalhos para ir direto às rotinas mais usadas da Central Financeira.
                     </p>
                 </div>
 
-                {% if configuracao_ok %}
-                    <span class="status-badge status-ok">Configuração OK</span>
-                {% else %}
-                    <span class="status-badge status-pending">Configuração pendente</span>
-                {% endif %}
-            </div>
-
-            <div class="config-grid">
-                <div class="config-item">
-                    <div class="config-label">Planilha vinculada</div>
-                    <div class="config-value {% if not planilha_google %}config-empty{% endif %}">
-                        {% if planilha_google %}
-                            {{ planilha_google }}
-                        {% else %}
-                            Nenhuma planilha vinculada.
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="config-item">
-                    <div class="config-label">Ano base</div>
-                    <div class="config-value {% if not ano_base %}config-empty{% endif %}">
-                        {% if ano_base %}
-                            {{ ano_base }}
-                        {% else %}
-                            Não definido.
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="config-actions">
-                {% if planilha_google %}
-                    <a class="btn btn-primary" href="{{ planilha_google }}" target="_blank">
-                        Abrir planilha vinculada
+                <div class="quick-actions">
+                    <a class="quick-action" href="/financeiro/extratos">
+                        <span class="quick-icon">1</span>
+                        <span>
+                            <strong>Importar extrato</strong>
+                            <span>Ler arquivo bancário e gerar prévia.</span>
+                        </span>
                     </a>
-                {% endif %}
 
-                <a class="btn btn-secondary" href="/financeiro/configuracoes">
-                    Alterar/criar planilha
-                </a>
-            </div>
+                    <a class="quick-action" href="/financeiro/base-lancamentos">
+                        <span class="quick-icon">2</span>
+                        <span>
+                            <strong>Revisar base</strong>
+                            <span>Corrigir categorias e situações.</span>
+                        </span>
+                    </a>
 
-            {% if not configuracao_ok %}
-                <div class="warning-box">
-                    Antes de usar o fluxo financeiro, configure ou crie uma planilha vinculada.
-                    Sem essa etapa, o sistema não terá onde gravar extratos, lançamentos e orçamento.
+                    <a class="quick-action" href="/financeiro/orcamento">
+                        <span class="quick-icon">3</span>
+                        <span>
+                            <strong>Orçamento</strong>
+                            <span>Cadastrar previsto mensal.</span>
+                        </span>
+                    </a>
+
+                    <a class="quick-action" href="/financeiro/patrimonio">
+                        <span class="quick-icon">P</span>
+                        <span>
+                            <strong>Patrimônio</strong>
+                            <span>Ativos, saldos mensais e evolução patrimonial.</span>
+                        </span>
+                    </a>
+
+                    <a class="quick-action" href="/financeiro/lancamento">
+                        <span class="quick-icon">+</span>
+                        <span>
+                            <strong>Novo lançamento</strong>
+                            <span>Inserir receita, despesa ou ajuste.</span>
+                        </span>
+                    </a>
+
+                    <a class="quick-action analysis" href="/financeiro/analise">
+                        <span class="quick-icon">✓</span>
+                        <span>
+                            <strong>Abrir Painel Gerencial</strong>
+                            <span>Indicadores, diagnóstico, evolução mensal e previsto x realizado.</span>
+                        </span>
+                    </a>
                 </div>
-            {% endif %}
+            </aside>
         </section>
 
         <section class="section">
             <div class="section-header">
                 <div>
-                    <h2 class="section-title">Fluxo de trabalho recomendado</h2>
+                    <h2 class="section-title">Módulos da Central Financeira</h2>
                     <p class="section-subtitle">
-                        Siga as etapas abaixo na ordem para manter a base organizada e a análise financeira confiável.
+                        Cada módulo tem uma função específica. A ideia é evitar mistura entre importação,
+                        revisão, orçamento, patrimônio e visão gerencial.
                     </p>
                 </div>
             </div>
 
-            <div class="flow-grid">
-                <article class="step-card step-blue">
-                    <div>
-                        <div class="step-top">
-                            <div class="step-number">1</div>
-                            <div>
-                                <h3>Importar extrato</h3>
-                                <p>
-                                    Leia o extrato bancário, aplique regras de classificação e gere uma prévia antes de gravar.
-                                </p>
-                            </div>
+            <div class="module-grid">
+                <article class="module-card blue">
+                    <div class="module-top">
+                        <div class="module-meta">
+                            <div class="module-number">1</div>
+                            <div class="module-label">Entrada de dados</div>
                         </div>
+
+                        <h3>Importar extratos</h3>
+                        <p>
+                            Importe o extrato bancário, aplique regras de tratamento e confira a prévia
+                            antes de gravar na base de lançamentos.
+                        </p>
                     </div>
 
-                    <div class="step-actions">
+                    <div class="module-actions">
                         <a class="btn btn-primary" href="/financeiro/extratos">Ir para extratos</a>
                     </div>
                 </article>
 
-                <article class="step-card step-amber">
-                    <div>
-                        <div class="step-top">
-                            <div class="step-number">2</div>
-                            <div>
-                                <h3>Revisar base de lançamentos</h3>
-                                <p>
-                                    Ajuste tipo, categoria, subcategoria, situação e valores antes de analisar os dados.
-                                </p>
-                            </div>
+                <article class="module-card amber">
+                    <div class="module-top">
+                        <div class="module-meta">
+                            <div class="module-number">2</div>
+                            <div class="module-label">Conferência</div>
                         </div>
+
+                        <h3>Base de lançamentos</h3>
+                        <p>
+                            Revise tipo, categoria, subcategoria, situação, valores e lançamentos pendentes
+                            antes de consultar o mês.
+                        </p>
                     </div>
 
-                    <div class="step-actions">
+                    <div class="module-actions">
                         <a class="btn btn-primary" href="/financeiro/base-lancamentos">Revisar base</a>
                     </div>
                 </article>
 
-                <article class="step-card step-green">
-                    <div>
-                        <div class="step-top">
-                            <div class="step-number">3</div>
-                            <div>
-                                <h3>Novo lançamento manual</h3>
-                                <p>
-                                    Cadastre receitas, despesas, transferências ou ajustes que não vieram pelo extrato.
-                                </p>
-                            </div>
+                <article class="module-card green">
+                    <div class="module-top">
+                        <div class="module-meta">
+                            <div class="module-number">3</div>
+                            <div class="module-label">Ajustes manuais</div>
                         </div>
+
+                        <h3>Novo lançamento</h3>
+                        <p>
+                            Cadastre receitas, despesas, transferências ou correções que não vieram
+                            automaticamente pelo extrato.
+                        </p>
                     </div>
 
-                    <div class="step-actions">
-                        <a class="btn btn-primary" href="/financeiro/lancamento">Novo lançamento</a>
+                    <div class="module-actions">
+                        <a class="btn btn-success" href="/financeiro/lancamento">Cadastrar lançamento</a>
                     </div>
                 </article>
 
-                <article class="step-card step-purple">
-                    <div>
-                        <div class="step-top">
-                            <div class="step-number">4</div>
-                            <div>
-                                <h3>Orçamento mensal</h3>
-                                <p>
-                                    Informe os valores previstos por mês, categoria e subcategoria para comparar com o realizado.
-                                </p>
-                            </div>
+                <article class="module-card purple">
+                    <div class="module-top">
+                        <div class="module-meta">
+                            <div class="module-number">4</div>
+                            <div class="module-label">Planejamento</div>
                         </div>
+
+                        <h3>Orçamento mensal</h3>
+                        <p>
+                            Informe valores previstos por mês, tipo, categoria e subcategoria para permitir
+                            a comparação com o realizado.
+                        </p>
                     </div>
 
-                    <div class="step-actions">
-                        <a class="btn btn-primary" href="/financeiro/orcamento">Cadastrar orçamento</a>
+                    <div class="module-actions">
+                        <a class="btn btn-primary" href="/financeiro/orcamento">Abrir orçamento</a>
                     </div>
                 </article>
 
-                <article class="step-card step-red">
-                    <div>
-                        <div class="step-top">
-                            <div class="step-number">5</div>
-                            <div>
-                                <h3>Análise financeira</h3>
-                                <p>
-                                    Veja indicadores, orçamento por categoria, evolução mensal, composição das despesas e diagnóstico.
-                                </p>
-                            </div>
+                <article class="module-card red">
+                    <div class="module-top">
+                        <div class="module-meta">
+                            <div class="module-number">5</div>
+                            <div class="module-label">Painel analítico</div>
                         </div>
+
+                        <h3>Painel Gerencial</h3>
+                        <p>
+                            Consulte receitas, despesas, investimentos, saldo, comprometimento,
+                            diagnóstico automático e orçamento previsto x realizado.
+                        </p>
                     </div>
 
-                    <div class="step-actions">
-                        <a class="btn btn-primary" href="/financeiro/analise">Abrir análise</a>
+                    <div class="module-actions">
+                        <a class="btn btn-dark" href="/financeiro/analise">Abrir Painel Gerencial</a>
                     </div>
                 </article>
 
-                <article class="step-card step-blue">
-                    <div>
-                        <div class="step-top">
-                            <div class="step-number">✓</div>
-                            <div>
-                                <h3>Conferência final</h3>
-                                <p>
-                                    Após a análise, volte à base para corrigir lançamentos a classificar ou categorias inconsistentes.
-                                </p>
-                            </div>
+                <article class="module-card purple">
+                    <div class="module-top">
+                        <div class="module-meta">
+                            <div class="module-number">6</div>
+                            <div class="module-label">Painel patrimonial</div>
                         </div>
+
+                        <h3>Patrimônio Financeiro</h3>
+                        <p>
+                            Acompanhe ativos financeiros, saldos de início e fim do mês,
+                            composição patrimonial, evolução mensal e histórico detalhado.
+                        </p>
                     </div>
 
-                    <div class="step-actions">
+                    <div class="module-actions">
+                        <a class="btn btn-primary" href="/financeiro/patrimonio">Abrir Patrimônio</a>
+                    </div>
+                </article>
+
+                <article class="module-card dark">
+                    <div class="module-top">
+                        <div class="module-meta">
+                            <div class="module-number">7</div>
+                            <div class="module-label">Manutenção</div>
+                        </div>
+
+                        <h3>Correção de pendências</h3>
+                        <p>
+                            Após consultar o Painel Gerencial, volte à base para corrigir lançamentos a classificar
+                            ou categorias inconsistentes.
+                        </p>
+                    </div>
+
+                    <div class="module-actions">
                         <a class="btn btn-secondary" href="/financeiro/base-lancamentos">Corrigir pendências</a>
                     </div>
                 </article>
             </div>
+        </section>
+
+        <section class="analysis-feature">
+            <article class="timeline-panel">
+                <h2 class="timeline-title">Fluxo recomendado</h2>
+                <p class="timeline-subtitle">
+                    Para que os painéis fiquem confiáveis, siga a ordem abaixo antes de fechar o mês.
+                </p>
+
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot">1</div>
+                        <div class="timeline-content">
+                            <strong>Configurar a planilha</strong>
+                            <span>Confirme o vínculo com o Google Sheets e o ano base.</span>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-dot">2</div>
+                        <div class="timeline-content">
+                            <strong>Importar extratos</strong>
+                            <span>Leia os arquivos bancários e confira a prévia antes de gravar.</span>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-dot">3</div>
+                        <div class="timeline-content">
+                            <strong>Revisar a base</strong>
+                            <span>Corrija categorias, subcategorias, tipo e situação dos lançamentos.</span>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-dot">4</div>
+                        <div class="timeline-content">
+                            <strong>Cadastrar orçamento</strong>
+                            <span>Informe os valores previstos para comparar com o realizado.</span>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-dot">5</div>
+                        <div class="timeline-content">
+                            <strong>Cadastrar patrimônio</strong>
+                            <span>Registre os ativos financeiros do início e do fim do mês.</span>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-dot">6</div>
+                        <div class="timeline-content">
+                            <strong>Abrir os painéis</strong>
+                            <span>Consulte o Painel Gerencial e o Patrimônio Financeiro para análise completa.</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="analysis-card">
+                <div class="analysis-card-content">
+                    <div class="eyebrow">Painel principal de decisão</div>
+                    <h2>Painel Gerencial Financeiro</h2>
+                    <p>
+                        O Painel Gerencial Financeiro é o local certo para visualizar os indicadores do mês.
+                        Ele concentra os cálculos de receitas, despesas, investimentos, saldo,
+                        comprometimento da renda, evolução mensal, maiores despesas e comparação
+                        entre orçamento previsto e realizado.
+                    </p>
+
+                    <div class="analysis-list">
+                        <div class="analysis-item">Receitas x despesas</div>
+                        <div class="analysis-item">Previsto x realizado</div>
+                        <div class="analysis-item">Comprometimento da renda</div>
+                        <div class="analysis-item">Diagnóstico automático</div>
+                        <div class="analysis-item">Despesas por categoria</div>
+                        <div class="analysis-item">Evolução mensal</div>
+                    </div>
+
+                    <div class="analysis-actions">
+                        <a class="btn" href="/financeiro/analise">Abrir Painel Gerencial</a>
+                        <a class="btn" href="/financeiro/patrimonio">Abrir Patrimônio</a>
+                    </div>
+                </div>
+            </article>
         </section>
 
         <section class="info-grid">
@@ -683,7 +1296,12 @@
 
                     <div class="check-item">
                         <span class="check-icon">5</span>
-                        <span>Consulte a análise financeira com dados realizados e planejados.</span>
+                        <span>Cadastre o patrimônio financeiro mensal.</span>
+                    </div>
+
+                    <div class="check-item">
+                        <span class="check-icon">6</span>
+                        <span>Consulte o Painel Gerencial e o Painel Patrimonial.</span>
                     </div>
                 </div>
             </article>
@@ -691,8 +1309,8 @@
             <article class="info-card">
                 <h2>Estrutura de dados</h2>
                 <p>
-                    A análise financeira usa a base de lançamentos para o realizado e o orçamento mensal
-                    para os valores previstos.
+                    O Painel Gerencial usa a base de lançamentos para o realizado, o orçamento mensal
+                    para os valores previstos e o módulo de patrimônio para a visão de ativos financeiros.
                 </p>
 
                 <div class="checklist">
@@ -708,7 +1326,12 @@
 
                     <div class="check-item">
                         <span class="check-icon">✓</span>
-                        <span><strong>Análise</strong>: compara previsto x realizado e gera diagnóstico.</span>
+                        <span><strong>PATRIMONIO_FINANCEIRO</strong>: ativos, saldos mensais, composição e evolução patrimonial.</span>
+                    </div>
+
+                    <div class="check-item">
+                        <span class="check-icon">✓</span>
+                        <span><strong>Painel Gerencial</strong>: compara previsto x realizado e gera diagnóstico.</span>
                     </div>
                 </div>
             </article>

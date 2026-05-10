@@ -884,18 +884,19 @@
                 <div class="eyebrow">Painel inicial</div>
                 <h1>Central Financeira</h1>
                 <p>
-                    Organize extratos, lançamentos, orçamento mensal, patrimônio financeiro e Painel Gerencial Financeiro
-                    em um único fluxo. Esta tela funciona como a porta de entrada do sistema, mantendo os módulos
-                    separados e a visão gerencial concentrada no painel próprio.
+                    Organize extratos, lançamentos, orçamento mensal, patrimônio financeiro,
+                    análise de investimentos e Painel Gerencial Financeiro em um único fluxo.
+                    Esta tela funciona como a porta de entrada do sistema, mantendo os módulos
+                    separados e a visão gerencial concentrada nos painéis próprios.
                 </p>
             </div>
 
             <aside class="hero-side">
                 <div class="hero-side-title">Próxima ação recomendada</div>
-                <div class="hero-side-main">Painel Gerencial</div>
+                <div class="hero-side-main">Painel Gerencial + Investimentos</div>
                 <div class="hero-side-text">
                     Depois de importar extratos, revisar a base, cadastrar o orçamento e registrar o patrimônio,
-                    use os painéis para visualizar a situação financeira e patrimonial do mês.
+                    use os painéis para visualizar a situação financeira, patrimonial e os direcionamentos de investimento.
                 </div>
             </aside>
         </section>
@@ -909,6 +910,7 @@
             <a href="/financeiro/orcamento">Orçamento</a>
             <a href="/financeiro/analise">Painel Gerencial</a>
             <a href="/financeiro/patrimonio">Patrimônio</a>
+            <a href="/financeiro/investimentos">Investimentos</a>
         </nav>
 
         <section class="top-grid">
@@ -967,7 +969,8 @@
                 {% if not configuracao_ok %}
                     <div class="warning-box">
                         Antes de usar o fluxo financeiro, configure ou crie uma planilha vinculada.
-                        Sem essa etapa, o sistema não terá onde gravar extratos, lançamentos, orçamento e patrimônio.
+                        Sem essa etapa, o sistema não terá onde gravar extratos, lançamentos, orçamento,
+                        patrimônio e análises de investimento.
                     </div>
                 {% endif %}
             </article>
@@ -1013,6 +1016,14 @@
                         </span>
                     </a>
 
+                    <a class="quick-action" href="/financeiro/investimentos">
+                        <span class="quick-icon">I</span>
+                        <span>
+                            <strong>Investimentos</strong>
+                            <span>Diagnóstico, mercado, cripto, ações e caminhos sugeridos.</span>
+                        </span>
+                    </a>
+
                     <a class="quick-action" href="/financeiro/lancamento">
                         <span class="quick-icon">+</span>
                         <span>
@@ -1038,7 +1049,7 @@
                     <h2 class="section-title">Módulos da Central Financeira</h2>
                     <p class="section-subtitle">
                         Cada módulo tem uma função específica. A ideia é evitar mistura entre importação,
-                        revisão, orçamento, patrimônio e visão gerencial.
+                        revisão, orçamento, patrimônio, investimentos e visão gerencial.
                     </p>
                 </div>
             </div>
@@ -1158,10 +1169,29 @@
                     </div>
                 </article>
 
-                <article class="module-card dark">
+                <article class="module-card green">
                     <div class="module-top">
                         <div class="module-meta">
                             <div class="module-number">7</div>
+                            <div class="module-label">Direcionamento</div>
+                        </div>
+
+                        <h3>Análise de Investimentos</h3>
+                        <p>
+                            Analise a composição patrimonial, cenário de juros, radar cripto,
+                            ações, ETFs, FIIs, alertas de concentração e caminhos sugeridos.
+                        </p>
+                    </div>
+
+                    <div class="module-actions">
+                        <a class="btn btn-success" href="/financeiro/investimentos">Abrir Investimentos</a>
+                    </div>
+                </article>
+
+                <article class="module-card dark">
+                    <div class="module-top">
+                        <div class="module-meta">
+                            <div class="module-number">8</div>
                             <div class="module-label">Manutenção</div>
                         </div>
 
@@ -1230,8 +1260,16 @@
                     <div class="timeline-item">
                         <div class="timeline-dot">6</div>
                         <div class="timeline-content">
+                            <strong>Analisar investimentos</strong>
+                            <span>Veja radar de mercado, cripto, ações, alertas e caminhos sugeridos.</span>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-dot">7</div>
+                        <div class="timeline-content">
                             <strong>Abrir os painéis</strong>
-                            <span>Consulte o Painel Gerencial e o Patrimônio Financeiro para análise completa.</span>
+                            <span>Consulte o Painel Gerencial, Patrimônio Financeiro e Análise de Investimentos.</span>
                         </div>
                     </div>
                 </div>
@@ -1239,13 +1277,12 @@
 
             <article class="analysis-card">
                 <div class="analysis-card-content">
-                    <div class="eyebrow">Painel principal de decisão</div>
-                    <h2>Painel Gerencial Financeiro</h2>
+                    <div class="eyebrow">Painéis principais de decisão</div>
+                    <h2>Painel Gerencial e Investimentos</h2>
                     <p>
-                        O Painel Gerencial Financeiro é o local certo para visualizar os indicadores do mês.
-                        Ele concentra os cálculos de receitas, despesas, investimentos, saldo,
-                        comprometimento da renda, evolução mensal, maiores despesas e comparação
-                        entre orçamento previsto e realizado.
+                        O Painel Gerencial mostra a situação financeira do mês. O módulo de Investimentos
+                        interpreta o patrimônio, consulta dados de mercado, identifica riscos e sugere caminhos
+                        educativos de alocação.
                     </p>
 
                     <div class="analysis-list">
@@ -1253,13 +1290,16 @@
                         <div class="analysis-item">Previsto x realizado</div>
                         <div class="analysis-item">Comprometimento da renda</div>
                         <div class="analysis-item">Diagnóstico automático</div>
-                        <div class="analysis-item">Despesas por categoria</div>
-                        <div class="analysis-item">Evolução mensal</div>
+                        <div class="analysis-item">Radar cripto</div>
+                        <div class="analysis-item">Ações, ETFs e FIIs</div>
+                        <div class="analysis-item">Cenário de juros</div>
+                        <div class="analysis-item">Caminhos sugeridos</div>
                     </div>
 
                     <div class="analysis-actions">
                         <a class="btn" href="/financeiro/analise">Abrir Painel Gerencial</a>
                         <a class="btn" href="/financeiro/patrimonio">Abrir Patrimônio</a>
+                        <a class="btn" href="/financeiro/investimentos">Abrir Investimentos</a>
                     </div>
                 </div>
             </article>
@@ -1301,6 +1341,11 @@
 
                     <div class="check-item">
                         <span class="check-icon">6</span>
+                        <span>Consulte a Análise de Investimentos para avaliar cenário, riscos e oportunidades.</span>
+                    </div>
+
+                    <div class="check-item">
+                        <span class="check-icon">7</span>
                         <span>Consulte o Painel Gerencial e o Painel Patrimonial.</span>
                     </div>
                 </div>
@@ -1310,7 +1355,8 @@
                 <h2>Estrutura de dados</h2>
                 <p>
                     O Painel Gerencial usa a base de lançamentos para o realizado, o orçamento mensal
-                    para os valores previstos e o módulo de patrimônio para a visão de ativos financeiros.
+                    para os valores previstos, o patrimônio para os ativos e o módulo de investimentos
+                    para radar e direcionamento.
                 </p>
 
                 <div class="checklist">
@@ -1331,7 +1377,12 @@
 
                     <div class="check-item">
                         <span class="check-icon">✓</span>
-                        <span><strong>Painel Gerencial</strong>: compara previsto x realizado e gera diagnóstico.</span>
+                        <span><strong>Análise de Investimentos</strong>: Selic, radar cripto, ações, ETFs, FIIs e caminhos sugeridos.</span>
+                    </div>
+
+                    <div class="check-item">
+                        <span class="check-icon">✓</span>
+                        <span><strong>Painel Gerencial</strong>: compara previsto x realizado e gera diagnóstico financeiro.</span>
                     </div>
                 </div>
             </article>

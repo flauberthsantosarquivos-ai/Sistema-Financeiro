@@ -30,6 +30,7 @@ ROTAS_DO_SISTEMA = [
     "Web_app.routes_orcamento",
     "Web_app.routes_configuracoes",
     "Web_app.routes_patrimonio",
+       "Web_app.routes_investimentos",
 ]
 
 

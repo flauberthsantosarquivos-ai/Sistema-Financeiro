@@ -539,6 +539,195 @@
             font-size: 13px;
         }
 
+        .reserva-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        .reserva-main {
+            background:
+                radial-gradient(circle at top right, rgba(29, 78, 216, 0.10), transparent 30%),
+                #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 22px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .reserva-badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 14px;
+        }
+
+        .reserva-badge.green {
+            background: var(--green-bg);
+            color: var(--green);
+            border: 1px solid var(--green-border);
+        }
+
+        .reserva-badge.red {
+            background: var(--red-bg);
+            color: var(--red);
+            border: 1px solid var(--red-border);
+        }
+
+        .reserva-badge.amber {
+            background: var(--amber-bg);
+            color: var(--amber);
+            border: 1px solid var(--amber-border);
+        }
+
+        .reserva-title {
+            margin: 0 0 10px;
+            font-size: 28px;
+            font-weight: 950;
+            letter-spacing: -0.04em;
+            color: #111827;
+        }
+
+        .reserva-text {
+            margin: 0;
+            color: #334155;
+            font-weight: 750;
+            line-height: 1.55;
+        }
+
+        .reserva-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .reserva-metric {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 14px;
+        }
+
+        .reserva-metric-label {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-bottom: 7px;
+        }
+
+        .reserva-metric-value {
+            font-size: 20px;
+            font-weight: 950;
+            color: #111827;
+            letter-spacing: -0.03em;
+        }
+
+        .reserva-side {
+            background: linear-gradient(135deg, #111827, #1d4ed8);
+            color: white;
+            border-radius: 24px;
+            padding: 22px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reserva-side::after {
+            content: "";
+            position: absolute;
+            width: 230px;
+            height: 230px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.10);
+            right: -90px;
+            top: -110px;
+        }
+
+        .reserva-side-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .reserva-side-title {
+            font-size: 13px;
+            font-weight: 950;
+            color: #bfdbfe;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 10px;
+        }
+
+        .reserva-side-value {
+            font-size: 31px;
+            font-weight: 950;
+            letter-spacing: -0.04em;
+            margin-bottom: 10px;
+        }
+
+        .reserva-side-text {
+            color: #dbeafe;
+            font-weight: 750;
+            line-height: 1.5;
+        }
+
+        .reserva-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .reserva-detail-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 18px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .reserva-detail-title {
+            margin: 0 0 12px;
+            font-size: 17px;
+            font-weight: 950;
+            letter-spacing: -0.02em;
+        }
+
+        .reserva-list {
+            display: grid;
+            gap: 9px;
+        }
+
+        .reserva-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            border-bottom: 1px dashed #dbe3ef;
+            padding-bottom: 8px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #334155;
+        }
+
+        .reserva-line:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .reserva-line strong {
+            color: #111827;
+            font-weight: 950;
+            white-space: nowrap;
+        }
+
         .radar-status {
             display: flex;
             justify-content: space-between;
@@ -1009,7 +1198,9 @@
             .filter-grid,
             .crypto-grid,
             .acoes-grid,
-            .radar-reading-grid {
+            .radar-reading-grid,
+            .reserva-grid,
+            .reserva-detail-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -1037,7 +1228,8 @@
             }
 
             .crypto-meta-grid,
-            .acao-meta-grid {
+            .acao-meta-grid,
+            .reserva-metrics {
                 grid-template-columns: 1fr;
             }
         }
@@ -1052,7 +1244,7 @@
                 <h1>Análise de Investimentos</h1>
                 <p>
                     Interprete a composição patrimonial do cliente, identifique concentrações,
-                    avalie o cenário de juros e gere caminhos educativos para melhorar a alocação financeira.
+                    avalie reserva de emergência, cenário de juros e gere caminhos educativos para melhorar a alocação financeira.
                 </p>
             </div>
 
@@ -1183,6 +1375,164 @@
                         </div>
                     </div>
                 </article>
+            </section>
+
+            <section class="card">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Reserva de Emergência Automática</h2>
+                        <p class="section-subtitle">
+                            Cálculo baseado nas despesas da aba BASE_LANCAMENTOS e na liquidez disponível
+                            no patrimônio cadastrado.
+                        </p>
+                    </div>
+
+                    <span class="reference-pill">
+                        {{ analise.mes }}/{{ analise.ano }}
+                    </span>
+                </div>
+
+                <div class="reserva-grid">
+                    <article class="reserva-main">
+                        <span class="reserva-badge {{ analise.reserva_emergencia.classificacao.classe }}">
+                            {{ analise.reserva_emergencia.classificacao.situacao }}
+                        </span>
+
+                        <h3 class="reserva-title">
+                            {{ analise.reserva_emergencia.classificacao.situacao }}
+                        </h3>
+
+                        <p class="reserva-text">
+                            {{ analise.reserva_emergencia.classificacao.mensagem }}
+                        </p>
+
+                        <div class="reserva-metrics">
+                            <div class="reserva-metric">
+                                <div class="reserva-metric-label">Despesa média mensal</div>
+                                <div class="reserva-metric-value">
+                                    {{ analise.reserva_emergencia.media_mensal_fmt }}
+                                </div>
+                            </div>
+
+                            <div class="reserva-metric">
+                                <div class="reserva-metric-label">Liquidez disponível</div>
+                                <div class="reserva-metric-value">
+                                    {{ analise.reserva_emergencia.liquidez_atual_fmt }}
+                                </div>
+                            </div>
+
+                            <div class="reserva-metric">
+                                <div class="reserva-metric-label">Reserva recomendada 6 meses</div>
+                                <div class="reserva-metric-value">
+                                    {{ analise.reserva_emergencia.reserva_6_meses_fmt }}
+                                </div>
+                            </div>
+
+                            <div class="reserva-metric">
+                                <div class="reserva-metric-label">Cobertura da reserva</div>
+                                <div class="reserva-metric-value">
+                                    {{ analise.reserva_emergencia.classificacao.percentual_cobertura_fmt }}
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <aside class="reserva-side">
+                        <div class="reserva-side-content">
+                            <div class="reserva-side-title">Orientação principal</div>
+
+                            {% if analise.reserva_emergencia.falta_para_6_meses != 0 %}
+                                <div class="reserva-side-value">
+                                    {{ analise.reserva_emergencia.falta_para_6_meses_fmt }}
+                                </div>
+                                <div class="reserva-side-text">
+                                    Falta estimada para atingir 6 meses de despesas.
+                                </div>
+                            {% elif analise.reserva_emergencia.excesso_acima_12_meses != 0 %}
+                                <div class="reserva-side-value">
+                                    {{ analise.reserva_emergencia.excesso_acima_12_meses_fmt }}
+                                </div>
+                                <div class="reserva-side-text">
+                                    Excesso estimado acima de 12 meses de despesas em liquidez.
+                                </div>
+                            {% else %}
+                                <div class="reserva-side-value">
+                                    Faixa adequada
+                                </div>
+                                <div class="reserva-side-text">
+                                    A liquidez cobre a reserva recomendada sem excesso crítico.
+                                </div>
+                            {% endif %}
+
+                            <div class="reserva-side-text" style="margin-top: 14px;">
+                                {{ analise.reserva_emergencia.orientacao }}
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+
+                <div class="reserva-detail-grid">
+                    <article class="reserva-detail-card">
+                        <h3 class="reserva-detail-title">Referências de reserva</h3>
+
+                        <div class="reserva-list">
+                            <div class="reserva-line">
+                                <span>3 meses de despesas</span>
+                                <strong>{{ analise.reserva_emergencia.reserva_3_meses_fmt }}</strong>
+                            </div>
+
+                            <div class="reserva-line">
+                                <span>6 meses de despesas</span>
+                                <strong>{{ analise.reserva_emergencia.reserva_6_meses_fmt }}</strong>
+                            </div>
+
+                            <div class="reserva-line">
+                                <span>12 meses de despesas</span>
+                                <strong>{{ analise.reserva_emergencia.reserva_12_meses_fmt }}</strong>
+                            </div>
+
+                            <div class="reserva-line">
+                                <span>Meses com despesas na base</span>
+                                <strong>{{ analise.reserva_emergencia.despesas.qtd_meses }}</strong>
+                            </div>
+
+                            <div class="reserva-line">
+                                <span>Lançamentos considerados</span>
+                                <strong>{{ analise.reserva_emergencia.despesas.linhas_consideradas }}</strong>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="reserva-detail-card">
+                        <h3 class="reserva-detail-title">Liquidez considerada</h3>
+
+                        {% if analise.reserva_emergencia.liquidez.itens %}
+                            <div class="reserva-list">
+                                {% for item in analise.reserva_emergencia.liquidez.itens %}
+                                    <div class="reserva-line">
+                                        <span>{{ item.nome }}</span>
+                                        <strong>{{ item.valor_fmt }}</strong>
+                                    </div>
+                                {% endfor %}
+
+                                <div class="reserva-line">
+                                    <span>Total em liquidez</span>
+                                    <strong>{{ analise.reserva_emergencia.liquidez.total_fmt }}</strong>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="empty">
+                                Nenhum ativo de liquidez foi identificado para compor a reserva.
+                            </div>
+                        {% endif %}
+                    </article>
+                </div>
+
+                {% if analise.reserva_emergencia.erro %}
+                    <div class="alert alert-warning" style="margin-top: 16px;">
+                        Detalhe técnico: {{ analise.reserva_emergencia.erro }}
+                    </div>
+                {% endif %}
             </section>
 
             <section class="card">
@@ -1482,7 +1832,7 @@
                     <div>
                         <h2 class="section-title">Caminhos sugeridos para investimento</h2>
                         <p class="section-subtitle">
-                            Direcionamentos educativos combinando situação do cliente e cenário de mercado.
+                            Direcionamentos educativos combinando situação do cliente, reserva de emergência e cenário de mercado.
                         </p>
                     </div>
 

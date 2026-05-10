@@ -12,6 +12,7 @@ from core.financeiro.patrimonio_google import (
     normalizar_upper,
 )
 from core.financeiro.radar_mercado import montar_radar_mercado
+from core.financeiro.reserva_emergencia import montar_reserva_emergencia
 
 
 CLASSES_ATIVOS = {
@@ -389,6 +390,7 @@ def gerar_alertas(distribuicao: list[dict]) -> list[dict]:
 def gerar_caminhos_investimento(
     distribuicao: list[dict],
     cenario_juros: dict,
+    reserva_emergencia: dict | None = None,
 ) -> list[dict]:
     caminhos = []
 
@@ -400,22 +402,44 @@ def gerar_caminhos_investimento(
 
     liquidez_total = liquidez["percentual"] + poupanca["percentual"]
 
-    caminhos.append(
-        {
-            "titulo": "1. Reserva de emergência",
-            "prioridade": "Alta",
-            "descricao": (
-                "Antes de buscar rentabilidade, o cliente deve manter uma reserva de emergência "
-                "em produto seguro, líquido e de baixa volatilidade."
-            ),
-            "indicacoes": [
-                "Tesouro Selic",
-                "CDB com liquidez diária e rendimento competitivo",
-                "Conta remunerada confiável",
-                "Fundo DI simples com baixa taxa, se fizer sentido",
-            ],
-        }
-    )
+    situacao_reserva = ""
+    if reserva_emergencia:
+        situacao_reserva = reserva_emergencia.get("classificacao", {}).get("situacao", "")
+
+    if situacao_reserva == "RESERVA INSUFICIENTE":
+        caminhos.append(
+            {
+                "titulo": "1. Formar reserva de emergência antes de aumentar risco",
+                "prioridade": "Muito alta",
+                "descricao": (
+                    "A reserva de emergência aparece abaixo do recomendado. Antes de pensar em ações, "
+                    "FIIs ou cripto, o foco deve ser completar a reserva em produto seguro e líquido."
+                ),
+                "indicacoes": [
+                    "Tesouro Selic",
+                    "CDB com liquidez diária e rendimento competitivo",
+                    "Conta remunerada confiável",
+                    "Evitar renda variável e cripto com dinheiro destinado à reserva",
+                ],
+            }
+        )
+    else:
+        caminhos.append(
+            {
+                "titulo": "1. Reserva de emergência",
+                "prioridade": "Alta",
+                "descricao": (
+                    "Antes de buscar rentabilidade, o cliente deve manter uma reserva de emergência "
+                    "em produto seguro, líquido e de baixa volatilidade."
+                ),
+                "indicacoes": [
+                    "Tesouro Selic",
+                    "CDB com liquidez diária e rendimento competitivo",
+                    "Conta remunerada confiável",
+                    "Fundo DI simples com baixa taxa, se fizer sentido",
+                ],
+            }
+        )
 
     if liquidez["percentual"] > 25 or dinheiro_fisico["percentual"] > 8:
         caminhos.append(
@@ -524,7 +548,10 @@ def gerar_caminhos_investimento(
     return caminhos
 
 
-def gerar_plano_realocacao(distribuicao: list[dict]) -> list[dict]:
+def gerar_plano_realocacao(
+    distribuicao: list[dict],
+    reserva_emergencia: dict | None = None,
+) -> list[dict]:
     liquidez = buscar_classe(distribuicao, "LIQUIDEZ IMEDIATA")
     poupanca = buscar_classe(distribuicao, "POUPANÇA")
     cripto = buscar_classe(distribuicao, "CRIPTOATIVOS")
@@ -532,15 +559,40 @@ def gerar_plano_realocacao(distribuicao: list[dict]) -> list[dict]:
 
     passos = []
 
-    passos.append(
-        {
-            "passo": "Definir reserva mínima",
-            "detalhe": (
-                "Separar o valor necessário para emergência antes de pensar em rentabilidade. "
-                "O sistema pode evoluir depois para calcular essa reserva com base nas despesas mensais."
-            ),
-        }
-    )
+    situacao_reserva = ""
+    if reserva_emergencia:
+        situacao_reserva = reserva_emergencia.get("classificacao", {}).get("situacao", "")
+
+    if situacao_reserva == "RESERVA INSUFICIENTE":
+        passos.append(
+            {
+                "passo": "Priorizar formação da reserva",
+                "detalhe": (
+                    "A reserva está abaixo da recomendação de 6 meses de despesas. "
+                    "O primeiro passo é reforçar liquidez segura antes de ampliar risco."
+                ),
+            }
+        )
+    elif situacao_reserva == "EXCESSO DE LIQUIDEZ":
+        passos.append(
+            {
+                "passo": "Separar excesso de liquidez",
+                "detalhe": (
+                    "A liquidez ultrapassa 12 meses de despesas. O valor excedente pode ser separado "
+                    "para objetivos de médio e longo prazo, mantendo a reserva protegida."
+                ),
+            }
+        )
+    else:
+        passos.append(
+            {
+                "passo": "Definir reserva mínima",
+                "detalhe": (
+                    "Separar o valor necessário para emergência antes de pensar em rentabilidade. "
+                    "A referência padrão usada é 6 meses de despesas médias."
+                ),
+            }
+        )
 
     if liquidez["percentual"] > 30:
         passos.append(
@@ -598,6 +650,43 @@ def gerar_plano_realocacao(distribuicao: list[dict]) -> list[dict]:
     return passos
 
 
+def montar_reserva_fallback(erro: Exception) -> dict:
+    return {
+        "ok": False,
+        "erro": str(erro),
+        "classificacao": {
+            "situacao": "NÃO CALCULADA",
+            "classe": "amber",
+            "mensagem": (
+                "Não foi possível calcular automaticamente a reserva de emergência. "
+                "Confira a aba BASE_LANCAMENTOS e a estrutura dos campos de data, valor e tipo."
+            ),
+            "percentual_cobertura_fmt": "0,0%",
+        },
+        "media_mensal_fmt": "R$ 0,00",
+        "reserva_3_meses_fmt": "R$ 0,00",
+        "reserva_6_meses_fmt": "R$ 0,00",
+        "reserva_12_meses_fmt": "R$ 0,00",
+        "liquidez_atual_fmt": "R$ 0,00",
+        "falta_para_6_meses_fmt": "R$ 0,00",
+        "excesso_acima_12_meses_fmt": "R$ 0,00",
+        "orientacao": (
+            "A reserva de emergência não foi calculada nesta consulta. "
+            "A análise de investimentos continuará usando patrimônio, Selic e radar de mercado."
+        ),
+        "despesas": {
+            "qtd_meses": 0,
+            "linhas_consideradas": 0,
+            "detalhamento": [],
+            "total_despesas_fmt": "R$ 0,00",
+        },
+        "liquidez": {
+            "itens": [],
+            "total_fmt": "R$ 0,00",
+        },
+    }
+
+
 def montar_analise_investimentos(
     ano: str | None = None,
     mes: str | None = None,
@@ -619,10 +708,26 @@ def montar_analise_investimentos(
 
     radar_mercado = montar_radar_mercado()
 
+    try:
+        reserva_emergencia = montar_reserva_emergencia(
+            ano=ano_final,
+            mes=mes_final,
+            resumo_patrimonio=resumo,
+        )
+    except Exception as e:
+        reserva_emergencia = montar_reserva_fallback(e)
+
     perfil = definir_perfil_aproximado(distribuicao)
     alertas = gerar_alertas(distribuicao)
-    caminhos = gerar_caminhos_investimento(distribuicao, cenario_juros)
-    plano = gerar_plano_realocacao(distribuicao)
+    caminhos = gerar_caminhos_investimento(
+        distribuicao=distribuicao,
+        cenario_juros=cenario_juros,
+        reserva_emergencia=reserva_emergencia,
+    )
+    plano = gerar_plano_realocacao(
+        distribuicao=distribuicao,
+        reserva_emergencia=reserva_emergencia,
+    )
 
     return {
         "ano": ano_final,
@@ -636,6 +741,7 @@ def montar_analise_investimentos(
         "mercado": mercado,
         "cenario_juros": cenario_juros,
         "radar_mercado": radar_mercado,
+        "reserva_emergencia": reserva_emergencia,
 
         "perfil": perfil,
         "alertas": alertas,

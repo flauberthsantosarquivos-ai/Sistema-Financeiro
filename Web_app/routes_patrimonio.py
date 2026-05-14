@@ -37,12 +37,15 @@ async def patrimonio_get(
     ano_atual = str(date.today().year)
     mes_atual = obter_mes_atual_sigla()
 
-    ano_final = str(ano or config.get("ano_base") or ano_atual)
-    mes_final = mes or mes_atual
-    modo_final = modo or "novo"
+    ano_base = str(config.get("ano_base") or ano_atual)
 
-    ano_resumo_final = str(ano_resumo or ano_atual)
-    mes_resumo_final = mes_resumo or mes_atual
+    ano_resumo_final = str(ano_resumo or ano or ano_base)
+    mes_resumo_final = mes_resumo or mes or mes_atual
+
+    ano_final = str(ano or ano_resumo_final or ano_base)
+    mes_final = mes or mes_resumo_final or mes_atual
+
+    modo_final = str(modo or "consultar").strip().lower()
 
     resumo = montar_resumo_patrimonio(
         ano=ano_resumo_final,
@@ -66,7 +69,7 @@ async def patrimonio_get(
             "ITENS": montar_itens_formulario_padrao(),
         }
         formulario_aberto = False
-        modo_final = "novo"
+        modo_final = "consultar"
 
     return templates.TemplateResponse(
         request=request,
@@ -150,8 +153,6 @@ async def patrimonio_salvar(
     try:
         resultado = salvar_patrimonio_mensal(dados)
 
-        # Depois de salvar, volta para o painel do mês salvo,
-        # mas NÃO abre o formulário automaticamente.
         return RedirectResponse(
             url=(
                 f"/financeiro/patrimonio?"

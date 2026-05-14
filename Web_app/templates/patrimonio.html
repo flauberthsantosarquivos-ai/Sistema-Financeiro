@@ -327,6 +327,10 @@
             margin-bottom: 18px;
         }
 
+        .quick-actions.two-columns {
+            grid-template-columns: 1fr 1fr;
+        }
+
         .action-panel {
             border: 1px solid var(--border);
             border-radius: 22px;
@@ -1008,7 +1012,8 @@
             .asset-form-summary-row,
             .asset-detail-row,
             .asset-item,
-            .subdivision-row {
+            .subdivision-row,
+            .quick-actions.two-columns {
                 grid-template-columns: 1fr;
             }
 
@@ -1094,6 +1099,7 @@
             <a href="/financeiro/analise">Painel Gerencial</a>
             <a href="/financeiro/patrimonio" class="active">Patrimônio</a>
             <a href="/financeiro/investimentos">Investimentos</a>
+            <a href="/financeiro/metas">Metas</a>
        </nav>
 
         {% if erro %}
@@ -1105,6 +1111,89 @@
                 Patrimônio financeiro {{ salvo }} com sucesso.
             </div>
         {% endif %}
+
+        <section class="card">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Consulta e cadastro mensal</h2>
+                    <p class="section-subtitle">
+                        Primeiro escolha se deseja consultar um mês já cadastrado ou cadastrar/atualizar o patrimônio de um mês.
+                    </p>
+                </div>
+
+                <span class="reference-pill">
+                    Consulta atual: {{ resumo.mes_resumo }}/{{ resumo.ano_resumo }}
+                </span>
+            </div>
+
+            <div class="quick-actions two-columns">
+                <div class="action-panel">
+                    <div class="action-panel-header">
+                        <div>
+                            <div class="action-panel-title">Consultar patrimônio do mês</div>
+                            <div class="action-panel-subtitle">
+                                Mostra os cards, gráfico, composição, evolução e histórico do mês escolhido.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-grid">
+                        <div>
+                            <label>Ano</label>
+                            <input type="number" id="ano_resumo_topo" value="{{ ano_resumo }}" />
+                        </div>
+
+                        <div>
+                            <label>Mês</label>
+                            <select id="mes_resumo_topo">
+                                {% for sigla, nome in meses_opcoes %}
+                                    <option value="{{ sigla }}" {% if mes_resumo == sigla %}selected{% endif %}>
+                                        {{ nome }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <button type="button" class="btn btn-primary" onclick="consultarResumoPatrimonialTopo()">
+                            Consultar mês
+                        </button>
+                    </div>
+                </div>
+
+                <div class="action-panel">
+                    <div class="action-panel-header">
+                        <div>
+                            <div class="action-panel-title">Cadastrar ou atualizar mês</div>
+                            <div class="action-panel-subtitle">
+                                Abre o formulário do mês escolhido. Se já existir, carrega os dados para atualização.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="edit-grid">
+                        <div>
+                            <label>Ano</label>
+                            <input type="number" id="ano_edicao" value="{{ ano }}" />
+                        </div>
+
+                        <div>
+                            <label>Mês</label>
+                            <select id="mes_edicao">
+                                {% for sigla, nome in meses_opcoes %}
+                                    <option value="{{ sigla }}" {% if mes == sigla %}selected{% endif %}>
+                                        {{ nome }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <button type="button" class="btn btn-secondary" onclick="carregarMesParaEdicao()">
+                            Cadastrar/Atualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <section class="summary-grid">
             <article class="metric-card main">
@@ -1235,51 +1324,37 @@
 
         <section class="layout-grid">
             <article class="card">
-                <div class="section-header">
-                    <div>
-                        <h2 class="section-title">Cadastro mensal</h2>
-                        <p class="section-subtitle">
-                            Cadastre um novo mês ou consulte um mês já lançado para atualização.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="quick-actions">
-                    <div class="action-panel">
-                        <div class="action-panel-header">
-                            <div>
-                                <div class="action-panel-title">Consultar / Atualizar mês cadastrado</div>
-                                <div class="action-panel-subtitle">
-                                    Escolha o ano e o mês para carregar os dados já salvos no formulário.
-                                </div>
-                            </div>
+                {% if formulario_aberto %}
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Cadastro/Atualização mensal</h2>
+                            <p class="section-subtitle">
+                                Formulário aberto para {{ mes }}/{{ ano }}. Preencha os saldos iniciais e finais e salve.
+                            </p>
                         </div>
 
-                        <div class="edit-grid">
-                            <div>
-                                <label>Ano</label>
-                                <input type="number" id="ano_edicao" value="{{ ano }}" />
-                            </div>
+                        <span class="reference-pill">
+                            {{ mes }}/{{ ano }}
+                        </span>
+                    </div>
 
-                            <div>
-                                <label>Mês</label>
-                                <select id="mes_edicao">
-                                    {% for sigla, nome in meses_opcoes %}
-                                        <option value="{{ sigla }}" {% if mes == sigla %}selected{% endif %}>
-                                            {{ nome }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-
-                            <button type="button" class="btn btn-secondary" onclick="carregarMesParaEdicao()">
-                                Carregar mês
-                            </button>
+                    <details class="cadastro-patrimonio-box" open>
+                {% else %}
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Cadastro/Atualização mensal</h2>
+                            <p class="section-subtitle">
+                                O formulário fica fechado até você escolher a opção Cadastrar/Atualizar mês.
+                            </p>
                         </div>
                     </div>
-                </div>
 
-                <details class="cadastro-patrimonio-box" {% if erro or (formulario_aberto and not salvo) %}open{% endif %}>
+                    <div class="empty">
+                        Nenhum formulário aberto. Use o bloco acima para escolher o ano e o mês que deseja cadastrar ou atualizar.
+                    </div>
+
+                    <details class="cadastro-patrimonio-box" style="display: none;">
+                {% endif %}
                     <summary>
                         {% if modo == "editar" %}
                             <span>Atualizando patrimônio de {{ mes }}/{{ ano }}</span>
@@ -1831,6 +1906,18 @@
             }
 
             window.location.href = `/financeiro/patrimonio?ano=${ano}&mes=${mes}&modo=editar&ano_resumo=${ano}&mes_resumo=${mes}`;
+        }
+
+        function consultarResumoPatrimonialTopo() {
+            const anoResumo = document.getElementById("ano_resumo_topo").value;
+            const mesResumo = document.getElementById("mes_resumo_topo").value;
+
+            if (!anoResumo || !mesResumo) {
+                alert("Informe o ano e o mês para consultar o patrimônio.");
+                return;
+            }
+
+            window.location.href = `/financeiro/patrimonio?ano_resumo=${anoResumo}&mes_resumo=${mesResumo}`;
         }
 
         function consultarResumoPatrimonial() {

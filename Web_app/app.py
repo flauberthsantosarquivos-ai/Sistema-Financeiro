@@ -25,12 +25,14 @@ if STATIC_DIR.exists():
 
 ROTAS_DO_SISTEMA = [
     "Web_app.routes_financeiro",
+    "Web_app.routes_configuracoes",
     "Web_app.routes_extratos",
     "Web_app.routes_base_lancamentos",
+    "Web_app.routes_lancamentos",
     "Web_app.routes_orcamento",
-    "Web_app.routes_configuracoes",
     "Web_app.routes_patrimonio",
-       "Web_app.routes_investimentos",
+    "Web_app.routes_investimentos",
+    "Web_app.routes_metas",
 ]
 
 

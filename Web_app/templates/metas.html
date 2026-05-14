@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Metas Financeiras | Sistema Financeiro</title>
+
+    <style>
+        :root {
+            --azul-principal: #2563eb;
+            --azul-escuro: #1e40af;
+            --azul-claro: #dbeafe;
+
+            --verde: #16a34a;
+            --verde-claro: #dcfce7;
+
+            --amarelo: #f59e0b;
+            --amarelo-claro: #fef3c7;
+
+            --vermelho: #dc2626;
+            --vermelho-claro: #fee2e2;
+
+            --cinza-fundo: #f3f4f6;
+            --cinza-borda: #e5e7eb;
+            --cinza-texto: #374151;
+            --cinza-suave: #6b7280;
+
+            --branco: #ffffff;
+            --sombra-card: 0 12px 30px rgba(15, 23, 42, 0.08);
+            --sombra-botao: 0 8px 18px rgba(37, 99, 235, 0.25);
+
+            --raio-card: 18px;
+            --raio-input: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--cinza-fundo);
+            color: var(--cinza-texto);
+        }
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            padding: 26px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .brand span {
+            font-size: 13px;
+            color: #cbd5e1;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #cbd5e1;
+            padding: 13px 15px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu a:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        .menu a.ativo {
+            background: var(--azul-principal);
+            color: white;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            font-size: 12px;
+            color: #94a3b8;
+            line-height: 1.5;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .main {
+            flex: 1;
+            padding: 34px;
+            overflow-y: auto;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        .titulo-pagina h2 {
+            margin: 0;
+            font-size: 30px;
+            font-weight: 800;
+            color: #111827;
+            letter-spacing: -0.8px;
+        }
+
+        .titulo-pagina p {
+            margin: 8px 0 0;
+            color: var(--cinza-suave);
+            font-size: 15px;
+        }
+
+        .topbar-acoes {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .badge-etapa {
+            background: var(--azul-claro);
+            color: var(--azul-escuro);
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .cards-resumo {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 26px;
+        }
+
+        .card-resumo {
+            background: var(--branco);
+            border-radius: var(--raio-card);
+            padding: 22px;
+            box-shadow: var(--sombra-card);
+            border: 1px solid var(--cinza-borda);
+        }
+
+        .card-resumo .label {
+            font-size: 13px;
+            color: var(--cinza-suave);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .card-resumo .valor {
+            font-size: 28px;
+            font-weight: 900;
+            color: #111827;
+        }
+
+        .card-resumo .detalhe {
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--cinza-suave);
+        }
+
+        .grid-principal {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .card {
+            background: var(--branco);
+            border-radius: var(--raio-card);
+            box-shadow: var(--sombra-card);
+            border: 1px solid var(--cinza-borda);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 22px 24px;
+            border-bottom: 1px solid var(--cinza-borda);
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 850;
+            color: #111827;
+        }
+
+        .card-header p {
+            margin: 6px 0 0;
+            color: var(--cinza-suave);
+            font-size: 14px;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        .form-grupo {
+            margin-bottom: 18px;
+        }
+
+        .form-grupo label {
+            display: block;
+            font-size: 14px;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .form-grupo input,
+        .form-grupo select,
+        .form-grupo textarea {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: var(--raio-input);
+            padding: 12px 14px;
+            font-size: 15px;
+            color: #111827;
+            background: #ffffff;
+            outline: none;
+            transition: 0.2s ease;
+            font-family: inherit;
+        }
+
+        .form-grupo input:focus,
+        .form-grupo select:focus,
+        .form-grupo textarea:focus {
+            border-color: var(--azul-principal);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        }
+
+        .form-duplo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        textarea {
+            min-height: 92px;
+            resize: vertical;
+        }
+
+        .acoes-form {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 13px;
+            padding: 13px 18px;
+            font-size: 15px;
+            font-weight: 850;
+            cursor: pointer;
+            transition: 0.2s ease;
+            font-family: inherit;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn-primario {
+            background: var(--azul-principal);
+            color: white;
+            box-shadow: var(--sombra-botao);
+            flex: 1;
+        }
+
+        .btn-primario:hover {
+            background: var(--azul-escuro);
+            transform: translateY(-1px);
+        }
+
+        .btn-secundario {
+            background: #f8fafc;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+        }
+
+        .btn-secundario:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-sugerir {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            color: white;
+            box-shadow: 0 8px 18px rgba(249, 115, 22, 0.25);
+        }
+
+        .btn-sugerir:hover {
+            transform: translateY(-1px);
+            filter: brightness(0.98);
+        }
+
+        .btn-excluir {
+            background: var(--vermelho-claro);
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            padding: 9px 12px;
+            font-size: 12px;
+        }
+
+        .btn-excluir:hover {
+            background: #fecaca;
+        }
+
+        .mensagem {
+            margin-bottom: 20px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .mensagem.sucesso {
+            background: var(--verde-claro);
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .mensagem.erro {
+            background: var(--vermelho-claro);
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .tabela-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+
+        thead {
+            background: #f8fafc;
+        }
+
+        th {
+            text-align: left;
+            padding: 14px 16px;
+            font-size: 12px;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--cinza-borda);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 15px 16px;
+            border-bottom: 1px solid var(--cinza-borda);
+            font-size: 14px;
+            color: #1f2937;
+            vertical-align: middle;
+        }
+
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .meta-nome {
+            font-weight: 850;
+            color: #111827;
+        }
+
+        .meta-categoria {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 7px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 850;
+            white-space: nowrap;
+        }
+
+        .status.andamento {
+            background: var(--azul-claro);
+            color: var(--azul-escuro);
+        }
+
+        .status.concluida {
+            background: var(--verde-claro);
+            color: #166534;
+        }
+
+        .status.pausada {
+            background: var(--amarelo-claro);
+            color: #92400e;
+        }
+
+        .status.cancelada {
+            background: var(--vermelho-claro);
+            color: #991b1b;
+        }
+
+        .prioridade {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 7px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 850;
+            white-space: nowrap;
+        }
+
+        .prioridade.alta {
+            background: var(--vermelho-claro);
+            color: #991b1b;
+        }
+
+        .prioridade.media {
+            background: var(--amarelo-claro);
+            color: #92400e;
+        }
+
+        .prioridade.baixa {
+            background: var(--verde-claro);
+            color: #166534;
+        }
+
+        .progresso-box {
+            min-width: 170px;
+        }
+
+        .progresso-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 7px;
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 800;
+            gap: 10px;
+        }
+
+        .barra {
+            height: 9px;
+            background: #e5e7eb;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .barra-preenchida {
+            height: 100%;
+            background: linear-gradient(90deg, #2563eb, #16a34a);
+            border-radius: 999px;
+        }
+
+        .situacao-calculada {
+            display: inline-flex;
+            padding: 6px 9px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 850;
+            white-space: nowrap;
+        }
+
+        .situacao-calculada.green {
+            background: var(--verde-claro);
+            color: #166534;
+        }
+
+        .situacao-calculada.amber {
+            background: var(--amarelo-claro);
+            color: #92400e;
+        }
+
+        .situacao-calculada.red {
+            background: var(--vermelho-claro);
+            color: #991b1b;
+        }
+
+        .vazio {
+            padding: 34px;
+            text-align: center;
+            color: var(--cinza-suave);
+        }
+
+        .vazio strong {
+            display: block;
+            color: #111827;
+            font-size: 18px;
+            margin-bottom: 6px;
+        }
+
+        .valor-monetario {
+            font-weight: 850;
+            color: #111827;
+            white-space: nowrap;
+        }
+
+        .observacao {
+            max-width: 280px;
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .linha-acoes {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .link-planilha {
+            margin-bottom: 18px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 12px 14px;
+            border-radius: 14px;
+            font-size: 13px;
+            color: #475569;
+            word-break: break-all;
+        }
+
+        .link-planilha a {
+            color: var(--azul-principal);
+            font-weight: 800;
+            text-decoration: none;
+        }
+
+        .link-planilha a:hover {
+            text-decoration: underline;
+        }
+
+        .diagnostico-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .diagnostico-titulo {
+            margin: 0 0 12px;
+            color: #111827;
+            font-size: 17px;
+            font-weight: 850;
+        }
+
+        .diagnostico-info {
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #475569;
+            line-height: 1.5;
+        }
+
+        .valor-diagnostico {
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.4;
+        }
+
+        .valor-diagnostico strong {
+            color: #111827;
+        }
+
+        @media (max-width: 1180px) {
+            .cards-resumo,
+            .diagnostico-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .grid-principal {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                width: 245px;
+            }
+        }
+
+        @media (max-width: 820px) {
+            .app {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+
+            .main {
+                padding: 22px;
+            }
+
+            .topbar {
+                flex-direction: column;
+            }
+
+            .topbar-acoes {
+                justify-content: flex-start;
+            }
+
+            .cards-resumo,
+            .diagnostico-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-duplo {
+                grid-template-columns: 1fr;
+            }
+
+            .acoes-form {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="app">
+
+    <aside class="sidebar">
+        <div class="brand">
+            <h1>Sistema Financeiro</h1>
+            <span>Controle pessoal, orçamento, patrimônio e metas</span>
+        </div>
+
+        <nav class="menu">
+            <a href="/financeiro">🏠 Dashboard</a>
+            <a href="/financeiro/lancamentos">➕ Lançamentos</a>
+            <a href="/financeiro/extratos">📄 Extratos</a>
+            <a href="/financeiro/orcamento">📊 Orçamento</a>
+            <a href="/financeiro/patrimonio">🏦 Patrimônio</a>
+            <a href="/financeiro/investimentos">📈 Investimentos</a>
+            <a href="/financeiro/metas" class="ativo">🎯 Metas Financeiras</a>
+            <a href="/financeiro/configuracoes">⚙️ Configurações</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            Dashboard Financeiro — Etapa 3<br />
+            Módulo de metas financeiras
+        </div>
+    </aside>
+
+    <main class="main">
+
+        <div class="topbar">
+            <div class="titulo-pagina">
+                <h2>Metas Financeiras</h2>
+                <p>Cadastre, acompanhe e gere metas automáticas com base no seu fluxo financeiro e patrimônio.</p>
+            </div>
+
+            <div class="topbar-acoes">
+                <form method="post" action="/financeiro/metas/sugerir">
+                    <button type="submit" class="btn btn-sugerir">
+                        ✨ Sugerir metas automaticamente
+                    </button>
+                </form>
+
+                <div class="badge-etapa">
+                    Etapa 3 · Metas
+                </div>
+            </div>
+        </div>
+
+        {% if mensagem %}
+            <div class="mensagem sucesso">
+                {{ mensagem }}
+            </div>
+        {% endif %}
+
+        {% if erro %}
+            <div class="mensagem erro">
+                {{ erro }}
+            </div>
+        {% endif %}
+
+        {% if diagnostico_sugestao %}
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3>Diagnóstico da sugestão automática</h3>
+                    <p>Veja exatamente quais dados foram usados para sugerir metas financeiras.</p>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="diagnostico-grid">
+                        <div class="card-resumo">
+                            <div class="label">Metas cadastradas</div>
+                            <div class="valor">{{ diagnostico_sugestao.quantidade_cadastrada }}</div>
+                            <div class="detalhe">Novas metas criadas</div>
+                        </div>
+
+                        <div class="card-resumo">
+                            <div class="label">Metas ignoradas</div>
+                            <div class="valor">{{ diagnostico_sugestao.quantidade_ignorada }}</div>
+                            <div class="detalhe">Já existiam na planilha</div>
+                        </div>
+
+                        <div class="card-resumo">
+                            <div class="label">Receita média</div>
+                            <div class="valor">
+                                {{ diagnostico_sugestao.dados_fluxo.media_receitas_fmt }}
+                            </div>
+                            <div class="detalhe">
+                                {{ diagnostico_sugestao.dados_fluxo.quantidade_meses }} mês(es) analisado(s)
+                            </div>
+                        </div>
+
+                        <div class="card-resumo">
+                            <div class="label">Despesa média</div>
+                            <div class="valor">
+                                {{ diagnostico_sugestao.dados_fluxo.media_despesas_fmt }}
+                            </div>
+                            <div class="detalhe">
+                                Saldo médio: {{ diagnostico_sugestao.dados_fluxo.saldo_medio_fmt }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 class="diagnostico-titulo">
+                        Receitas e despesas analisadas
+                    </h4>
+
+                    {% if diagnostico_sugestao.dados_fluxo.detalhes_abas %}
+                        <div class="tabela-container" style="margin-bottom: 28px;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Aba</th>
+                                        <th>Coluna valor</th>
+                                        <th>Coluna tipo</th>
+                                        <th>Coluna categoria</th>
+                                        <th>Coluna data</th>
+                                        <th>Linhas usadas</th>
+                                        <th>Receitas</th>
+                                        <th>Despesas</th>
+                                        <th>Mensagem</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {% for item in diagnostico_sugestao.dados_fluxo.detalhes_abas %}
+                                        <tr>
+                                            <td><strong>{{ item.aba }}</strong></td>
+                                            <td>{{ item.coluna_valor if item.coluna_valor else "-" }}</td>
+                                            <td>{{ item.coluna_tipo if item.coluna_tipo else "-" }}</td>
+                                            <td>{{ item.coluna_categoria if item.coluna_categoria else "-" }}</td>
+                                            <td>{{ item.coluna_data if item.coluna_data else "-" }}</td>
+                                            <td>{{ item.linhas_utilizadas }}</td>
+                                            <td>{{ item.receitas_aba_fmt }}</td>
+                                            <td>{{ item.despesas_aba_fmt }}</td>
+                                            <td>{{ item.mensagem }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="vazio" style="margin-bottom: 24px;">
+                            <strong>Nenhuma aba de receitas/despesas foi analisada.</strong>
+                            O sistema não encontrou abas com nomes relacionados a lançamentos, extratos, receitas ou despesas.
+                        </div>
+                    {% endif %}
+
+                    <h4 class="diagnostico-titulo">
+                        Patrimônio analisado
+                    </h4>
+
+                    <div class="diagnostico-info">
+                        <strong>Patrimônio total encontrado:</strong>
+                        {{ diagnostico_sugestao.dados_patrimonio.patrimonio_total_fmt }}
+                        —
+                        <strong>Linhas utilizadas:</strong>
+                        {{ diagnostico_sugestao.dados_patrimonio.linhas_utilizadas }}
+                    </div>
+
+                    {% if diagnostico_sugestao.dados_patrimonio.detalhes_abas %}
+                        <div class="tabela-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Aba</th>
+                                        <th>Coluna valor</th>
+                                        <th>Coluna tipo</th>
+                                        <th>Linhas usadas</th>
+                                        <th>Total da aba</th>
+                                        <th>Valores considerados</th>
+                                        <th>Mensagem</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {% for item in diagnostico_sugestao.dados_patrimonio.detalhes_abas %}
+                                        <tr>
+                                            <td><strong>{{ item.aba }}</strong></td>
+                                            <td>{{ item.coluna_valor if item.coluna_valor else "-" }}</td>
+                                            <td>{{ item.coluna_tipo if item.coluna_tipo else "-" }}</td>
+                                            <td>{{ item.linhas_utilizadas }}</td>
+                                            <td>{{ item.total_aba_fmt }}</td>
+                                            <td>
+                                                {% if item.valores_considerados %}
+                                                    {% for valor in item.valores_considerados %}
+                                                        <div class="valor-diagnostico">
+                                                            Original:
+                                                            <strong>{{ valor.valor_original }}</strong>
+                                                            →
+                                                            Convertido:
+                                                            <strong>{{ valor.valor_convertido_fmt }}</strong>
+
+                                                            {% if valor.tipo %}
+                                                                <br />
+                                                                <span>
+                                                                    Tipo: {{ valor.tipo }}
+                                                                </span>
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ item.mensagem }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="vazio">
+                            <strong>Nenhuma aba patrimonial foi analisada.</strong>
+                            O sistema só considera abas com nome contendo PATRIMONIO ou PATRIMONIAL.
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        {% endif %}
+
+        {% if link_planilha %}
+            <div class="link-planilha">
+                <strong>Planilha vinculada:</strong>
+                <a href="{{ link_planilha }}" target="_blank" rel="noopener noreferrer">
+                    Abrir Google Sheets
+                </a>
+            </div>
+        {% endif %}
+
+        <section class="cards-resumo">
+            <div class="card-resumo">
+                <div class="label">Total de metas</div>
+                <div class="valor">{{ resumo.total_metas if resumo else 0 }}</div>
+                <div class="detalhe">Metas cadastradas no sistema</div>
+            </div>
+
+            <div class="card-resumo">
+                <div class="label">Metas ativas</div>
+                <div class="valor">{{ resumo.total_ativas if resumo else 0 }}</div>
+                <div class="detalhe">Em andamento ou pausadas</div>
+            </div>
+
+            <div class="card-resumo">
+                <div class="label">Valor planejado</div>
+                <div class="valor">
+                    {{ resumo.total_alvo_fmt if resumo else "R$ 0,00" }}
+                </div>
+                <div class="detalhe">Soma dos valores alvo</div>
+            </div>
+
+            <div class="card-resumo">
+                <div class="label">Valor acumulado</div>
+                <div class="valor">
+                    {{ resumo.total_atual_fmt if resumo else "R$ 0,00" }}
+                </div>
+                <div class="detalhe">
+                    Progresso geral:
+                    {{ resumo.percentual_geral_fmt if resumo else "0,0%" }}
+                </div>
+            </div>
+        </section>
+
+        <section class="grid-principal">
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Nova meta financeira</h3>
+                    <p>Preencha os dados abaixo para registrar uma nova meta.</p>
+                </div>
+
+                <div class="card-body">
+                    <form method="post" action="/financeiro/metas">
+
+                        <div class="form-grupo">
+                            <label for="nome_meta">Nome da meta</label>
+                            <input
+                                type="text"
+                                id="nome_meta"
+                                name="nome_meta"
+                                placeholder="Ex.: Reserva de emergência"
+                                required
+                            />
+                        </div>
+
+                        <div class="form-grupo">
+                            <label for="categoria">Categoria</label>
+                            <select id="categoria" name="categoria" required>
+                                <option value="">Selecione...</option>
+
+                                {% for categoria in categorias %}
+                                    <option value="{{ categoria }}">{{ categoria }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-duplo">
+                            <div class="form-grupo">
+                                <label for="valor_alvo">Valor alvo</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    id="valor_alvo"
+                                    name="valor_alvo"
+                                    placeholder="0,00"
+                                    required
+                                />
+                            </div>
+
+                            <div class="form-grupo">
+                                <label for="valor_atual">Valor atual</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    id="valor_atual"
+                                    name="valor_atual"
+                                    placeholder="0,00"
+                                    value="0"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="form-grupo">
+                            <label for="data_alvo">Data alvo</label>
+                            <input
+                                type="date"
+                                id="data_alvo"
+                                name="data_alvo"
+                            />
+                        </div>
+
+                        <div class="form-duplo">
+                            <div class="form-grupo">
+                                <label for="prioridade">Prioridade</label>
+                                <select id="prioridade" name="prioridade" required>
+                                    {% for prioridade in prioridades %}
+                                        <option value="{{ prioridade }}">{{ prioridade }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-grupo">
+                                <label for="status">Status</label>
+                                <select id="status" name="status" required>
+                                    {% for status_item in status_opcoes %}
+                                        <option value="{{ status_item }}">{{ status_item }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-grupo">
+                            <label for="observacao">Observações</label>
+                            <textarea
+                                id="observacao"
+                                name="observacao"
+                                placeholder="Ex.: Meta prioritária para organizar a vida financeira..."
+                            ></textarea>
+                        </div>
+
+                        <div class="acoes-form">
+                            <button type="reset" class="btn btn-secundario">
+                                Limpar
+                            </button>
+
+                            <button type="submit" class="btn btn-primario">
+                                Salvar meta
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Metas cadastradas</h3>
+                    <p>
+                        Acompanhe o progresso das metas registradas na aba
+                        <strong>METAS_FINANCEIRAS</strong>.
+                    </p>
+                </div>
+
+                <div class="card-body">
+
+                    {% if metas and metas|length > 0 %}
+
+                        <div class="tabela-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Meta</th>
+                                        <th>Valor alvo</th>
+                                        <th>Valor atual</th>
+                                        <th>Faltante</th>
+                                        <th>Progresso</th>
+                                        <th>Data alvo</th>
+                                        <th>Aporte mensal</th>
+                                        <th>Prioridade</th>
+                                        <th>Status</th>
+                                        <th>Situação</th>
+                                        <th>Observações</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {% for meta in metas %}
+                                        <tr>
+                                            <td>
+                                                <div class="meta-nome">
+                                                    {{ meta.NOME_META }}
+                                                </div>
+                                                <div class="meta-categoria">
+                                                    {{ meta.CATEGORIA }}
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                <span class="valor-monetario">
+                                                    {{ meta.valor_alvo_fmt }}
+                                                </span>
+                                            </td>
+
+                                            <td>
+                                                <span class="valor-monetario">
+                                                    {{ meta.valor_atual_fmt }}
+                                                </span>
+                                            </td>
+
+                                            <td>
+                                                <span class="valor-monetario">
+                                                    {{ meta.valor_faltante_fmt }}
+                                                </span>
+                                            </td>
+
+                                            <td>
+                                                <div class="progresso-box">
+                                                    <div class="progresso-info">
+                                                        <span>{{ meta.percentual_fmt }}</span>
+                                                        <span>{{ meta.meses_restantes }} mês(es)</span>
+                                                    </div>
+
+                                                    <div class="barra">
+                                                        <div
+                                                            class="barra-preenchida"
+                                                            style="width: {{ meta.percentual }}%;"
+                                                        ></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                {{ meta.DATA_ALVO if meta.DATA_ALVO else "-" }}
+                                            </td>
+
+                                            <td>
+                                                <span class="valor-monetario">
+                                                    {{ meta.aporte_mensal_fmt }}
+                                                </span>
+                                            </td>
+
+                                            <td>
+                                                {% if meta.PRIORIDADE == "Alta" %}
+                                                    <span class="prioridade alta">Alta</span>
+                                                {% elif meta.PRIORIDADE == "Baixa" %}
+                                                    <span class="prioridade baixa">Baixa</span>
+                                                {% else %}
+                                                    <span class="prioridade media">Média</span>
+                                                {% endif %}
+                                            </td>
+
+                                            <td>
+                                                {% if meta.STATUS == "Concluída" %}
+                                                    <span class="status concluida">Concluída</span>
+                                                {% elif meta.STATUS == "Pausada" %}
+                                                    <span class="status pausada">Pausada</span>
+                                                {% elif meta.STATUS == "Cancelada" %}
+                                                    <span class="status cancelada">Cancelada</span>
+                                                {% else %}
+                                                    <span class="status andamento">Em andamento</span>
+                                                {% endif %}
+                                            </td>
+
+                                            <td>
+                                                <span class="situacao-calculada {{ meta.classe }}">
+                                                    {{ meta.situacao_calculada }}
+                                                </span>
+                                            </td>
+
+                                            <td>
+                                                <div class="observacao">
+                                                    {{ meta.OBSERVACAO if meta.OBSERVACAO else "-" }}
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                <div class="linha-acoes">
+                                                    <form method="post" action="/financeiro/metas/excluir">
+                                                        <input
+                                                            type="hidden"
+                                                            name="meta_id"
+                                                            value="{{ meta.ID }}"
+                                                        />
+                                                        <button
+                                                            type="submit"
+                                                            class="btn btn-excluir"
+                                                            onclick="return confirm('Deseja realmente excluir esta meta?');"
+                                                        >
+                                                            Excluir
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                    {% else %}
+
+                        <div class="vazio">
+                            <strong>Nenhuma meta cadastrada ainda.</strong>
+                            Cadastre sua primeira meta financeira ou clique em
+                            <strong>“Sugerir metas automaticamente”</strong>
+                            para o sistema criar metas iniciais com base nos seus dados.
+                        </div>
+
+                    {% endif %}
+
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+</div>
+</body>
+</html>

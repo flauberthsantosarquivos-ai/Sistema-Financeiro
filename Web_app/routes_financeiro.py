@@ -56,24 +56,34 @@ ORDEM_MESES = [sigla for sigla, _ in MESES_OPCOES]
 
 CORES_CATEGORIAS = {
     "ALIMENTAÇÃO": {"cor": "#047857", "fundo": "#ecfdf5", "borda": "#bbf7d0"},
+    "ALIMENTACAO": {"cor": "#047857", "fundo": "#ecfdf5", "borda": "#bbf7d0"},
     "MORADIA": {"cor": "#1d4ed8", "fundo": "#eff6ff", "borda": "#bfdbfe"},
     "CASA": {"cor": "#2563eb", "fundo": "#eff6ff", "borda": "#bfdbfe"},
     "TRANSPORTE": {"cor": "#ea580c", "fundo": "#fff7ed", "borda": "#fed7aa"},
     "SAÚDE": {"cor": "#dc2626", "fundo": "#fef2f2", "borda": "#fecaca"},
+    "SAUDE": {"cor": "#dc2626", "fundo": "#fef2f2", "borda": "#fecaca"},
     "EDUCAÇÃO": {"cor": "#7c3aed", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
+    "EDUCACAO": {"cor": "#7c3aed", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
     "COMUNICAÇÃO": {"cor": "#0891b2", "fundo": "#ecfeff", "borda": "#a5f3fc"},
+    "COMUNICACAO": {"cor": "#0891b2", "fundo": "#ecfeff", "borda": "#a5f3fc"},
     "INVESTIMENTO": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
     "INVESTIMENTOS": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
     "RESERVA": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
     "POUPANÇA": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
+    "POUPANCA": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
     "RENDA FIXA": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
     "RENDA VARIÁVEL": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
+    "RENDA VARIAVEL": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
     "TESOURO": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
     "CDB": {"cor": "#6d28d9", "fundo": "#f5f3ff", "borda": "#ddd6fe"},
     "TRANSFERÊNCIA": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
+    "TRANSFERENCIA": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
     "TRANSFERÊNCIA VIA PIX": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
+    "TRANSFERENCIA VIA PIX": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
     "CONTAS PRÓPRIAS": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
+    "CONTAS PROPRIAS": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
     "MOVIMENTAÇÃO ENTRE CONTAS": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
+    "MOVIMENTACAO ENTRE CONTAS": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
     "OUTROS": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
     "SEM CATEGORIA": {"cor": "#64748b", "fundo": "#f8fafc", "borda": "#cbd5e1"},
 }
@@ -151,6 +161,70 @@ def normalizar(valor) -> str:
         return "TRANSFERÊNCIA"
 
     return texto
+
+
+def remover_acentos(texto: str) -> str:
+    trocas = {
+        "Á": "A",
+        "À": "A",
+        "Ã": "A",
+        "Â": "A",
+        "Ä": "A",
+        "É": "E",
+        "È": "E",
+        "Ê": "E",
+        "Ë": "E",
+        "Í": "I",
+        "Ì": "I",
+        "Î": "I",
+        "Ï": "I",
+        "Ó": "O",
+        "Ò": "O",
+        "Õ": "O",
+        "Ô": "O",
+        "Ö": "O",
+        "Ú": "U",
+        "Ù": "U",
+        "Û": "U",
+        "Ü": "U",
+        "Ç": "C",
+    }
+
+    texto_final = str(texto or "")
+
+    for origem, destino in trocas.items():
+        texto_final = texto_final.replace(origem, destino)
+
+    return texto_final
+
+
+def normalizar_chave_categoria(valor) -> str:
+    texto = str(valor or "").strip().upper()
+    texto = remover_acentos(texto)
+    texto = " ".join(texto.split())
+
+    if not texto:
+        return "SEM CATEGORIA"
+
+    return texto
+
+
+def categoria_para_exibicao(categoria_chave: str) -> str:
+    mapa = {
+        "ALIMENTACAO": "ALIMENTAÇÃO",
+        "EDUCACAO": "EDUCAÇÃO",
+        "SAUDE": "SAÚDE",
+        "COMUNICACAO": "COMUNICAÇÃO",
+        "TRANSFERENCIA": "TRANSFERÊNCIA",
+        "POUPANCA": "POUPANÇA",
+        "APLICACAO": "APLICAÇÃO",
+        "APLICACOES": "APLICAÇÕES",
+        "RENDA VARIAVEL": "RENDA VARIÁVEL",
+        "PREVIDENCIA": "PREVIDÊNCIA",
+        "ACOES": "AÇÕES",
+    }
+
+    return mapa.get(categoria_chave, categoria_chave)
 
 
 def contem_termo(texto: str, termos: set[str]) -> bool:
@@ -259,10 +333,12 @@ def ordenar_lancamentos_por_valor(lancamentos: list[dict]) -> list[dict]:
 
 
 def obter_estilo_categoria(categoria: str, indice: int) -> dict:
-    categoria_normalizada = normalizar(categoria)
+    categoria_normalizada = normalizar_chave_categoria(categoria)
 
     for chave, estilo in CORES_CATEGORIAS.items():
-        if chave in categoria_normalizada or categoria_normalizada in chave:
+        chave_normalizada = normalizar_chave_categoria(chave)
+
+        if chave_normalizada in categoria_normalizada or categoria_normalizada in chave_normalizada:
             return estilo
 
     return PALETA_PADRAO[indice % len(PALETA_PADRAO)]
@@ -520,15 +596,17 @@ def calcular_orcamento_por_categoria(
         if classificacao != "DESPESA":
             continue
 
-        categoria = str(item.get("CATEGORIA", "")).strip().upper() or "SEM CATEGORIA"
+        categoria_chave = normalizar_chave_categoria(item.get("CATEGORIA"))
+        categoria_exibicao = categoria_para_exibicao(categoria_chave)
         valor = valor_previsto_orcamento(item)
 
         if valor <= 0:
             continue
 
         categorias.setdefault(
-            categoria,
+            categoria_chave,
             {
+                "categoria": categoria_exibicao,
                 "previsto": 0.0,
                 "realizado": 0.0,
                 "qtd_previstos": 0,
@@ -536,8 +614,8 @@ def calcular_orcamento_por_categoria(
             },
         )
 
-        categorias[categoria]["previsto"] += valor
-        categorias[categoria]["qtd_previstos"] += 1
+        categorias[categoria_chave]["previsto"] += valor
+        categorias[categoria_chave]["qtd_previstos"] += 1
 
     for item in registros_realizados:
         classificacao = classificar_gerencialmente(item)
@@ -545,7 +623,8 @@ def calcular_orcamento_por_categoria(
         if classificacao != "DESPESA":
             continue
 
-        categoria = str(item.get("CATEGORIA", "")).strip().upper() or "SEM CATEGORIA"
+        categoria_chave = normalizar_chave_categoria(item.get("CATEGORIA"))
+        categoria_exibicao = categoria_para_exibicao(categoria_chave)
         realizado = valor_realizado(item)
 
         if realizado <= 0:
@@ -555,8 +634,9 @@ def calcular_orcamento_por_categoria(
             continue
 
         categorias.setdefault(
-            categoria,
+            categoria_chave,
             {
+                "categoria": categoria_exibicao,
                 "previsto": 0.0,
                 "realizado": 0.0,
                 "qtd_previstos": 0,
@@ -564,14 +644,16 @@ def calcular_orcamento_por_categoria(
             },
         )
 
-        categorias[categoria]["realizado"] += realizado
-        categorias[categoria]["qtd_realizados"] += 1
+        categorias[categoria_chave]["realizado"] += realizado
+        categorias[categoria_chave]["qtd_realizados"] += 1
 
     lista = []
     total_previsto = 0.0
     total_realizado = 0.0
 
-    for indice, (categoria, valores) in enumerate(categorias.items()):
+    for indice, (categoria_chave, valores) in enumerate(categorias.items()):
+        categoria = valores.get("categoria") or categoria_para_exibicao(categoria_chave)
+
         previsto = valores["previsto"]
         realizado = valores["realizado"]
         diferenca = realizado - previsto
@@ -601,14 +683,20 @@ def calcular_orcamento_por_categoria(
         lista.append(
             {
                 "categoria": categoria,
+                "categoria_chave": categoria_chave,
                 "previsto": previsto,
                 "realizado": realizado,
+                "valor_relevancia": max(realizado, previsto),
                 "diferenca": diferenca,
                 "execucao": execucao,
                 "previsto_fmt": formatar_moeda(previsto),
                 "realizado_fmt": formatar_moeda(realizado),
                 "diferenca_fmt": formatar_moeda(abs(diferenca)),
-                "execucao_fmt": f"{execucao:.1f}".replace(".", ",") + "%" if previsto > 0 else "Sem previsto",
+                "execucao_fmt": (
+                    f"{execucao:.1f}".replace(".", ",") + "%"
+                    if previsto > 0
+                    else "Sem previsto"
+                ),
                 "qtd_previstos": valores["qtd_previstos"],
                 "qtd_realizados": valores["qtd_realizados"],
                 "qtd_lancamentos": valores["qtd_realizados"],
@@ -621,12 +709,12 @@ def calcular_orcamento_por_categoria(
         )
 
     lista = sorted(
-      lista,
-      key=lambda item: (
-        item["diferenca"] <= 0,
-        -item["diferenca"] if item["diferenca"] > 0 else -item["realizado"],
-    ),
-  )
+        lista,
+        key=lambda item: (
+            -float(item.get("valor_relevancia", 0) or 0),
+            item.get("categoria", ""),
+        ),
+    )
 
     diferenca_total = total_realizado - total_previsto
 
@@ -643,7 +731,11 @@ def calcular_orcamento_por_categoria(
         "total_previsto_fmt": formatar_moeda(total_previsto),
         "total_realizado_fmt": formatar_moeda(total_realizado),
         "diferenca_total_fmt": formatar_moeda(abs(diferenca_total)),
-        "execucao_total_fmt": f"{execucao_total:.1f}".replace(".", ",") + "%" if total_previsto > 0 else "Sem previsto",
+        "execucao_total_fmt": (
+            f"{execucao_total:.1f}".replace(".", ",") + "%"
+            if total_previsto > 0
+            else "Sem previsto"
+        ),
     }
 
 
@@ -683,7 +775,9 @@ def preparar_analise(
         classificacao = classificar_gerencialmente(item)
         tipo_original = normalizar(item.get("TIPO"))
 
-        categoria = str(item.get("CATEGORIA", "")).strip() or "SEM CATEGORIA"
+        categoria_chave = normalizar_chave_categoria(item.get("CATEGORIA"))
+        categoria = categoria_para_exibicao(categoria_chave)
+
         subcategoria = str(item.get("SUBCATEGORIA", "")).strip() or "SEM SUBCATEGORIA"
         descricao = str(item.get("DESCRICAO", "")).strip()
         data = str(item.get("DATA", "")).strip()

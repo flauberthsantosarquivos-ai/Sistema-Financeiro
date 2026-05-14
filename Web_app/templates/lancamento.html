@@ -2,20 +2,35 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8" />
-    <title>BASE_LANCAMENTOS</title>
+    <title>Novo Lançamento</title>
 
     <style>
         :root {
             --bg: #f4f6fb;
             --card: #ffffff;
-            --text: #1f2937;
-            --muted: #6b7280;
+            --text: #172033;
+            --muted: #64748b;
+
             --primary: #1d4ed8;
+            --primary-dark: #1e40af;
+            --primary-soft: #eff6ff;
+            --primary-border: #bfdbfe;
+
             --green: #047857;
+            --green-bg: #ecfdf5;
+            --green-border: #bbf7d0;
+
             --red: #b91c1c;
+            --red-bg: #fef2f2;
+            --red-border: #fecaca;
+
             --amber: #b45309;
+            --amber-bg: #fffbeb;
+            --amber-border: #fde68a;
+
             --border: #e5e7eb;
             --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+            --shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.06);
         }
 
         * {
@@ -25,12 +40,15 @@
         body {
             margin: 0;
             font-family: "Segoe UI", Arial, sans-serif;
-            background: var(--bg);
+            background:
+                radial-gradient(circle at top left, rgba(29, 78, 216, 0.10), transparent 32%),
+                radial-gradient(circle at top right, rgba(4, 120, 87, 0.08), transparent 30%),
+                var(--bg);
             color: var(--text);
         }
 
         .page {
-            max-width: 1600px;
+            max-width: 1320px;
             margin: 0 auto;
             padding: 32px;
         }
@@ -38,26 +56,98 @@
         .hero {
             background: linear-gradient(135deg, #0f172a, #1d4ed8);
             color: white;
-            border-radius: 26px;
-            padding: 32px;
+            border-radius: 32px;
+            padding: 34px;
             box-shadow: var(--shadow);
-            margin-bottom: 22px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            width: 420px;
+            height: 420px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            right: -150px;
+            top: -180px;
+        }
+
+        .hero-content,
+        .hero-side {
+            position: relative;
+            z-index: 1;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.13);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #dbeafe;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 16px;
         }
 
         .hero h1 {
-            margin: 0 0 8px;
-            font-size: 32px;
-            letter-spacing: -0.04em;
+            margin: 0 0 12px;
+            font-size: 40px;
+            letter-spacing: -0.05em;
+            line-height: 1.05;
         }
 
         .hero p {
             margin: 0;
             color: #dbeafe;
+            line-height: 1.6;
+            font-size: 16px;
+            font-weight: 650;
+        }
+
+        .hero-side {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 24px;
+            padding: 22px;
+            backdrop-filter: blur(8px);
+        }
+
+        .hero-side-title {
+            font-size: 13px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #bfdbfe;
+            margin-bottom: 10px;
+        }
+
+        .hero-side-main {
+            font-size: 26px;
+            font-weight: 950;
+            letter-spacing: -0.03em;
+            margin-bottom: 8px;
+        }
+
+        .hero-side-text {
+            color: #dbeafe;
+            font-weight: 650;
+            line-height: 1.5;
+            font-size: 14px;
         }
 
         .nav {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             margin-bottom: 22px;
             flex-wrap: wrap;
         }
@@ -69,7 +159,7 @@
             color: #1e40af;
             padding: 12px 16px;
             border-radius: 999px;
-            font-weight: 800;
+            font-weight: 900;
             box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
         }
 
@@ -79,263 +169,244 @@
             border-color: var(--primary);
         }
 
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 22px;
-            box-shadow: var(--shadow);
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-
-        .filter-grid {
-            display: grid;
-            grid-template-columns: repeat(6, minmax(0, 1fr));
-            gap: 12px;
-            align-items: end;
-        }
-
-        label {
-            font-size: 12px;
-            font-weight: 900;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            display: block;
-            margin-bottom: 7px;
-        }
-
-        input,
-        select {
-            width: 100%;
-            border: 1px solid var(--border);
-            border-radius: 13px;
-            padding: 12px;
-            background: #f9fafb;
-            font-size: 15px;
-            font-family: inherit;
-        }
-
-        input[type="checkbox"] {
-            width: auto;
-            transform: scale(1.15);
-            cursor: pointer;
-        }
-
-        button {
-            border: none;
-            background: var(--primary);
-            color: white;
-            border-radius: 13px;
-            padding: 13px 20px;
-            font-weight: 900;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .clear-link {
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            text-decoration: none;
-            background: #e5e7eb;
-            color: #111827;
-            border-radius: 13px;
-            padding: 13px 20px;
-            font-weight: 900;
-            white-space: nowrap;
-            width: 100%;
-        }
-
-        .clear-link:hover {
-            background: #d1d5db;
-        }
-
-        .trash-button {
-            background: #dc2626;
-            color: white;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .trash-button:hover {
-            background: #b91c1c;
-        }
-
         .alert {
             padding: 15px 18px;
             border-radius: 16px;
             margin-bottom: 18px;
-            font-weight: 700;
+            font-weight: 750;
+            line-height: 1.5;
         }
 
-        .success {
-            background: #ecfdf5;
-            border: 1px solid #bbf7d0;
+        .alert-success {
+            background: var(--green-bg);
+            border: 1px solid var(--green-border);
             color: #065f46;
         }
 
-        .error {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
+        .alert-error {
+            background: var(--red-bg);
+            border: 1px solid var(--red-border);
             color: #991b1b;
         }
 
-        .summary {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 18px;
-            margin-bottom: 24px;
-        }
-
-        .metric {
-            background: var(--card);
+        .card {
+            background: white;
             border: 1px solid var(--border);
-            border-radius: 22px;
+            border-radius: 24px;
             box-shadow: var(--shadow);
-            padding: 20px;
+            padding: 24px;
+            margin-bottom: 22px;
         }
 
-        .metric-title {
-            font-size: 12px;
-            color: var(--muted);
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 10px;
-        }
-
-        .metric-value {
-            font-size: 25px;
-            font-weight: 950;
-            letter-spacing: -0.04em;
-        }
-
-        .green {
-            color: var(--green);
-        }
-
-        .red {
-            color: var(--red);
-        }
-
-        .amber {
-            color: var(--amber);
-        }
-
-        .table-actions {
+        .section-header {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
-            gap: 14px;
+            gap: 20px;
+            margin-bottom: 18px;
             flex-wrap: wrap;
-            margin-bottom: 16px;
-            background: #f8fafc;
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 14px;
         }
 
-        .table-actions-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            flex-wrap: wrap;
-            color: #334155;
-            font-weight: 800;
+        .section-title {
+            margin: 0 0 6px;
+            font-size: 24px;
+            letter-spacing: -0.035em;
         }
 
-        .selection-hint {
+        .section-subtitle {
+            margin: 0;
             color: var(--muted);
-            font-size: 13px;
-            font-weight: 700;
+            font-weight: 650;
+            line-height: 1.5;
         }
 
-        .table-wrap {
-            overflow-x: auto;
-            border: 1px solid var(--border);
-            border-radius: 18px;
-        }
-
-        table {
-            width: 100%;
-            min-width: 1650px;
-            border-collapse: collapse;
-        }
-
-        th {
-            background: #f8fafc;
-            color: #334155;
-            text-align: left;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            padding: 12px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        td {
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--border);
-            font-size: 13px;
-            vertical-align: top;
-        }
-
-        .select-col {
-            text-align: center;
-            width: 70px;
-        }
-
-        .money {
-            text-align: right;
-            font-weight: 900;
-            white-space: nowrap;
-        }
-
-        .pill {
+        .reference-pill {
             display: inline-flex;
             align-items: center;
-            padding: 5px 10px;
+            gap: 8px;
+            background: var(--primary-soft);
+            border: 1px solid var(--primary-border);
+            color: var(--primary);
             border-radius: 999px;
-            background: #f1f5f9;
-            color: #334155;
+            padding: 7px 11px;
             font-size: 12px;
-            font-weight: 800;
-            white-space: nowrap;
+            font-weight: 950;
         }
 
-        .desc {
-            min-width: 280px;
+        .config-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 18px;
+        }
+
+        .config-label {
+            font-size: 11px;
+            font-weight: 950;
+            text-transform: uppercase;
+            color: var(--muted);
+            letter-spacing: 0.08em;
+            margin-bottom: 7px;
+        }
+
+        .config-value {
+            font-size: 14px;
+            font-weight: 850;
+            color: #111827;
+            word-break: break-word;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .form-grid.two {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .form-grid.one {
+            grid-template-columns: 1fr;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 950;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 7px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px;
+            background: #ffffff;
+            color: #111827;
+            font-size: 15px;
+            font-family: inherit;
             font-weight: 700;
         }
 
-        .edit-link {
+        textarea {
+            min-height: 92px;
+            resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: 2px solid #bfdbfe;
+            border-color: #93c5fd;
+            background: white;
+        }
+
+        .helper {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 650;
+            line-height: 1.4;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 22px;
+        }
+
+        .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: #eff6ff;
-            color: #1d4ed8;
-            border: 1px solid #bfdbfe;
-            border-radius: 999px;
-            padding: 6px 10px;
+            border-radius: 14px;
+            padding: 13px 16px;
             text-decoration: none;
-            font-weight: 900;
-            font-size: 12px;
+            font-weight: 950;
+            border: 1px solid transparent;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: inherit;
+            font-size: 14px;
         }
 
-        .edit-link:hover {
-            background: #dbeafe;
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 10px 22px rgba(29, 78, 216, 0.20);
         }
 
-        @media (max-width: 1200px) {
-            .filter-grid,
-            .summary {
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: #f8fafc;
+            color: #1e40af;
+            border-color: var(--border);
+        }
+
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .tip {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+        }
+
+        .tip-title {
+            margin: 0 0 7px;
+            font-size: 15px;
+            font-weight: 950;
+            color: #111827;
+        }
+
+        .tip-text {
+            margin: 0;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        @media (max-width: 1100px) {
+            .hero,
+            .form-grid,
+            .form-grid.two,
+            .tips-grid {
                 grid-template-columns: 1fr;
             }
+        }
 
+        @media (max-width: 760px) {
             .page {
                 padding: 18px;
+            }
+
+            .hero {
+                padding: 26px;
+            }
+
+            .hero h1 {
+                font-size: 31px;
             }
         }
     </style>
@@ -344,14 +415,289 @@
 <body>
     <main class="page">
         <section class="hero">
-            <h1>Dashboard Financeiro</h1>
-            <p>
-                BASE_LANCAMENTOS: consulta, filtros, edição e exclusão da base oficial do sistema.
-            </p>
+            <div class="hero-content">
+                <div class="eyebrow">Cadastro manual</div>
+                <h1>Novo Lançamento</h1>
+                <p>
+                    Cadastre receitas, despesas, transferências ou ajustes diretamente na base financeira.
+                    Use este módulo para registrar itens que não vieram automaticamente pelo extrato.
+                </p>
+            </div>
+
+            <aside class="hero-side">
+                <div class="hero-side-title">Destino do lançamento</div>
+                <div class="hero-side-main">BASE_LANCAMENTOS</div>
+                <div class="hero-side-text">
+                    O lançamento manual será gravado na planilha vinculada à Central Financeira.
+                </div>
+            </aside>
         </section>
 
         <nav class="nav">
-            <a href="/">Início</a>
-            <a href="/financeiro">Visão Geral</a>
-            <a href="/financeiro/base-lancamentos" class="active">BASE_LANCAMENTOS</a>
-         
+            <a href="/financeiro">Início</a>
+            <a href="/financeiro/configuracoes">Configurações</a>
+            <a href="/financeiro/extratos">Extratos</a>
+            <a href="/financeiro/base-lancamentos">Base</a>
+            <a href="/financeiro/lancamento" class="active">Lançamento</a>
+            <a href="/financeiro/orcamento">Orçamento</a>
+            <a href="/financeiro/analise">Painel Gerencial</a>
+            <a href="/financeiro/patrimonio">Patrimônio</a>
+            <a href="/financeiro/investimentos">Investimentos</a>
+        </nav>
+
+        {% if mensagem %}
+            <div class="alert alert-success">{{ mensagem }}</div>
+        {% endif %}
+
+        {% if erro %}
+            <div class="alert alert-error">{{ erro }}</div>
+        {% endif %}
+
+        <section class="card">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Dados do lançamento</h2>
+                    <p class="section-subtitle">
+                        Preencha os campos abaixo. O valor pode ser informado no padrão brasileiro, por exemplo:
+                        <strong>125,50</strong>.
+                    </p>
+                </div>
+
+                <span class="reference-pill">Ano base {{ ano_atual }}</span>
+            </div>
+
+            <div class="config-box">
+                <div class="config-label">Planilha vinculada</div>
+                <div class="config-value">
+                    {% if link_planilha %}
+                        {{ link_planilha }}
+                    {% else %}
+                        Nenhuma planilha configurada. Ajuste em Configurações antes de salvar lançamentos.
+                    {% endif %}
+                </div>
+            </div>
+
+            <form method="post" action="/financeiro/lancamento">
+                <input type="hidden" name="link_planilha" value="{{ link_planilha }}" />
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label>Data</label>
+                        <input type="date" name="data" value="{{ hoje }}" required />
+                    </div>
+
+                    <div class="field">
+                        <label>Mês</label>
+                        <select name="mes" required>
+                            {% for mes in meses %}
+                                <option value="{{ mes }}">{{ mes }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>Ano</label>
+                        <input type="number" name="ano" value="{{ ano_atual }}" required />
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label>Tipo</label>
+                        <select name="tipo" id="tipo" required onchange="atualizarCategorias()">
+                            <option value="DESPESA">DESPESA</option>
+                            <option value="RECEITA">RECEITA</option>
+                            <option value="TRANSFERÊNCIA">TRANSFERÊNCIA</option>
+                            <option value="INVESTIMENTO">INVESTIMENTO</option>
+                            <option value="AJUSTE">AJUSTE</option>
+                        </select>
+                        <div class="helper">O tipo ajuda o Painel Gerencial e a Reserva de Emergência.</div>
+                    </div>
+
+                    <div class="field">
+                        <label>Categoria</label>
+                        <select name="categoria" id="categoria" required onchange="atualizarSubcategorias()"></select>
+                    </div>
+
+                    <div class="field">
+                        <label>Subcategoria</label>
+                        <select name="subcategoria" id="subcategoria" required></select>
+                    </div>
+                </div>
+
+                <div class="form-grid one">
+                    <div class="field">
+                        <label>Descrição</label>
+                        <input
+                            type="text"
+                            name="descricao"
+                            placeholder="Ex.: Compra supermercado, salário, mensalidade, ajuste manual..."
+                            required
+                        />
+                    </div>
+                </div>
+
+                <div class="form-grid two">
+                    <div class="field">
+                        <label>Valor previsto</label>
+                        <input
+                            type="text"
+                            name="valor_previsto"
+                            placeholder="Ex.: 500,00"
+                        />
+                        <div class="helper">Use quando o lançamento representar previsão/orçamento.</div>
+                    </div>
+
+                    <div class="field">
+                        <label>Valor realizado</label>
+                        <input
+                            type="text"
+                            name="valor_realizado"
+                            placeholder="Ex.: 500,00"
+                        />
+                        <div class="helper">Use para valores efetivamente pagos ou recebidos.</div>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label>Situação</label>
+                        <select name="situacao" required>
+                            {% for item in situacoes %}
+                                <option value="{{ item }}">{{ item }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>Forma de pagamento</label>
+                        <select name="forma_pagamento" required>
+                            {% for item in formas_pagamento %}
+                                <option value="{{ item }}">{{ item }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>Conta</label>
+                        <select name="conta" required>
+                            {% for item in contas %}
+                                <option value="{{ item }}">{{ item }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid one">
+                    <div class="field">
+                        <label>Observação</label>
+                        <textarea
+                            name="observacao"
+                            placeholder="Informações adicionais, justificativa do ajuste ou referência do lançamento..."
+                        ></textarea>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button type="submit" class="btn btn-primary">Salvar lançamento</button>
+                    <a href="/financeiro/base-lancamentos" class="btn btn-secondary">Abrir base</a>
+                    <a href="/financeiro" class="btn btn-secondary">Voltar ao início</a>
+                </div>
+            </form>
+        </section>
+
+        <section class="card">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Orientações rápidas</h2>
+                    <p class="section-subtitle">
+                        Use o cadastro manual com cuidado para não duplicar informações já importadas pelo extrato.
+                    </p>
+                </div>
+            </div>
+
+            <div class="tips-grid">
+                <article class="tip">
+                    <h3 class="tip-title">Despesa</h3>
+                    <p class="tip-text">
+                        Use para gastos efetivos como mercado, transporte, escola, alimentação, boletos e despesas pessoais.
+                    </p>
+                </article>
+
+                <article class="tip">
+                    <h3 class="tip-title">Receita</h3>
+                    <p class="tip-text">
+                        Use para entradas financeiras como salário, reembolso, restituição, recebimentos e rendimentos.
+                    </p>
+                </article>
+
+                <article class="tip">
+                    <h3 class="tip-title">Transferência / Investimento</h3>
+                    <p class="tip-text">
+                        Use quando o dinheiro apenas muda de conta ou vai para investimento, sem representar gasto real.
+                    </p>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const categoriasReceita = {{ categorias_receita | tojson }};
+        const categoriasDespesa = {{ categorias_despesa | tojson }};
+
+        function getCategoriasPorTipo(tipo) {
+            if (tipo === "RECEITA") {
+                return categoriasReceita;
+            }
+
+            if (tipo === "DESPESA") {
+                return categoriasDespesa;
+            }
+
+            return {
+                "GERAL": [
+                    "GERAL"
+                ]
+            };
+        }
+
+        function atualizarCategorias() {
+            const tipo = document.getElementById("tipo").value;
+            const categoriaSelect = document.getElementById("categoria");
+            const categorias = getCategoriasPorTipo(tipo);
+
+            categoriaSelect.innerHTML = "";
+
+            Object.keys(categorias).forEach(function(categoria) {
+                const option = document.createElement("option");
+                option.value = categoria;
+                option.textContent = categoria;
+                categoriaSelect.appendChild(option);
+            });
+
+            atualizarSubcategorias();
+        }
+
+        function atualizarSubcategorias() {
+            const tipo = document.getElementById("tipo").value;
+            const categoria = document.getElementById("categoria").value;
+            const subcategoriaSelect = document.getElementById("subcategoria");
+            const categorias = getCategoriasPorTipo(tipo);
+            const subcategorias = categorias[categoria] || ["GERAL"];
+
+            subcategoriaSelect.innerHTML = "";
+
+            subcategorias.forEach(function(subcategoria) {
+                const option = document.createElement("option");
+                option.value = subcategoria;
+                option.textContent = subcategoria;
+                subcategoriaSelect.appendChild(option);
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            atualizarCategorias();
+        });
+    </script>
+</body>
+</html>

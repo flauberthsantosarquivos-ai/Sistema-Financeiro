@@ -650,6 +650,137 @@ def gerar_plano_realocacao(
     return passos
 
 
+def gerar_resumo_executivo(
+    distribuicao: list[dict],
+    perfil: dict,
+    reserva_emergencia: dict,
+    cenario_juros: dict,
+    alertas: list[dict],
+) -> dict:
+    liquidez = buscar_classe(distribuicao, "LIQUIDEZ IMEDIATA")
+    poupanca = buscar_classe(distribuicao, "POUPANÇA")
+    renda_variavel = buscar_classe(distribuicao, "RENDA VARIÁVEL")
+    cripto = buscar_classe(distribuicao, "CRIPTOATIVOS")
+    dinheiro_fisico = buscar_classe(distribuicao, "DINHEIRO FÍSICO")
+
+    situacao_reserva = reserva_emergencia.get("classificacao", {}).get("situacao", "")
+    juros = cenario_juros.get("nivel", "")
+
+    diagnostico = []
+    prioridades = []
+    alertas_executivos = []
+
+    diagnostico.append(
+        f"Perfil patrimonial observado: {perfil.get('perfil', 'não identificado')}."
+    )
+
+    if situacao_reserva:
+        diagnostico.append(f"Reserva de emergência: {situacao_reserva}.")
+
+    if juros:
+        diagnostico.append(f"Cenário de mercado considerado: {juros}.")
+
+    if poupanca["percentual"] >= 20:
+        diagnostico.append(
+            f"Poupança representa {poupanca['percentual_fmt']} do patrimônio, indicando oportunidade de buscar alternativas conservadoras mais eficientes."
+        )
+
+    if liquidez["percentual"] >= 30:
+        diagnostico.append(
+            f"Liquidez imediata representa {liquidez['percentual_fmt']} do patrimônio."
+        )
+
+    if renda_variavel["percentual"] > 0:
+        diagnostico.append(
+            f"Renda variável representa {renda_variavel['percentual_fmt']} do patrimônio."
+        )
+
+    if cripto["percentual"] > 0:
+        diagnostico.append(
+            f"Criptoativos representam {cripto['percentual_fmt']} do patrimônio."
+        )
+
+    if situacao_reserva == "RESERVA INSUFICIENTE":
+        prioridades.append(
+            "Prioridade máxima: reforçar a reserva de emergência antes de aumentar exposição a risco."
+        )
+    elif situacao_reserva == "EXCESSO DE LIQUIDEZ":
+        prioridades.append(
+            "Avaliar se parte do excesso de liquidez pode ser direcionada para objetivos de médio e longo prazo."
+        )
+    elif situacao_reserva == "RESERVA ADEQUADA":
+        prioridades.append(
+            "Manter a reserva protegida e separar o restante do patrimônio por objetivos."
+        )
+    else:
+        prioridades.append(
+            "Confirmar a base de despesas para validar o cálculo da reserva de emergência."
+        )
+
+    if poupanca["percentual"] >= 20 or liquidez["percentual"] >= 30:
+        prioridades.append(
+            "Comparar poupança e dinheiro parado com Tesouro Selic, CDB liquidez diária e outras opções conservadoras."
+        )
+
+    if juros == "JUROS ALTOS":
+        prioridades.append(
+            "Aproveitar o cenário de juros altos para organizar renda fixa pós-fixada e liquidez diária."
+        )
+
+    if renda_variavel["percentual"] < 10 and cripto["percentual"] < 5:
+        prioridades.append(
+            "Após a reserva, avaliar diversificação gradual para crescimento patrimonial de longo prazo."
+        )
+
+    if cripto["percentual"] >= 8:
+        alertas_executivos.append(
+            "Criptoativos têm peso relevante. Definir limite máximo e evitar usar dinheiro de curto prazo."
+        )
+
+    if dinheiro_fisico["percentual"] >= 5:
+        alertas_executivos.append(
+            "Há dinheiro físico relevante. Avaliar redução para melhorar segurança e rastreabilidade."
+        )
+
+    for alerta in alertas:
+        if alerta.get("nivel") == "risco" and alerta.get("texto"):
+            alertas_executivos.append(alerta["texto"])
+
+    if not alertas_executivos:
+        alertas_executivos.append(
+            "Nenhum alerta crítico foi identificado pelas regras atuais, mas a alocação deve ser revisada periodicamente."
+        )
+
+    conclusao = (
+        "A carteira deve ser analisada primeiro pela segurança da reserva, depois pela eficiência da liquidez "
+        "e somente em seguida pela busca de maior rentabilidade em ativos de risco."
+    )
+
+    if situacao_reserva == "RESERVA INSUFICIENTE":
+        conclusao = (
+            "O foco principal deve ser completar a reserva de emergência. Aumentar risco antes disso pode deixar "
+            "o cliente vulnerável a imprevistos."
+        )
+    elif situacao_reserva == "EXCESSO DE LIQUIDEZ":
+        conclusao = (
+            "O cliente aparenta ter liquidez acima do necessário para emergência. O excedente pode ser estudado "
+            "para objetivos de médio e longo prazo, respeitando perfil de risco."
+        )
+    elif situacao_reserva == "RESERVA ADEQUADA":
+        conclusao = (
+            "A reserva está em faixa adequada. O próximo passo é organizar objetivos e avaliar diversificação "
+            "sem comprometer a segurança já formada."
+        )
+
+    return {
+        "titulo": "Resumo Executivo",
+        "diagnostico": diagnostico,
+        "prioridades": prioridades,
+        "alertas": alertas_executivos,
+        "conclusao": conclusao,
+    }
+
+
 def montar_reserva_fallback(erro: Exception) -> dict:
     return {
         "ok": False,
@@ -719,11 +850,21 @@ def montar_analise_investimentos(
 
     perfil = definir_perfil_aproximado(distribuicao)
     alertas = gerar_alertas(distribuicao)
+
+    resumo_executivo = gerar_resumo_executivo(
+        distribuicao=distribuicao,
+        perfil=perfil,
+        reserva_emergencia=reserva_emergencia,
+        cenario_juros=cenario_juros,
+        alertas=alertas,
+    )
+
     caminhos = gerar_caminhos_investimento(
         distribuicao=distribuicao,
         cenario_juros=cenario_juros,
         reserva_emergencia=reserva_emergencia,
     )
+
     plano = gerar_plano_realocacao(
         distribuicao=distribuicao,
         reserva_emergencia=reserva_emergencia,
@@ -745,6 +886,7 @@ def montar_analise_investimentos(
 
         "perfil": perfil,
         "alertas": alertas,
+        "resumo_executivo": resumo_executivo,
         "caminhos": caminhos,
         "plano": plano,
 

@@ -1352,6 +1352,74 @@
                 </article>
             </section>
 
+            <section class="card">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Resumo Executivo da Análise</h2>
+                        <p class="section-subtitle">
+                            Leitura consolidada do mês, reunindo patrimônio, reserva de emergência,
+                            cenário de juros e principais alertas.
+                        </p>
+                    </div>
+
+                    <span class="reference-pill">
+                        {{ analise.mes }}/{{ analise.ano }}
+                    </span>
+                </div>
+
+                <div class="two-columns">
+                    <article class="profile-card">
+                        <span class="profile-badge badge-{{ analise.perfil.classe_cor }}">
+                            Diagnóstico do mês
+                        </span>
+
+                        <h2 class="profile-title">Conclusão executiva</h2>
+                        <p class="profile-text">
+                            {{ analise.resumo_executivo.conclusao }}
+                        </p>
+                    </article>
+
+                    <article class="market-card">
+                        <div class="market-content">
+                            <div class="market-title">Prioridades recomendadas</div>
+                            <div class="market-main">Plano de ação</div>
+
+                            <div class="market-list">
+                                {% for item in analise.resumo_executivo.prioridades %}
+                                    <div>{{ item }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="reserva-detail-grid">
+                    <article class="reserva-detail-card">
+                        <h3 class="reserva-detail-title">Pontos principais</h3>
+
+                        <div class="reserva-list">
+                            {% for item in analise.resumo_executivo.diagnostico %}
+                                <div class="reserva-line">
+                                    <span>{{ item }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </article>
+
+                    <article class="reserva-detail-card">
+                        <h3 class="reserva-detail-title">Alertas executivos</h3>
+
+                        <div class="reserva-list">
+                            {% for item in analise.resumo_executivo.alertas %}
+                                <div class="reserva-line">
+                                    <span>{{ item }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </article>
+                </div>
+            </section>
+
             <section class="dashboard-grid">
                 <article class="profile-card">
                     <span class="profile-badge badge-{{ analise.perfil.classe_cor }}">

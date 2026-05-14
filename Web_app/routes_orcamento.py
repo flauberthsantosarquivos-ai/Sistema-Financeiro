@@ -8,6 +8,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from core.financeiro.orcamento_google import (
+    aplicar_execucao_ao_orcamento,
     duplicar_orcamento_para_meses_escolhidos,
     excluir_orcamento,
     filtrar_orcamento,
@@ -47,6 +48,13 @@ TIPOS_OPCOES = [
 ]
 
 
+SITUACOES_ORCAMENTO_OPCOES = [
+    ("", "Todos"),
+    ("ORCADO", "Somente orçados"),
+    ("NAO_ORCADO", "Somente não orçados"),
+]
+
+
 def montar_url_retorno(mensagem: str | None = None, erro: str | None = None) -> str:
     if mensagem:
         return f"/financeiro/orcamento?mensagem={quote(mensagem)}"
@@ -66,24 +74,63 @@ def normalizar_tipo(valor: str) -> str:
     return tipo
 
 
+def normalizar_situacao_orcamento(valor: str) -> str:
+    texto = str(valor or "").strip().upper()
+
+    if texto in {"NAO_ORCADO", "NÃO_ORÇADO", "NAO ORCADO", "NÃO ORÇADO"}:
+        return "NAO_ORCADO"
+
+    if texto in {"ORCADO", "ORÇADO"}:
+        return "ORCADO"
+
+    return ""
+
+
+def obter_mes_atual_sigla() -> str:
+    mapa = {
+        1: "JAN",
+        2: "FEV",
+        3: "MAR",
+        4: "ABR",
+        5: "MAI",
+        6: "JUN",
+        7: "JUL",
+        8: "AGO",
+        9: "SET",
+        10: "OUT",
+        11: "NOV",
+        12: "DEZ",
+    }
+
+    return mapa.get(date.today().month, "")
+
+
 @router.get("/financeiro/orcamento", response_class=HTMLResponse)
 async def orcamento_get(
     request: Request,
     ano: str | None = Query(None),
-    mes: str = Query(""),
+    mes: str | None = Query(None),
     tipo: str = Query(""),
     categoria: str = Query(""),
+    situacao_orcamento: str = Query(""),
     mensagem: str | None = Query(None),
     erro: str | None = Query(None),
 ):
     ano_final = ano or str(date.today().year)
+
+    # Ao abrir a tela sem parâmetro de mês, usa o mês atual.
+    # Se o usuário escolher "Todos", o formulário envia mes="" e o sistema respeita.
+    mes_final = obter_mes_atual_sigla() if mes is None else mes
+
     tipo_final = normalizar_tipo(tipo)
+    situacao_orcamento_final = normalizar_situacao_orcamento(situacao_orcamento)
 
     filtros = {
         "ano": ano_final,
-        "mes": mes,
+        "mes": mes_final,
         "tipo": tipo_final,
         "categoria": categoria,
+        "situacao_orcamento": situacao_orcamento_final,
     }
 
     try:
@@ -92,20 +139,44 @@ async def orcamento_get(
         registros_filtrados = filtrar_orcamento(
             registros=registros,
             ano=ano_final,
-            mes=mes,
+            mes=mes_final,
             tipo=tipo_final,
             categoria=categoria,
         )
 
-        resumo = montar_resumo_orcamento(registros_filtrados)
+        registros_com_execucao = aplicar_execucao_ao_orcamento(
+            registros=registros_filtrados,
+            ano=ano_final,
+            mes=mes_final,
+            tipo=tipo_final,
+            categoria=categoria,
+        )
 
         categorias_existentes = sorted(
             {
                 str(item.get("CATEGORIA", "")).strip()
-                for item in registros
+                for item in registros + registros_com_execucao
                 if str(item.get("CATEGORIA", "")).strip()
             }
         )
+
+        if situacao_orcamento_final == "NAO_ORCADO":
+            registros_com_execucao = [
+                item
+                for item in registros_com_execucao
+                if bool(item.get("ITEM_NAO_ORCADO", False))
+            ]
+
+        elif situacao_orcamento_final == "ORCADO":
+            registros_com_execucao = [
+                item
+                for item in registros_com_execucao
+                if not bool(item.get("ITEM_NAO_ORCADO", False))
+            ]
+
+        # O resumo é validação da própria tela:
+        # executado = somatório dos executados exibidos no detalhamento.
+        resumo = montar_resumo_orcamento(registros_com_execucao)
 
         return templates.TemplateResponse(
             request=request,
@@ -116,10 +187,11 @@ async def orcamento_get(
                 "filtros": filtros,
                 "meses_opcoes": MESES_OPCOES,
                 "tipos_opcoes": TIPOS_OPCOES,
-                "registros": registros_filtrados,
+                "situacoes_orcamento_opcoes": SITUACOES_ORCAMENTO_OPCOES,
+                "registros": registros_com_execucao,
                 "resumo": resumo,
                 "categorias_existentes": categorias_existentes,
-                "total_registros": len(registros_filtrados),
+                "total_registros": len(registros_com_execucao),
             },
         )
 
@@ -133,6 +205,7 @@ async def orcamento_get(
                 "filtros": filtros,
                 "meses_opcoes": MESES_OPCOES,
                 "tipos_opcoes": TIPOS_OPCOES,
+                "situacoes_orcamento_opcoes": SITUACOES_ORCAMENTO_OPCOES,
                 "registros": [],
                 "resumo": montar_resumo_orcamento([]),
                 "categorias_existentes": [],

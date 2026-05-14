@@ -29,6 +29,7 @@
             --slate-border: #cbd5e1;
             --border: #e5e7eb;
             --shadow: 0 14px 30px rgba(15, 23, 42, 0.07);
+            --shadow-soft: 0 8px 18px rgba(15, 23, 42, 0.05);
         }
 
         * {
@@ -38,12 +39,15 @@
         body {
             margin: 0;
             font-family: "Segoe UI", Arial, sans-serif;
-            background: var(--bg);
+            background:
+                radial-gradient(circle at top left, rgba(29, 78, 216, 0.10), transparent 30%),
+                radial-gradient(circle at top right, rgba(109, 40, 217, 0.08), transparent 28%),
+                var(--bg);
             color: var(--text);
         }
 
         .page {
-            max-width: 1500px;
+            max-width: 1540px;
             margin: 0 auto;
             padding: 32px;
         }
@@ -51,22 +55,41 @@
         .hero {
             background: linear-gradient(135deg, #0f172a, #1d4ed8);
             color: white;
-            border-radius: 26px;
-            padding: 30px;
+            border-radius: 28px;
+            padding: 32px;
             box-shadow: var(--shadow);
             margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.10);
+            right: -90px;
+            top: -130px;
         }
 
         .hero h1 {
+            position: relative;
+            z-index: 1;
             margin: 0 0 8px;
-            font-size: 32px;
+            font-size: 34px;
             letter-spacing: -0.04em;
         }
 
         .hero p {
+            position: relative;
+            z-index: 1;
             margin: 0;
             color: #dbeafe;
             line-height: 1.55;
+            font-weight: 650;
+            max-width: 940px;
         }
 
         .nav {
@@ -135,6 +158,75 @@
             line-height: 1.5;
         }
 
+        .mode-tabs {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .mode-tab {
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 22px;
+            padding: 18px;
+            box-shadow: var(--shadow-soft);
+            cursor: pointer;
+            text-align: left;
+            color: var(--text);
+        }
+
+        .mode-tab:hover {
+            background: #f8fafc;
+        }
+
+        .mode-tab.active {
+            background: linear-gradient(135deg, #0f172a, #1d4ed8);
+            color: white;
+            border-color: #1d4ed8;
+        }
+
+        .mode-tab-title {
+            font-size: 18px;
+            font-weight: 950;
+            letter-spacing: -0.03em;
+            margin-bottom: 6px;
+        }
+
+        .mode-tab-text {
+            font-size: 13px;
+            line-height: 1.45;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .mode-tab.active .mode-tab-text {
+            color: #dbeafe;
+        }
+
+        .sub-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .sub-tab {
+            border: 1px solid var(--border);
+            background: #f8fafc;
+            color: #1e40af;
+            border-radius: 999px;
+            padding: 11px 15px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .sub-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
         .summary {
             display: grid;
             grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -173,25 +265,11 @@
             line-height: 1.35;
         }
 
-        .green {
-            color: var(--green);
-        }
-
-        .red {
-            color: var(--red);
-        }
-
-        .amber {
-            color: var(--amber);
-        }
-
-        .purple {
-            color: var(--purple);
-        }
-
-        .slate {
-            color: var(--slate);
-        }
+        .green { color: var(--green); }
+        .red { color: var(--red); }
+        .amber { color: var(--amber); }
+        .purple { color: var(--purple); }
+        .slate { color: var(--slate); }
 
         .form-grid {
             display: grid;
@@ -202,7 +280,7 @@
 
         .filter-grid {
             display: grid;
-            grid-template-columns: repeat(6, minmax(0, 1fr));
+            grid-template-columns: repeat(7, minmax(0, 1fr));
             gap: 12px;
             align-items: end;
         }
@@ -243,6 +321,7 @@
             font-weight: 900;
             cursor: pointer;
             white-space: nowrap;
+            font-family: inherit;
         }
 
         button:hover {
@@ -409,41 +488,172 @@
             background: #d1d5db;
         }
 
-        .table-wrap {
-            overflow-x: auto;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            background: white;
+        .group-toolbar {
+            display: grid;
+            grid-template-columns: 1fr 220px;
+            gap: 12px;
+            align-items: end;
+            margin-bottom: 16px;
         }
 
-        table {
+        .grouped-list {
+            display: grid;
+            gap: 18px;
+        }
+
+        .budget-group {
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.07);
+        }
+
+        .budget-group.green-border { border-color: var(--green-border); }
+        .budget-group.amber-border { border-color: var(--amber-border); }
+        .budget-group.red-border { border-color: var(--red-border); }
+
+        .budget-group-header {
+            display: grid;
+            grid-template-columns: minmax(300px, 1.3fr) repeat(4, minmax(145px, auto));
+            gap: 14px;
+            align-items: center;
+            padding: 18px;
+            border-bottom: 1px solid var(--border);
+            background:
+                radial-gradient(circle at top right, rgba(29, 78, 216, 0.08), transparent 28%),
+                #f8fafc;
+        }
+
+        .budget-group-header.status-green {
+            background:
+                radial-gradient(circle at top right, rgba(4, 120, 87, 0.11), transparent 30%),
+                linear-gradient(180deg, #ffffff, #ecfdf5);
+        }
+
+        .budget-group-header.status-amber {
+            background:
+                radial-gradient(circle at top right, rgba(180, 83, 9, 0.12), transparent 30%),
+                linear-gradient(180deg, #ffffff, #fffbeb);
+        }
+
+        .budget-group-header.status-red {
+            background:
+                radial-gradient(circle at top right, rgba(185, 28, 28, 0.12), transparent 30%),
+                linear-gradient(180deg, #ffffff, #fef2f2);
+        }
+
+        .budget-group-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .budget-group-title strong {
+            font-size: 18px;
+            letter-spacing: -0.03em;
+            color: #111827;
+        }
+
+        .group-total-box {
+            text-align: right;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            border-radius: 16px;
+            padding: 10px 12px;
+        }
+
+        .group-total-label {
+            font-size: 10px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 900;
+            margin-bottom: 3px;
+        }
+
+        .group-total-value {
+            font-weight: 950;
+            font-size: 15px;
+            white-space: nowrap;
+            color: #111827;
+        }
+
+        .progress-wrap {
             width: 100%;
-            min-width: 1100px;
+            height: 9px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: #e5e7eb;
+            margin-top: 7px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: var(--primary);
+        }
+
+        .progress-fill.green-bg { background: var(--green); }
+        .progress-fill.amber-bg { background: var(--amber); }
+        .progress-fill.red-bg { background: var(--red); }
+
+        .budget-table {
+            width: 100%;
             border-collapse: collapse;
         }
 
-        th {
-            background: #f8fafc;
-            color: #334155;
+        .budget-table th {
+            background: white;
+            color: #64748b;
             text-align: left;
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.06em;
-            padding: 11px;
+            padding: 11px 16px;
             border-bottom: 1px solid var(--border);
             white-space: nowrap;
         }
 
-        td {
-            padding: 10px 11px;
+        .budget-table td {
+            padding: 12px 16px;
             border-bottom: 1px solid var(--border);
             font-size: 13px;
             vertical-align: middle;
         }
 
+        .budget-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .budget-table tr:hover td {
+            background: #f8fafc;
+        }
+
+        .subcategoria-principal {
+            font-weight: 950;
+            color: #111827;
+            letter-spacing: -0.01em;
+        }
+
+        .subcategoria-ajuda {
+            margin-top: 4px;
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 700;
+        }
+
         .money {
             text-align: right;
             font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .money-muted {
+            text-align: right;
+            font-weight: 850;
+            color: #334155;
             white-space: nowrap;
         }
 
@@ -456,6 +666,7 @@
             background: #f1f5f9;
             color: #334155;
             border: 1px solid #e2e8f0;
+            white-space: nowrap;
         }
 
         .pill-receita {
@@ -482,26 +693,63 @@
             border-color: var(--slate-border);
         }
 
+        .pill-status-green {
+            background: var(--green-bg);
+            color: var(--green);
+            border-color: var(--green-border);
+        }
+
+        .pill-status-amber {
+            background: var(--amber-bg);
+            color: var(--amber);
+            border-color: var(--amber-border);
+        }
+
+        .pill-status-red {
+            background: var(--red-bg);
+            color: var(--red);
+            border-color: var(--red-border);
+        }
+
         .actions {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .edit-button,
+        .detail-button,
+        .delete-button,
+        .disabled-button {
+            padding: 7px 10px;
+            font-size: 12px;
+            border-radius: 11px;
         }
 
         .edit-button {
             background: #eff6ff;
             color: #1d4ed8;
             border: 1px solid #bfdbfe;
-            padding: 7px 10px;
-            font-size: 12px;
+        }
+
+        .detail-button {
+            background: #f5f3ff;
+            color: #6d28d9;
+            border: 1px solid #ddd6fe;
         }
 
         .delete-button {
             background: #fef2f2;
             color: #b91c1c;
             border: 1px solid #fecaca;
-            padding: 7px 10px;
-            font-size: 12px;
+        }
+
+        .disabled-button {
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            cursor: not-allowed;
         }
 
         .empty {
@@ -513,11 +761,155 @@
             border-radius: 14px;
         }
 
-        @media (max-width: 1200px) {
+        .view-section,
+        .register-section {
+            display: none;
+        }
+
+        .view-section.active,
+        .register-section.active {
+            display: block;
+        }
+
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.55);
+            padding: 26px;
+            overflow-y: auto;
+        }
+
+        .modal-backdrop.active {
+            display: block;
+        }
+
+        .modal {
+            max-width: 1180px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 30px 80px rgba(15, 23, 42, 0.35);
+            overflow: hidden;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #0f172a, #1d4ed8);
+            color: white;
+            padding: 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 22px;
+            letter-spacing: -0.03em;
+        }
+
+        .modal-subtitle {
+            margin: 6px 0 0;
+            color: #dbeafe;
+            font-size: 13px;
+            line-height: 1.45;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 12px;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .detail-summary {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .detail-mini-card {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px;
+            background: #f8fafc;
+        }
+
+        .detail-mini-label {
+            color: var(--muted);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 900;
+            margin-bottom: 5px;
+        }
+
+        .detail-mini-value {
+            font-size: 15px;
+            font-weight: 950;
+            color: #111827;
+        }
+
+        .detail-table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .detail-table {
+            width: 100%;
+            min-width: 950px;
+            border-collapse: collapse;
+        }
+
+        .detail-table th {
+            background: #f8fafc;
+            color: #64748b;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 11px 13px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .detail-table td {
+            padding: 12px 13px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            vertical-align: top;
+        }
+
+        .detail-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .detail-description {
+            font-weight: 800;
+            color: #111827;
+            line-height: 1.35;
+        }
+
+        @media (max-width: 1250px) {
             .summary,
             .form-grid,
             .filter-grid,
-            .duplicate-grid {
+            .duplicate-grid,
+            .group-toolbar,
+            .mode-tabs,
+            .budget-group-header,
+            .detail-summary {
                 grid-template-columns: 1fr;
             }
 
@@ -528,11 +920,27 @@
             .page {
                 padding: 18px;
             }
+
+            .budget-table {
+                min-width: 1180px;
+            }
+
+            .budget-group {
+                overflow-x: auto;
+            }
+
+            .group-total-box {
+                text-align: left;
+            }
         }
 
         @media (max-width: 700px) {
             .months-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .modal-backdrop {
+                padding: 12px;
             }
         }
     </style>
@@ -543,18 +951,20 @@
         <section class="hero">
             <h1>Orçamento Mensal</h1>
             <p>
-                Cadastre os valores previstos por mês, categoria e subcategoria. Esses dados serão usados na análise financeira para comparar orçamento x realizado.
+                Consulte o orçamento agrupado por categoria, acompanhe o que já foi executado, veja o que ainda falta realizar e detalhe os lançamentos que compõem cada despesa.
             </p>
         </section>
 
         <nav class="nav">
             <a href="/financeiro">Início</a>
             <a href="/financeiro/configuracoes">Configurações</a>
-            <a href="/financeiro/extratos">1. Importar Extratos</a>
-            <a href="/financeiro/base-lancamentos">2. Revisar Base</a>
-            <a href="/financeiro/lancamento">3. Novo Lançamento</a>
-            <a href="/financeiro/orcamento" class="active">4. Orçamento</a>
-            <a href="/financeiro/analise">5. Análise Financeira</a>
+            <a href="/financeiro/extratos">Extratos</a>
+            <a href="/financeiro/base-lancamentos">Base</a>
+            <a href="/financeiro/lancamento">Lançamento</a>
+            <a href="/financeiro/orcamento" class="active">Orçamento</a>
+            <a href="/financeiro/analise">Painel Gerencial</a>
+            <a href="/financeiro/patrimonio">Patrimônio</a>
+            <a href="/financeiro/investimentos">Investimentos</a>
         </nav>
 
         {% if mensagem %}
@@ -565,357 +975,439 @@
             <div class="alert error">{{ erro }}</div>
         {% endif %}
 
-        <section class="summary">
-            <div class="metric">
-                <div class="metric-title">Receitas previstas</div>
-                <div class="metric-value green">{{ resumo.total_receitas_fmt }}</div>
-                <div class="metric-note">Entradas previstas no período filtrado.</div>
-            </div>
-
-            <div class="metric">
-                <div class="metric-title">Despesas previstas</div>
-                <div class="metric-value red">{{ resumo.total_despesas_fmt }}</div>
-                <div class="metric-note">Gastos e obrigações previstas.</div>
-            </div>
-
-            <div class="metric">
-                <div class="metric-title">Investimentos previstos</div>
-                <div class="metric-value purple">{{ resumo.total_investimentos_fmt }}</div>
-                <div class="metric-note">Reserva, poupança, aplicações e formação patrimonial.</div>
-            </div>
-
-            <div class="metric">
-                <div class="metric-title">Movimentações previstas</div>
-                <div class="metric-value slate">{{ resumo.total_transferencias_fmt }}</div>
-                <div class="metric-note">Transferências neutras entre contas próprias.</div>
-            </div>
-
-            <div class="metric">
-                <div class="metric-title">Saldo previsto</div>
-                <div class="metric-value {% if resumo.saldo_previsto >= 0 %}green{% else %}red{% endif %}">
-                    {{ resumo.saldo_previsto_fmt }}
+        <section class="mode-tabs">
+            <button type="button" class="mode-tab active" id="tabConsultar" onclick="mostrarModo('consultar')">
+                <div class="mode-tab-title">Consultar orçamento</div>
+                <div class="mode-tab-text">
+                    Ver resumo, filtros, execução, itens não orçados e lançamentos detalhados.
                 </div>
-                <div class="metric-note">Receitas menos despesas e investimentos.</div>
-            </div>
+            </button>
+
+            <button type="button" class="mode-tab" id="tabCadastrar" onclick="mostrarModo('cadastrar')">
+                <div class="mode-tab-title">Cadastrar orçamento</div>
+                <div class="mode-tab-text">
+                    Criar novo orçamento, editar item existente ou duplicar orçamento mensal.
+                </div>
+            </button>
         </section>
 
-        <section class="card">
-            <h2 class="section-title">Cadastrar orçamento</h2>
-            <p class="section-subtitle">
-                Cadastre uma linha para cada categoria/subcategoria planejada. Exemplo: ALIMENTAÇÃO / SUPERMERCADO / R$ 2.500,00.
-            </p>
-
-            <form method="post" action="/financeiro/orcamento/salvar" id="formOrcamento">
-                <input type="hidden" name="orcamento_id" id="orcamento_id" />
-
-                <div class="form-grid">
-                    <div>
-                        <label>Ano</label>
-                        <input type="number" name="ano" id="ano" value="{{ filtros.ano }}" required />
-                    </div>
-
-                    <div>
-                        <label>Mês</label>
-                        <select name="mes" id="mes" required>
-                            {% for sigla, nome in meses_opcoes %}
-                                <option value="{{ sigla }}" {% if filtros.mes == sigla %}selected{% endif %}>{{ nome }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label>Tipo</label>
-                        <select name="tipo" id="tipo" required>
-                            <option value="DESPESA">DESPESA</option>
-                            <option value="RECEITA">RECEITA</option>
-                            <option value="INVESTIMENTO">INVESTIMENTO</option>
-                            <option value="TRANSFERÊNCIA">TRANSFERÊNCIA</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label>Categoria</label>
-                        <input type="text" name="categoria" id="categoria" placeholder="Ex.: ALIMENTAÇÃO" required />
-                    </div>
-
-                    <div>
-                        <label>Subcategoria</label>
-                        <input type="text" name="subcategoria" id="subcategoria" placeholder="Ex.: SUPERMERCADO" />
-                    </div>
-
-                    <div>
-                        <label>Valor previsto</label>
-                        <input type="text" name="valor_previsto" id="valor_previsto" placeholder="Ex.: 2500,00" required />
-                    </div>
-
-                    <div style="grid-column: 1 / -1;">
-                        <label>Observação</label>
-                        <textarea name="observacao" id="observacao" placeholder="Ex.: orçamento mensal do cliente para supermercado"></textarea>
-                    </div>
-
-                    <div>
-                        <button type="submit" id="botaoSalvar">Salvar orçamento</button>
-                    </div>
-
-                    <div>
-                        <button type="button" onclick="limparFormulario()" style="background: #e5e7eb; color: #111827;">
-                            Limpar formulário
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </section>
-
-        <section class="card duplicate-card">
-            <div class="duplicate-top">
-                <div>
-                    <h2 class="section-title">Duplicar orçamento</h2>
-                    <p class="section-subtitle" style="margin-bottom: 0;">
-                        Copie o orçamento de um mês para meses escolhidos. Se já existir orçamento no destino, o sistema alerta e só substitui se você marcar a opção.
-                    </p>
+        <section id="secaoConsultar" class="view-section active">
+            <section class="summary">
+                <div class="metric">
+                    <div class="metric-title">Despesa prevista</div>
+                    <div class="metric-value red">{{ resumo.total_despesas_fmt }}</div>
+                    <div class="metric-note">Total de despesas planejadas no período filtrado.</div>
                 </div>
 
-                <span class="duplicate-badge">Automação mensal</span>
-            </div>
+                <div class="metric">
+                    <div class="metric-title">Despesa executada</div>
+                    <div class="metric-value red">{{ resumo.total_despesas_realizado_fmt }}</div>
+                    <div class="metric-note">Somatório dos executados exibidos no detalhamento.</div>
+                </div>
 
-            <form method="post" action="/financeiro/orcamento/duplicar" onsubmit="return confirmarDuplicacao();">
-                <div class="duplicate-grid">
-                    <div>
-                        <label>Ano</label>
-                        <input type="number" name="ano" value="{{ filtros.ano }}" required />
+                <div class="metric">
+                    <div class="metric-title">Receita prevista</div>
+                    <div class="metric-value green">{{ resumo.total_receitas_fmt }}</div>
+                    <div class="metric-note">Total de receitas previstas no orçamento.</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title">Receita realizada</div>
+                    <div class="metric-value green">{{ resumo.total_receitas_realizado_fmt }}</div>
+                    <div class="metric-note">Somatório das receitas realizadas exibidas no detalhamento.</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title">Saldo previsto / realizado</div>
+                    <div class="metric-value {% if resumo.saldo_previsto >= 0 %}green{% else %}red{% endif %}">
+                        {{ resumo.saldo_previsto_fmt }}
                     </div>
+                    <div class="metric-note">Realizado: {{ resumo.saldo_realizado_fmt }}</div>
+                </div>
+            </section>
 
-                    <div>
-                        <label>Mês de origem</label>
-                        <select name="mes_origem" id="mes_origem" required onchange="atualizarMesesDestino()">
-                            {% for sigla, nome in meses_opcoes %}
-                                <option value="{{ sigla }}" {% if filtros.mes == sigla %}selected{% endif %}>{{ nome }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+            <section class="summary">
+                <div class="metric">
+                    <div class="metric-title">Investimento previsto</div>
+                    <div class="metric-value purple">{{ resumo.total_investimentos_fmt }}</div>
+                    <div class="metric-note">Valor previsto para aplicações, reservas e formação patrimonial.</div>
+                </div>
 
-                    <div class="months-box">
-                        <div class="months-title">Meses de destino</div>
+                <div class="metric">
+                    <div class="metric-title">Investimento executado</div>
+                    <div class="metric-value purple">{{ resumo.total_investimentos_realizado_fmt }}</div>
+                    <div class="metric-note">Valor já executado como investimento.</div>
+                </div>
 
-                        <div class="months-grid">
-                            {% for sigla, nome in meses_opcoes %}
-                                <label class="month-check" data-mes="{{ sigla }}">
-                                    <input
-                                        type="checkbox"
-                                        name="meses_destino"
-                                        value="{{ sigla }}"
-                                        class="mes-destino"
-                                    />
-                                    <span>{{ nome }}</span>
-                                </label>
-                            {% endfor %}
-                        </div>
-                    </div>
+                <div class="metric">
+                    <div class="metric-title">Transferências previstas</div>
+                    <div class="metric-value slate">{{ resumo.total_transferencias_fmt }}</div>
+                    <div class="metric-note">Movimentações entre contas próprias previstas.</div>
+                </div>
 
-                    <div class="replace-box">
-                        <div class="replace-line">
-                            <input
-                                type="checkbox"
-                                name="substituir_existentes"
-                                value="SIM"
-                                id="substituir_existentes"
-                            />
+                <div class="metric">
+                    <div class="metric-title">Transferências executadas</div>
+                    <div class="metric-value slate">{{ resumo.total_transferencias_realizado_fmt }}</div>
+                    <div class="metric-note">Movimentações entre contas próprias já realizadas.</div>
+                </div>
 
-                            <label for="substituir_existentes">
-                                Substituir orçamento existente nos meses selecionados.
-                            </label>
+                <div class="metric">
+                    <div class="metric-title">Não orçado</div>
+                    <div class="metric-value amber">{{ resumo.total_nao_orcado_geral_fmt }}</div>
+                    <div class="metric-note">Executado encontrado na base sem previsão no orçamento.</div>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2 class="section-title">Consultar orçamento</h2>
+                <p class="section-subtitle">
+                    Filtre por ano, mês, tipo, categoria ou situação do orçamento.
+                </p>
+
+                <form method="get" action="/financeiro/orcamento">
+                    <div class="filter-grid">
+                        <div>
+                            <label>Ano</label>
+                            <input type="number" name="ano" value="{{ filtros.ano }}" />
                         </div>
 
-                        <div class="duplicate-help">
-                            Sem essa opção, se algum mês selecionado já tiver orçamento previsto, a duplicação será bloqueada e o sistema mostrará o alerta.
+                        <div>
+                            <label>Mês</label>
+                            <select name="mes">
+                                <option value="">Todos</option>
+                                {% for sigla, nome in meses_opcoes %}
+                                    <option value="{{ sigla }}" {% if filtros.mes == sigla %}selected{% endif %}>{{ nome }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
-                    </div>
-                </div>
 
-                <div class="duplicate-actions">
-                    <button type="submit" class="duplicate-button">
-                        Duplicar orçamento
-                    </button>
-
-                    <button type="button" class="soft-button" onclick="marcarMesesRestantes()">
-                        Marcar meses seguintes
-                    </button>
-
-                    <button type="button" class="soft-button" onclick="limparMesesDestino()">
-                        Limpar meses
-                    </button>
-                </div>
-            </form>
-        </section>
-
-        <section class="card">
-            <h2 class="section-title">Filtros</h2>
-            <p class="section-subtitle">
-                Filtre o orçamento cadastrado por ano, mês, tipo ou categoria.
-            </p>
-
-            <form method="get" action="/financeiro/orcamento">
-                <div class="filter-grid">
-                    <div>
-                        <label>Ano</label>
-                        <input type="number" name="ano" value="{{ filtros.ano }}" />
-                    </div>
-
-                    <div>
-                        <label>Mês</label>
-                        <select name="mes">
-                            <option value="">Todos</option>
-                            {% for sigla, nome in meses_opcoes %}
-                                <option value="{{ sigla }}" {% if filtros.mes == sigla %}selected{% endif %}>{{ nome }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label>Tipo</label>
-                        <select name="tipo">
-                            {% if tipos_opcoes %}
+                        <div>
+                            <label>Tipo</label>
+                            <select name="tipo">
                                 {% for valor, rotulo in tipos_opcoes %}
                                     <option value="{{ valor }}" {% if filtros.tipo == valor %}selected{% endif %}>{{ rotulo }}</option>
                                 {% endfor %}
-                            {% else %}
-                                <option value="">Todos</option>
-                                <option value="DESPESA" {% if filtros.tipo == "DESPESA" %}selected{% endif %}>DESPESA</option>
-                                <option value="RECEITA" {% if filtros.tipo == "RECEITA" %}selected{% endif %}>RECEITA</option>
-                                <option value="INVESTIMENTO" {% if filtros.tipo == "INVESTIMENTO" %}selected{% endif %}>INVESTIMENTO</option>
-                                <option value="TRANSFERÊNCIA" {% if filtros.tipo == "TRANSFERÊNCIA" %}selected{% endif %}>TRANSFERÊNCIA</option>
-                            {% endif %}
-                        </select>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Categoria</label>
+                            <select name="categoria">
+                                <option value="">Todas</option>
+                                {% for categoria in categorias_existentes %}
+                                    <option value="{{ categoria }}" {% if filtros.categoria == categoria %}selected{% endif %}>{{ categoria }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Situação</label>
+                            <select name="situacao_orcamento">
+                                {% if situacoes_orcamento_opcoes %}
+                                    {% for valor, rotulo in situacoes_orcamento_opcoes %}
+                                        <option value="{{ valor }}" {% if filtros.situacao_orcamento == valor %}selected{% endif %}>{{ rotulo }}</option>
+                                    {% endfor %}
+                                {% else %}
+                                    <option value="" {% if not filtros.situacao_orcamento %}selected{% endif %}>Todos</option>
+                                    <option value="ORCADO" {% if filtros.situacao_orcamento == "ORCADO" %}selected{% endif %}>Somente orçados</option>
+                                    <option value="NAO_ORCADO" {% if filtros.situacao_orcamento == "NAO_ORCADO" %}selected{% endif %}>Somente não orçados</option>
+                                {% endif %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <button type="submit">Consultar</button>
+                        </div>
+
+                        <div>
+                            <a href="/financeiro/orcamento" class="clear-link">Limpar</a>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <section class="card">
+                <h2 class="section-title">Orçamento agrupado</h2>
+                <p class="section-subtitle">
+                    {{ total_registros }} item(ns) encontrado(s). Use o botão <strong>Ver lançamentos</strong> para conferir quais despesas formam cada valor executado.
+                </p>
+
+                {% if registros %}
+                    <div class="group-toolbar">
+                        <div>
+                            <label>Busca rápida</label>
+                            <input
+                                type="text"
+                                id="buscaRapida"
+                                placeholder="Digite categoria, subcategoria, tipo, mês, status ou descrição..."
+                                oninput="renderizarOrcamentoAgrupado()"
+                            />
+                        </div>
+
+                        <div>
+                            <label>Ação</label>
+                            <button type="button" class="soft-button" onclick="limparBuscaRapida()">
+                                Limpar busca
+                            </button>
+                        </div>
                     </div>
 
-                    <div>
-                        <label>Categoria</label>
-                        <select name="categoria">
-                            <option value="">Todas</option>
-                            {% for categoria in categorias_existentes %}
-                                <option value="{{ categoria }}" {% if filtros.categoria == categoria %}selected{% endif %}>{{ categoria }}</option>
-                            {% endfor %}
-                        </select>
+                    <div id="orcamentoAgrupado" class="grouped-list"></div>
+                {% else %}
+                    <div class="empty">
+                        Nenhum orçamento encontrado para os filtros aplicados.
                     </div>
-
-                    <div>
-                        <button type="submit">Filtrar</button>
-                    </div>
-
-                    <div>
-                        <a href="/financeiro/orcamento" class="clear-link">Limpar</a>
-                    </div>
-                </div>
-            </form>
+                {% endif %}
+            </section>
         </section>
 
-        <section class="card">
-            <h2 class="section-title">Orçamento cadastrado</h2>
-            <p class="section-subtitle">
-                {{ total_registros }} item(ns) encontrado(s).
-            </p>
+        <section id="secaoCadastrar" class="view-section">
+            <section class="card">
+                <h2 class="section-title">Cadastrar orçamento</h2>
+                <p class="section-subtitle">
+                    Escolha se deseja criar/editar um item individual ou duplicar o orçamento de um mês para outros meses.
+                </p>
 
-            {% if registros %}
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Ações</th>
-                                <th>Ano</th>
-                                <th>Mês</th>
-                                <th>Tipo</th>
-                                <th>Categoria</th>
-                                <th>Subcategoria</th>
-                                <th>Valor previsto</th>
-                                <th>Observação</th>
-                                <th>Criado em</th>
-                            </tr>
-                        </thead>
+                <div class="sub-tabs">
+                    <button type="button" class="sub-tab active" id="subTabNovo" onclick="mostrarCadastro('novo')">
+                        Novo orçamento
+                    </button>
 
-                        <tbody>
-                            {% for item in registros %}
-                                <tr>
-                                    <td>
-                                        <div class="actions">
-                                            <button
-                                                type="button"
-                                                class="edit-button"
-                                                onclick="editarOrcamento(this)"
-                                                data-id="{{ item.ID|e }}"
-                                                data-ano="{{ item.ANO|e }}"
-                                                data-mes="{{ item.MES|e }}"
-                                                data-tipo="{{ item.TIPO|e }}"
-                                                data-categoria="{{ item.CATEGORIA|e }}"
-                                                data-subcategoria="{{ item.SUBCATEGORIA|e }}"
-                                                data-valor-previsto="{{ item.VALOR_PREVISTO_RAW|e }}"
-                                                data-observacao="{{ item.OBSERVACAO|e }}"
-                                            >
-                                                Editar
-                                            </button>
-
-                                            <form method="post" action="/financeiro/orcamento/excluir/{{ item.ID }}" onsubmit="return confirm('Excluir este item de orçamento?');">
-                                                <button type="submit" class="delete-button">
-                                                    Excluir
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-
-                                    <td>{{ item.ANO }}</td>
-                                    <td><span class="pill">{{ item.MES }}</span></td>
-                                    <td>
-                                        {% if item.TIPO == "RECEITA" %}
-                                            <span class="pill pill-receita">{{ item.TIPO }}</span>
-                                        {% elif item.TIPO == "DESPESA" %}
-                                            <span class="pill pill-despesa">{{ item.TIPO }}</span>
-                                        {% elif item.TIPO == "INVESTIMENTO" %}
-                                            <span class="pill pill-investimento">{{ item.TIPO }}</span>
-                                        {% elif item.TIPO == "TRANSFERÊNCIA" or item.TIPO == "TRANSFERENCIA" %}
-                                            <span class="pill pill-transferencia">TRANSFERÊNCIA</span>
-                                        {% else %}
-                                            <span class="pill">{{ item.TIPO }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td><strong>{{ item.CATEGORIA }}</strong></td>
-                                    <td>{{ item.SUBCATEGORIA }}</td>
-                                    <td class="money">{{ item.VALOR_PREVISTO_FMT }}</td>
-                                    <td>{{ item.OBSERVACAO }}</td>
-                                    <td>{{ item.CRIADO_EM }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <button type="button" class="sub-tab" id="subTabDuplicar" onclick="mostrarCadastro('duplicar')">
+                        Duplicar orçamento
+                    </button>
                 </div>
-            {% else %}
-                <div class="empty">
-                    Nenhum orçamento encontrado para os filtros aplicados.
-                </div>
-            {% endif %}
+            </section>
+
+            <section id="cadastroNovo" class="register-section active">
+                <section class="card">
+                    <h2 class="section-title">Novo orçamento</h2>
+                    <p class="section-subtitle">
+                        Cadastre uma linha para cada categoria/subcategoria planejada. Exemplo: ALIMENTAÇÃO / SUPERMERCADO / R$ 2.500,00.
+                    </p>
+
+                    <form method="post" action="/financeiro/orcamento/salvar" id="formOrcamento">
+                        <input type="hidden" name="orcamento_id" id="orcamento_id" />
+
+                        <div class="form-grid">
+                            <div>
+                                <label>Ano</label>
+                                <input type="number" name="ano" id="ano" value="{{ filtros.ano }}" required />
+                            </div>
+
+                            <div>
+                                <label>Mês</label>
+                                <select name="mes" id="mes" required>
+                                    {% for sigla, nome in meses_opcoes %}
+                                        <option value="{{ sigla }}" {% if filtros.mes == sigla %}selected{% endif %}>{{ nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Tipo</label>
+                                <select name="tipo" id="tipo" required>
+                                    <option value="DESPESA">DESPESA</option>
+                                    <option value="RECEITA">RECEITA</option>
+                                    <option value="INVESTIMENTO">INVESTIMENTO</option>
+                                    <option value="TRANSFERÊNCIA">TRANSFERÊNCIA</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Categoria</label>
+                                <input type="text" name="categoria" id="categoria" placeholder="Ex.: ALIMENTAÇÃO" required />
+                            </div>
+
+                            <div>
+                                <label>Subcategoria</label>
+                                <input type="text" name="subcategoria" id="subcategoria" placeholder="Ex.: SUPERMERCADO" />
+                            </div>
+
+                            <div>
+                                <label>Valor previsto</label>
+                                <input type="text" name="valor_previsto" id="valor_previsto" placeholder="Ex.: 2500,00" required />
+                            </div>
+
+                            <div style="grid-column: 1 / -1;">
+                                <label>Observação</label>
+                                <textarea name="observacao" id="observacao" placeholder="Opcional. Use apenas se precisar registrar algum detalhe do orçamento."></textarea>
+                            </div>
+
+                            <div>
+                                <button type="submit" id="botaoSalvar">Salvar orçamento</button>
+                            </div>
+
+                            <div>
+                                <button type="button" onclick="limparFormulario()" style="background: #e5e7eb; color: #111827;">
+                                    Limpar formulário
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </section>
+            </section>
+
+            <section id="cadastroDuplicar" class="register-section">
+                <section class="card duplicate-card">
+                    <div class="duplicate-top">
+                        <div>
+                            <h2 class="section-title">Duplicar orçamento</h2>
+                            <p class="section-subtitle" style="margin-bottom: 0;">
+                                Copie o orçamento de um mês para meses escolhidos. Se já existir orçamento no destino, o sistema alerta e só substitui se você marcar a opção.
+                            </p>
+                        </div>
+
+                        <span class="duplicate-badge">Automação mensal</span>
+                    </div>
+
+                    <form method="post" action="/financeiro/orcamento/duplicar" onsubmit="return confirmarDuplicacao();">
+                        <div class="duplicate-grid">
+                            <div>
+                                <label>Ano</label>
+                                <input type="number" name="ano" value="{{ filtros.ano }}" required />
+                            </div>
+
+                            <div>
+                                <label>Mês de origem</label>
+                                <select name="mes_origem" id="mes_origem" required onchange="atualizarMesesDestino()">
+                                    {% for sigla, nome in meses_opcoes %}
+                                        <option value="{{ sigla }}" {% if filtros.mes == sigla %}selected{% endif %}>{{ nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="months-box">
+                                <div class="months-title">Meses de destino</div>
+
+                                <div class="months-grid">
+                                    {% for sigla, nome in meses_opcoes %}
+                                        <label class="month-check" data-mes="{{ sigla }}">
+                                            <input
+                                                type="checkbox"
+                                                name="meses_destino"
+                                                value="{{ sigla }}"
+                                                class="mes-destino"
+                                            />
+                                            <span>{{ nome }}</span>
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="replace-box">
+                                <div class="replace-line">
+                                    <input
+                                        type="checkbox"
+                                        name="substituir_existentes"
+                                        value="SIM"
+                                        id="substituir_existentes"
+                                    />
+
+                                    <label for="substituir_existentes">
+                                        Substituir orçamento existente nos meses selecionados.
+                                    </label>
+                                </div>
+
+                                <div class="duplicate-help">
+                                    Sem essa opção, se algum mês selecionado já tiver orçamento previsto, a duplicação será bloqueada e o sistema mostrará o alerta.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="duplicate-actions">
+                            <button type="submit" class="duplicate-button">
+                                Duplicar orçamento
+                            </button>
+
+                            <button type="button" class="soft-button" onclick="marcarMesesRestantes()">
+                                Marcar meses seguintes
+                            </button>
+
+                            <button type="button" class="soft-button" onclick="limparMesesDestino()">
+                                Limpar meses
+                            </button>
+                        </div>
+                    </form>
+                </section>
+            </section>
         </section>
     </main>
 
+    <div id="modalDetalheLancamentos" class="modal-backdrop" onclick="fecharDetalheLancamentosPorFundo(event)">
+        <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalDetalheTitulo">
+            <header class="modal-header">
+                <div>
+                    <h2 class="modal-title" id="modalDetalheTitulo">Detalhamento dos lançamentos</h2>
+                    <p class="modal-subtitle" id="modalDetalheSubtitulo"></p>
+                </div>
+
+                <button type="button" class="modal-close" onclick="fecharDetalheLancamentos()">
+                    Fechar
+                </button>
+            </header>
+
+            <div class="modal-body">
+                <div class="detail-summary">
+                    <div class="detail-mini-card">
+                        <div class="detail-mini-label">Categoria</div>
+                        <div class="detail-mini-value" id="modalDetalheCategoria">-</div>
+                    </div>
+
+                    <div class="detail-mini-card">
+                        <div class="detail-mini-label">Subcategoria</div>
+                        <div class="detail-mini-value" id="modalDetalheSubcategoria">-</div>
+                    </div>
+
+                    <div class="detail-mini-card">
+                        <div class="detail-mini-label">Quantidade</div>
+                        <div class="detail-mini-value" id="modalDetalheQuantidade">0</div>
+                    </div>
+
+                    <div class="detail-mini-card">
+                        <div class="detail-mini-label">Total</div>
+                        <div class="detail-mini-value" id="modalDetalheTotal">R$ 0,00</div>
+                    </div>
+                </div>
+
+                <div id="modalDetalheConteudo"></div>
+            </div>
+        </section>
+    </div>
+
     <script>
         const ORDEM_MESES = [
-            "JAN",
-            "FEV",
-            "MAR",
-            "ABR",
-            "MAI",
-            "JUN",
-            "JUL",
-            "AGO",
-            "SET",
-            "OUT",
-            "NOV",
-            "DEZ"
+            "JAN", "FEV", "MAR", "ABR", "MAI", "JUN",
+            "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"
         ];
+
+        const REGISTROS_ORCAMENTO = {{ registros | tojson }};
 
         function setValor(id, valor) {
             const campo = document.getElementById(id);
-
             if (campo) {
                 campo.value = valor || "";
             }
+        }
+
+        function mostrarModo(modo) {
+            const consultar = modo === "consultar";
+
+            document.getElementById("tabConsultar").classList.toggle("active", consultar);
+            document.getElementById("tabCadastrar").classList.toggle("active", !consultar);
+
+            document.getElementById("secaoConsultar").classList.toggle("active", consultar);
+            document.getElementById("secaoCadastrar").classList.toggle("active", !consultar);
+        }
+
+        function mostrarCadastro(tipo) {
+            const novo = tipo === "novo";
+
+            document.getElementById("subTabNovo").classList.toggle("active", novo);
+            document.getElementById("subTabDuplicar").classList.toggle("active", !novo);
+
+            document.getElementById("cadastroNovo").classList.toggle("active", novo);
+            document.getElementById("cadastroDuplicar").classList.toggle("active", !novo);
         }
 
         function editarOrcamento(botao) {
@@ -931,6 +1423,9 @@
             setValor("observacao", dados.observacao);
 
             document.getElementById("botaoSalvar").textContent = "Salvar alteração";
+
+            mostrarModo("cadastrar");
+            mostrarCadastro("novo");
 
             window.scrollTo({
                 top: 0,
@@ -1014,8 +1509,636 @@
             return true;
         }
 
+        function escaparHtml(valor) {
+            return String(valor || "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        function normalizar(valor) {
+            return String(valor || "")
+                .toUpperCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+        }
+
+        function obterValorNumerico(item, campo) {
+            const raw = item[campo] ?? 0;
+
+            if (typeof raw === "number") {
+                return raw;
+            }
+
+            let texto = String(raw || "").trim();
+
+            if (!texto) {
+                return 0;
+            }
+
+            texto = texto
+                .replace("R$", "")
+                .replace(/\s/g, "")
+                .replace(/\./g, "")
+                .replace(",", ".");
+
+            const numero = Number(texto);
+
+            if (Number.isNaN(numero)) {
+                return 0;
+            }
+
+            return numero;
+        }
+
+        function valorPrevisto(item) {
+            return obterValorNumerico(item, "VALOR_PREVISTO_NUM") || obterValorNumerico(item, "VALOR_PREVISTO_RAW");
+        }
+
+        function valorRealizadoSubcategoria(item) {
+            return obterValorNumerico(item, "VALOR_REALIZADO_NUM");
+        }
+
+        function valorFaltante(item) {
+            return obterValorNumerico(item, "VALOR_FALTANTE_NUM");
+        }
+
+        function valorExcesso(item) {
+            return obterValorNumerico(item, "VALOR_EXCESSO_NUM");
+        }
+
+        function percentualExecutado(item) {
+            return obterValorNumerico(item, "PERCENTUAL_EXECUTADO");
+        }
+
+        function formatarMoeda(valor) {
+            return Number(valor || 0).toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL"
+            });
+        }
+
+        function formatarPercentual(valor) {
+            return `${Number(valor || 0).toFixed(1).replace(".", ",")}%`;
+        }
+
+        function classePillTipo(tipo) {
+            const t = normalizar(tipo);
+
+            if (t === "RECEITA") {
+                return "pill pill-receita";
+            }
+
+            if (t === "DESPESA") {
+                return "pill pill-despesa";
+            }
+
+            if (t === "INVESTIMENTO") {
+                return "pill pill-investimento";
+            }
+
+            if (t === "TRANSFERENCIA" || t === "TRANSFERÊNCIA") {
+                return "pill pill-transferencia";
+            }
+
+            return "pill";
+        }
+
+        function classeStatus(status) {
+            const s = normalizar(status);
+
+            if (s === "EXECUTADO") {
+                return "pill pill-status-green";
+            }
+
+            if (s === "EM ANDAMENTO") {
+                return "pill pill-status-amber";
+            }
+
+            if (
+                s === "ESTOURADO" ||
+                s === "NAO INICIADO" ||
+                s === "NÃO INICIADO" ||
+                s === "NAO ORCADO" ||
+                s === "NÃO ORÇADO"
+            ) {
+                return "pill pill-status-red";
+            }
+
+            return "pill";
+        }
+
+        function classeBarra(status) {
+            const s = normalizar(status);
+
+            if (s === "EXECUTADO") {
+                return "green-bg";
+            }
+
+            if (s === "EM ANDAMENTO") {
+                return "amber-bg";
+            }
+
+            if (
+                s === "ESTOURADO" ||
+                s === "NAO INICIADO" ||
+                s === "NÃO INICIADO" ||
+                s === "NAO ORCADO" ||
+                s === "NÃO ORÇADO"
+            ) {
+                return "red-bg";
+            }
+
+            return "";
+        }
+
+        function classeBordaGrupo(status) {
+            const s = normalizar(status);
+
+            if (s === "EXECUTADO") {
+                return "green-border";
+            }
+
+            if (s === "EM ANDAMENTO") {
+                return "amber-border";
+            }
+
+            if (
+                s === "ESTOURADO" ||
+                s === "NAO INICIADO" ||
+                s === "NÃO INICIADO" ||
+                s === "NAO ORCADO" ||
+                s === "NÃO ORÇADO"
+            ) {
+                return "red-border";
+            }
+
+            return "";
+        }
+
+        function classeHeaderGrupo(status) {
+            const s = normalizar(status);
+
+            if (s === "EXECUTADO") {
+                return "status-green";
+            }
+
+            if (s === "EM ANDAMENTO") {
+                return "status-amber";
+            }
+
+            if (
+                s === "ESTOURADO" ||
+                s === "NAO INICIADO" ||
+                s === "NÃO INICIADO" ||
+                s === "NAO ORCADO" ||
+                s === "NÃO ORÇADO"
+            ) {
+                return "status-red";
+            }
+
+            return "";
+        }
+
+        function rotuloTipo(tipo) {
+            const t = String(tipo || "").trim();
+
+            if (normalizar(t) === "TRANSFERENCIA") {
+                return "TRANSFERÊNCIA";
+            }
+
+            return t || "SEM TIPO";
+        }
+
+        function itemPassaBusca(item, busca) {
+            if (!busca) {
+                return true;
+            }
+
+            const detalhes = Array.isArray(item.LANCAMENTOS_DETALHE)
+                ? item.LANCAMENTOS_DETALHE.map(function (lancamento) {
+                    return [
+                        lancamento.DATA,
+                        lancamento.DESCRICAO,
+                        lancamento.CATEGORIA,
+                        lancamento.SUBCATEGORIA,
+                        lancamento.SITUACAO,
+                        lancamento.VALOR_FMT
+                    ].map(normalizar).join(" ");
+                }).join(" ")
+                : "";
+
+            const texto = [
+                item.ANO,
+                item.MES,
+                item.TIPO,
+                item.CATEGORIA,
+                item.SUBCATEGORIA,
+                item.VALOR_PREVISTO_FMT,
+                item.VALOR_REALIZADO_FMT,
+                item.VALOR_FALTANTE_FMT,
+                item.STATUS_EXECUCAO,
+                item.PERCENTUAL_EXECUTADO_FMT,
+                item.ITEM_NAO_ORCADO ? "NAO ORCADO NÃO ORÇADO" : "ORCADO ORÇADO",
+                detalhes
+            ].map(normalizar).join(" ");
+
+            return texto.includes(busca);
+        }
+
+        function agruparRegistros(registros) {
+            const grupos = {};
+
+            registros.forEach(function (item) {
+                const tipo = rotuloTipo(item.TIPO);
+                const categoria = String(item.CATEGORIA || "SEM CATEGORIA").trim() || "SEM CATEGORIA";
+                const chave = `${tipo}||${categoria}`;
+
+                if (!grupos[chave]) {
+                    grupos[chave] = {
+                        tipo: tipo,
+                        categoria: categoria,
+                        totalPrevisto: 0,
+                        totalRealizado: 0,
+                        totalFaltante: 0,
+                        totalExcesso: 0,
+                        percentual: 0,
+                        status: "NÃO INICIADO",
+                        itens: []
+                    };
+                }
+
+                grupos[chave].totalPrevisto += valorPrevisto(item);
+                grupos[chave].totalRealizado += valorRealizadoSubcategoria(item);
+                grupos[chave].itens.push(item);
+            });
+
+            Object.values(grupos).forEach(function (grupo) {
+                grupo.totalFaltante = Math.max(grupo.totalPrevisto - grupo.totalRealizado, 0);
+                grupo.totalExcesso = Math.max(grupo.totalRealizado - grupo.totalPrevisto, 0);
+
+                if (grupo.totalPrevisto > 0) {
+                    grupo.percentual = grupo.totalRealizado / grupo.totalPrevisto * 100;
+                }
+
+                if (grupo.totalRealizado <= 0) {
+                    grupo.status = "NÃO INICIADO";
+                } else if (grupo.totalExcesso > 0) {
+                    grupo.status = "ESTOURADO";
+                } else if (grupo.totalRealizado < grupo.totalPrevisto) {
+                    grupo.status = "EM ANDAMENTO";
+                } else {
+                    grupo.status = "EXECUTADO";
+                }
+            });
+
+            return Object.values(grupos).sort(function (a, b) {
+                const ordemTipo = {
+                    "RECEITA": 1,
+                    "DESPESA": 2,
+                    "INVESTIMENTO": 3,
+                    "TRANSFERÊNCIA": 4
+                };
+
+                const ordemA = ordemTipo[a.tipo] || 99;
+                const ordemB = ordemTipo[b.tipo] || 99;
+
+                if (ordemA !== ordemB) {
+                    return ordemA - ordemB;
+                }
+
+                return a.categoria.localeCompare(b.categoria, "pt-BR");
+            });
+        }
+
+        function obterIndiceRegistro(item) {
+            return REGISTROS_ORCAMENTO.indexOf(item);
+        }
+
+        function montarBotaoDetalhe(item) {
+            const indice = obterIndiceRegistro(item);
+            const qtd = Number(item.QTD_LANCAMENTOS_DETALHE || 0);
+
+            if (qtd <= 0 || indice < 0) {
+                return `
+                    <button type="button" class="disabled-button" disabled>
+                        Sem lançamentos
+                    </button>
+                `;
+            }
+
+            return `
+                <button
+                    type="button"
+                    class="detail-button"
+                    onclick="abrirDetalheLancamentos(${indice})"
+                >
+                    Ver lançamentos (${qtd})
+                </button>
+            `;
+        }
+
+        function montarBotaoEditar(item) {
+            if (item.ITEM_NAO_ORCADO) {
+                return `
+                    <button type="button" class="disabled-button" disabled>
+                        Sem orçamento
+                    </button>
+                `;
+            }
+
+            return `
+                <button
+                    type="button"
+                    class="edit-button"
+                    onclick="editarOrcamento(this)"
+                    data-id="${escaparHtml(item.ID)}"
+                    data-ano="${escaparHtml(item.ANO)}"
+                    data-mes="${escaparHtml(item.MES)}"
+                    data-tipo="${escaparHtml(item.TIPO)}"
+                    data-categoria="${escaparHtml(item.CATEGORIA)}"
+                    data-subcategoria="${escaparHtml(item.SUBCATEGORIA)}"
+                    data-valor-previsto="${escaparHtml(item.VALOR_PREVISTO_RAW)}"
+                    data-observacao="${escaparHtml(item.OBSERVACAO)}"
+                >
+                    Editar
+                </button>
+            `;
+        }
+
+        function montarBotaoExcluir(item) {
+            if (item.ITEM_NAO_ORCADO) {
+                return "";
+            }
+
+            return `
+                <form method="post" action="/financeiro/orcamento/excluir/${encodeURIComponent(item.ID || "")}" onsubmit="return confirm('Excluir este item de orçamento?');">
+                    <button type="submit" class="delete-button">
+                        Excluir
+                    </button>
+                </form>
+            `;
+        }
+
+        function montarLinhaItem(item) {
+            const status = item.STATUS_EXECUCAO || "NÃO INICIADO";
+            const percentual = Math.min(percentualExecutado(item), 150);
+            const percentualBarra = Math.min(percentual, 100);
+            const realizadoSub = valorRealizadoSubcategoria(item);
+            const qtdDetalhes = Number(item.QTD_LANCAMENTOS_DETALHE || 0);
+
+            let ajudaSub = "Sem correspondência exata por subcategoria";
+
+            if (item.ITEM_NAO_ORCADO) {
+                ajudaSub = "Executado sem orçamento previsto";
+            } else if (realizadoSub > 0) {
+                ajudaSub = `Executado por subcategoria exata • ${qtdDetalhes} lançamento(s)`;
+            }
+
+            return `
+                <tr>
+                    <td>
+                        <div class="subcategoria-principal">
+                            ${escaparHtml(item.SUBCATEGORIA || "Sem subcategoria")}
+                        </div>
+                        <div class="subcategoria-ajuda">${escaparHtml(ajudaSub)}</div>
+                    </td>
+
+                    <td>
+                        <span class="pill">${escaparHtml(item.MES)}</span>
+                    </td>
+
+                    <td class="money">
+                        ${escaparHtml(item.VALOR_PREVISTO_FMT || formatarMoeda(valorPrevisto(item)))}
+                    </td>
+
+                    <td class="money-muted">
+                        ${escaparHtml(item.VALOR_REALIZADO_FMT || formatarMoeda(realizadoSub))}
+                    </td>
+
+                    <td class="money-muted">
+                        ${escaparHtml(item.VALOR_FALTANTE_FMT || formatarMoeda(valorFaltante(item)))}
+                    </td>
+
+                    <td class="money-muted">
+                        ${escaparHtml(item.VALOR_EXCESSO_FMT || formatarMoeda(valorExcesso(item)))}
+                    </td>
+
+                    <td>
+                        <div class="money-muted">${escaparHtml(item.PERCENTUAL_EXECUTADO_FMT || formatarPercentual(percentualExecutado(item)))}</div>
+                        <div class="progress-wrap">
+                            <div class="progress-fill ${classeBarra(status)}" style="width: ${percentualBarra}%;"></div>
+                        </div>
+                    </td>
+
+                    <td>
+                        <span class="${classeStatus(status)}">${escaparHtml(status)}</span>
+                    </td>
+
+                    <td>
+                        <div class="actions">
+                            ${montarBotaoDetalhe(item)}
+                            ${montarBotaoEditar(item)}
+                            ${montarBotaoExcluir(item)}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function montarGrupoOrcamento(grupo) {
+            const tipo = rotuloTipo(grupo.tipo);
+            const percentualBarra = Math.min(grupo.percentual, 100);
+
+            return `
+                <article class="budget-group ${classeBordaGrupo(grupo.status)}">
+                    <header class="budget-group-header ${classeHeaderGrupo(grupo.status)}">
+                        <div class="budget-group-title">
+                            <span class="${classePillTipo(tipo)}">${escaparHtml(tipo)}</span>
+                            <strong>${escaparHtml(grupo.categoria)}</strong>
+                            <span class="${classeStatus(grupo.status)}">${escaparHtml(grupo.status)}</span>
+                        </div>
+
+                        <div class="group-total-box">
+                            <div class="group-total-label">Previsto</div>
+                            <div class="group-total-value">${formatarMoeda(grupo.totalPrevisto)}</div>
+                        </div>
+
+                        <div class="group-total-box">
+                            <div class="group-total-label">Executado exibido</div>
+                            <div class="group-total-value">${formatarMoeda(grupo.totalRealizado)}</div>
+                        </div>
+
+                        <div class="group-total-box">
+                            <div class="group-total-label">Falta</div>
+                            <div class="group-total-value">${formatarMoeda(grupo.totalFaltante)}</div>
+                        </div>
+
+                        <div class="group-total-box">
+                            <div class="group-total-label">% Executado</div>
+                            <div class="group-total-value">${formatarPercentual(grupo.percentual)}</div>
+                            <div class="progress-wrap">
+                                <div class="progress-fill ${classeBarra(grupo.status)}" style="width: ${percentualBarra}%;"></div>
+                            </div>
+                        </div>
+                    </header>
+
+                    <table class="budget-table">
+                        <thead>
+                            <tr>
+                                <th>Subcategoria</th>
+                                <th>Mês</th>
+                                <th style="text-align: right;">Previsto</th>
+                                <th style="text-align: right;">Executado</th>
+                                <th style="text-align: right;">Falta</th>
+                                <th style="text-align: right;">Excesso</th>
+                                <th style="text-align: right;">%</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Ações</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            ${grupo.itens.map(montarLinhaItem).join("")}
+                        </tbody>
+                    </table>
+                </article>
+            `;
+        }
+
+        function renderizarOrcamentoAgrupado() {
+            const container = document.getElementById("orcamentoAgrupado");
+
+            if (!container) {
+                return;
+            }
+
+            const busca = normalizar(document.getElementById("buscaRapida")?.value || "");
+
+            const registrosFiltrados = REGISTROS_ORCAMENTO.filter(function (item) {
+                return itemPassaBusca(item, busca);
+            });
+
+            if (registrosFiltrados.length === 0) {
+                container.innerHTML = `
+                    <div class="empty">
+                        Nenhum item encontrado para a busca rápida informada.
+                    </div>
+                `;
+                return;
+            }
+
+            const grupos = agruparRegistros(registrosFiltrados);
+
+            container.innerHTML = grupos.map(montarGrupoOrcamento).join("");
+        }
+
+        function limparBuscaRapida() {
+            const campo = document.getElementById("buscaRapida");
+
+            if (campo) {
+                campo.value = "";
+            }
+
+            renderizarOrcamentoAgrupado();
+        }
+
+        function abrirDetalheLancamentos(indice) {
+            const item = REGISTROS_ORCAMENTO[indice];
+
+            if (!item) {
+                return;
+            }
+
+            const lancamentos = Array.isArray(item.LANCAMENTOS_DETALHE)
+                ? item.LANCAMENTOS_DETALHE
+                : [];
+
+            const total = lancamentos.reduce(function (acc, lancamento) {
+                return acc + obterValorNumerico(lancamento, "VALOR_NUM");
+            }, 0);
+
+            document.getElementById("modalDetalheTitulo").textContent = "Lançamentos do orçamento";
+            document.getElementById("modalDetalheSubtitulo").textContent = `${item.TIPO || ""} • ${item.MES || ""} • ${item.STATUS_EXECUCAO || ""}`;
+            document.getElementById("modalDetalheCategoria").textContent = item.CATEGORIA || "-";
+            document.getElementById("modalDetalheSubcategoria").textContent = item.SUBCATEGORIA || "-";
+            document.getElementById("modalDetalheQuantidade").textContent = String(lancamentos.length);
+            document.getElementById("modalDetalheTotal").textContent = formatarMoeda(total);
+
+            const conteudo = document.getElementById("modalDetalheConteudo");
+
+            if (lancamentos.length === 0) {
+                conteudo.innerHTML = `
+                    <div class="empty">
+                        Nenhum lançamento localizado para esta subcategoria.
+                    </div>
+                `;
+            } else {
+                conteudo.innerHTML = `
+                    <div class="detail-table-wrap">
+                        <table class="detail-table">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th>Categoria</th>
+                                    <th>Subcategoria</th>
+                                    <th>Situação</th>
+                                    <th>Conta</th>
+                                    <th>Origem</th>
+                                    <th style="text-align: right;">Valor</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                ${lancamentos.map(function (lancamento) {
+                                    return `
+                                        <tr>
+                                            <td>${escaparHtml(lancamento.DATA)}</td>
+                                            <td>
+                                                <div class="detail-description">
+                                                    ${escaparHtml(lancamento.DESCRICAO)}
+                                                </div>
+                                            </td>
+                                            <td>${escaparHtml(lancamento.CATEGORIA)}</td>
+                                            <td>${escaparHtml(lancamento.SUBCATEGORIA)}</td>
+                                            <td>${escaparHtml(lancamento.SITUACAO)}</td>
+                                            <td>${escaparHtml(lancamento.CONTA)}</td>
+                                            <td>${escaparHtml(lancamento.ORIGEM)}</td>
+                                            <td class="money">${escaparHtml(lancamento.VALOR_FMT)}</td>
+                                        </tr>
+                                    `;
+                                }).join("")}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            document.getElementById("modalDetalheLancamentos").classList.add("active");
+        }
+
+        function fecharDetalheLancamentos() {
+            document.getElementById("modalDetalheLancamentos").classList.remove("active");
+        }
+
+        function fecharDetalheLancamentosPorFundo(event) {
+            if (event.target && event.target.id === "modalDetalheLancamentos") {
+                fecharDetalheLancamentos();
+            }
+        }
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                fecharDetalheLancamentos();
+            }
+        });
+
         document.addEventListener("DOMContentLoaded", function () {
             atualizarMesesDestino();
+            renderizarOrcamentoAgrupado();
         });
     </script>
 </body>

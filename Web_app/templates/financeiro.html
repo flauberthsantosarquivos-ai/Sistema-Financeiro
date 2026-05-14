@@ -285,6 +285,160 @@
             background: #111827;
         }
 
+        .executive-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .executive-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            box-shadow: var(--shadow-soft);
+            padding: 18px;
+            min-height: 142px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .executive-card::after {
+            content: "";
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            border-radius: 999px;
+            right: -35px;
+            top: -35px;
+            opacity: 0.7;
+        }
+
+        .executive-card.green::after {
+            background: var(--green-bg);
+        }
+
+        .executive-card.red::after {
+            background: var(--red-bg);
+        }
+
+        .executive-card.amber::after {
+            background: var(--amber-bg);
+        }
+
+        .executive-card.purple::after {
+            background: var(--purple-bg);
+        }
+
+        .executive-card.blue::after {
+            background: var(--primary-soft);
+        }
+
+        .executive-label {
+            position: relative;
+            z-index: 1;
+            font-size: 11px;
+            font-weight: 950;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 10px;
+        }
+
+        .executive-value {
+            position: relative;
+            z-index: 1;
+            font-size: 24px;
+            font-weight: 950;
+            letter-spacing: -0.045em;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .executive-card.green .executive-value {
+            color: var(--green);
+        }
+
+        .executive-card.red .executive-value {
+            color: var(--red);
+        }
+
+        .executive-card.amber .executive-value {
+            color: var(--amber);
+        }
+
+        .executive-card.purple .executive-value {
+            color: var(--purple);
+        }
+
+        .executive-card.blue .executive-value {
+            color: var(--primary);
+        }
+
+        .executive-note {
+            position: relative;
+            z-index: 1;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.42;
+            font-weight: 750;
+        }
+
+        .dashboard-insight {
+            display: grid;
+            grid-template-columns: 1.4fr 0.6fr;
+            gap: 14px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow: var(--shadow-soft);
+            padding: 20px;
+        }
+
+        .dashboard-insight-label {
+            font-size: 11px;
+            font-weight: 950;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+
+        .dashboard-insight h3 {
+            margin: 0 0 8px;
+            font-size: 21px;
+            letter-spacing: -0.03em;
+        }
+
+        .dashboard-insight p {
+            margin: 0;
+            color: var(--muted);
+            font-weight: 650;
+            line-height: 1.52;
+        }
+
+        .dashboard-insight-side {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+        }
+
+        .dashboard-insight-side strong {
+            display: block;
+            font-size: 18px;
+            letter-spacing: -0.03em;
+            margin-bottom: 6px;
+        }
+
+        .dashboard-insight-side span {
+            display: block;
+            color: var(--red);
+            font-size: 20px;
+            font-weight: 950;
+            letter-spacing: -0.03em;
+        }
+
         .top-grid {
             display: grid;
             grid-template-columns: 1.1fr 0.9fr;
@@ -838,8 +992,13 @@
             .hero,
             .top-grid,
             .analysis-feature,
-            .info-grid {
+            .info-grid,
+            .dashboard-insight {
                 grid-template-columns: 1fr;
+            }
+
+            .executive-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
             .module-grid {
@@ -866,7 +1025,8 @@
 
             .module-grid,
             .quick-actions,
-            .analysis-list {
+            .analysis-list,
+            .executive-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -911,7 +1071,106 @@
             <a href="/financeiro/analise">Painel Gerencial</a>
             <a href="/financeiro/patrimonio">Patrimônio</a>
             <a href="/financeiro/investimentos">Investimentos</a>
+            <a href="/financeiro/metas">Metas</a>
         </nav>
+
+        <section class="section">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Resumo executivo do mês</h2>
+                    <p class="section-subtitle">
+                        Visão automática de {{ dashboard.mes_nome }}/{{ dashboard.ano }}, calculada a partir da BASE_LANCAMENTOS e do ORCAMENTO_MENSAL.
+                    </p>
+                </div>
+
+                <div class="config-actions">
+                    <a class="btn btn-primary" href="/financeiro/analise?periodo_tipo=mes_unico&mes_unico={{ dashboard.mes }}&ano={{ dashboard.ano }}">
+                        Abrir análise do mês
+                    </a>
+
+                    <a class="btn btn-secondary" href="/financeiro/base-lancamentos">
+                        Revisar base
+                    </a>
+                </div>
+            </div>
+
+            {% if dashboard.erro %}
+                <div class="warning-box">
+                    Não foi possível carregar todos os indicadores do dashboard inicial.
+                    Detalhe: {{ dashboard.erro }}
+                </div>
+            {% endif %}
+
+            <div class="executive-grid">
+                <article class="executive-card green">
+                    <div class="executive-label">Receitas realizadas</div>
+                    <div class="executive-value">{{ dashboard.total_receitas_fmt }}</div>
+                    <div class="executive-note">
+                        Previsto: {{ dashboard.total_receitas_previsto_fmt }} • {{ dashboard.qtd_receitas }} lançamento(s)
+                    </div>
+                </article>
+
+                <article class="executive-card red">
+                    <div class="executive-label">Despesas realizadas</div>
+                    <div class="executive-value">{{ dashboard.total_despesas_fmt }}</div>
+                    <div class="executive-note">
+                        Previsto: {{ dashboard.total_despesas_previsto_fmt }} • Execução: {{ dashboard.percentual_execucao_despesas_fmt }}
+                    </div>
+                </article>
+
+                <article class="executive-card {{ dashboard.saldo_classe }}">
+                    <div class="executive-label">Saldo operacional</div>
+                    <div class="executive-value">{{ dashboard.saldo_fmt }}</div>
+                    <div class="executive-note">
+                        Receitas menos despesas no mês selecionado.
+                    </div>
+                </article>
+
+                <article class="executive-card purple">
+                    <div class="executive-label">Investimentos</div>
+                    <div class="executive-value">{{ dashboard.total_investimentos_fmt }}</div>
+                    <div class="executive-note">
+                        Previsto: {{ dashboard.total_investimentos_previsto_fmt }} • {{ dashboard.qtd_investimentos }} lançamento(s)
+                    </div>
+                </article>
+
+                <article class="executive-card amber">
+                    <div class="executive-label">Pendências</div>
+                    <div class="executive-value">{{ dashboard.qtd_a_classificar }}</div>
+                    <div class="executive-note">
+                        Lançamento(s) a classificar ou revisar.
+                    </div>
+                </article>
+
+                <article class="executive-card blue">
+                    <div class="executive-label">Orçamento do mês</div>
+                    <div class="executive-value">
+                        {% if dashboard.orcamento_cadastrado %}
+                            OK
+                        {% else %}
+                            Pendente
+                        {% endif %}
+                    </div>
+                    <div class="executive-note">
+                        {{ dashboard.qtd_itens_orcamento }} item(ns) previsto(s) no orçamento.
+                    </div>
+                </article>
+            </div>
+
+            <div class="dashboard-insight">
+                <div>
+                    <div class="dashboard-insight-label">Diagnóstico automático</div>
+                    <h3>{{ dashboard.diagnostico_principal.titulo }}</h3>
+                    <p>{{ dashboard.diagnostico_principal.texto }}</p>
+                </div>
+
+                <div class="dashboard-insight-side">
+                    <div class="dashboard-insight-label">Maior categoria de despesa</div>
+                    <strong>{{ dashboard.maior_categoria }}</strong>
+                    <span>{{ dashboard.maior_categoria_valor_fmt }}</span>
+                </div>
+            </div>
+        </section>
 
         <section class="top-grid">
             <article class="config-panel">
@@ -1024,6 +1283,14 @@
                         </span>
                     </a>
 
+                    <a class="quick-action" href="/financeiro/metas">
+                        <span class="quick-icon">M</span>
+                        <span>
+                            <strong>Metas</strong>
+                            <span>Acompanhar objetivos financeiros e progresso.</span>
+                        </span>
+                    </a>
+
                     <a class="quick-action" href="/financeiro/lancamento">
                         <span class="quick-icon">+</span>
                         <span>
@@ -1049,7 +1316,7 @@
                     <h2 class="section-title">Módulos da Central Financeira</h2>
                     <p class="section-subtitle">
                         Cada módulo tem uma função específica. A ideia é evitar mistura entre importação,
-                        revisão, orçamento, patrimônio, investimentos e visão gerencial.
+                        revisão, orçamento, patrimônio, investimentos, metas e visão gerencial.
                     </p>
                 </div>
             </div>
@@ -1188,10 +1455,29 @@
                     </div>
                 </article>
 
-                <article class="module-card dark">
+                <article class="module-card blue">
                     <div class="module-top">
                         <div class="module-meta">
                             <div class="module-number">8</div>
+                            <div class="module-label">Objetivos</div>
+                        </div>
+
+                        <h3>Metas financeiras</h3>
+                        <p>
+                            Acompanhe objetivos financeiros, evolução por meta, status de cumprimento
+                            e direcionamento para reserva, investimentos ou redução de despesas.
+                        </p>
+                    </div>
+
+                    <div class="module-actions">
+                        <a class="btn btn-primary" href="/financeiro/metas">Abrir Metas</a>
+                    </div>
+                </article>
+
+                <article class="module-card dark">
+                    <div class="module-top">
+                        <div class="module-meta">
+                            <div class="module-number">9</div>
                             <div class="module-label">Manutenção</div>
                         </div>
 
@@ -1260,13 +1546,21 @@
                     <div class="timeline-item">
                         <div class="timeline-dot">6</div>
                         <div class="timeline-content">
+                            <strong>Cadastrar metas</strong>
+                            <span>Defina objetivos financeiros e acompanhe o progresso.</span>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-dot">7</div>
+                        <div class="timeline-content">
                             <strong>Analisar investimentos</strong>
                             <span>Veja radar de mercado, cripto, ações, alertas e caminhos sugeridos.</span>
                         </div>
                     </div>
 
                     <div class="timeline-item">
-                        <div class="timeline-dot">7</div>
+                        <div class="timeline-dot">8</div>
                         <div class="timeline-content">
                             <strong>Abrir os painéis</strong>
                             <span>Consulte o Painel Gerencial, Patrimônio Financeiro e Análise de Investimentos.</span>
@@ -1278,11 +1572,11 @@
             <article class="analysis-card">
                 <div class="analysis-card-content">
                     <div class="eyebrow">Painéis principais de decisão</div>
-                    <h2>Painel Gerencial e Investimentos</h2>
+                    <h2>Painel Gerencial, Metas e Investimentos</h2>
                     <p>
-                        O Painel Gerencial mostra a situação financeira do mês. O módulo de Investimentos
-                        interpreta o patrimônio, consulta dados de mercado, identifica riscos e sugere caminhos
-                        educativos de alocação.
+                        O Painel Gerencial mostra a situação financeira do mês. O módulo de Metas acompanha
+                        objetivos financeiros. O módulo de Investimentos interpreta o patrimônio, consulta dados
+                        de mercado, identifica riscos e sugere caminhos educativos de alocação.
                     </p>
 
                     <div class="analysis-list">
@@ -1290,14 +1584,15 @@
                         <div class="analysis-item">Previsto x realizado</div>
                         <div class="analysis-item">Comprometimento da renda</div>
                         <div class="analysis-item">Diagnóstico automático</div>
+                        <div class="analysis-item">Metas financeiras</div>
                         <div class="analysis-item">Radar cripto</div>
                         <div class="analysis-item">Ações, ETFs e FIIs</div>
                         <div class="analysis-item">Cenário de juros</div>
-                        <div class="analysis-item">Caminhos sugeridos</div>
                     </div>
 
                     <div class="analysis-actions">
                         <a class="btn" href="/financeiro/analise">Abrir Painel Gerencial</a>
+                        <a class="btn" href="/financeiro/metas">Abrir Metas</a>
                         <a class="btn" href="/financeiro/patrimonio">Abrir Patrimônio</a>
                         <a class="btn" href="/financeiro/investimentos">Abrir Investimentos</a>
                     </div>
@@ -1341,11 +1636,16 @@
 
                     <div class="check-item">
                         <span class="check-icon">6</span>
-                        <span>Consulte a Análise de Investimentos para avaliar cenário, riscos e oportunidades.</span>
+                        <span>Cadastre e acompanhe suas metas financeiras.</span>
                     </div>
 
                     <div class="check-item">
                         <span class="check-icon">7</span>
+                        <span>Consulte a Análise de Investimentos para avaliar cenário, riscos e oportunidades.</span>
+                    </div>
+
+                    <div class="check-item">
+                        <span class="check-icon">8</span>
                         <span>Consulte o Painel Gerencial e o Painel Patrimonial.</span>
                     </div>
                 </div>
@@ -1355,8 +1655,8 @@
                 <h2>Estrutura de dados</h2>
                 <p>
                     O Painel Gerencial usa a base de lançamentos para o realizado, o orçamento mensal
-                    para os valores previstos, o patrimônio para os ativos e o módulo de investimentos
-                    para radar e direcionamento.
+                    para os valores previstos, o patrimônio para os ativos, as metas para objetivos financeiros
+                    e o módulo de investimentos para radar e direcionamento.
                 </p>
 
                 <div class="checklist">
@@ -1373,6 +1673,11 @@
                     <div class="check-item">
                         <span class="check-icon">✓</span>
                         <span><strong>PATRIMONIO_FINANCEIRO</strong>: ativos, saldos mensais, composição e evolução patrimonial.</span>
+                    </div>
+
+                    <div class="check-item">
+                        <span class="check-icon">✓</span>
+                        <span><strong>METAS_FINANCEIRAS</strong>: objetivos, prazos, valores e acompanhamento de progresso.</span>
                     </div>
 
                     <div class="check-item">

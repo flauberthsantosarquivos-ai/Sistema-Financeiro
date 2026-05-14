@@ -1301,6 +1301,142 @@ def gerar_diagnostico(
     return diagnosticos
 
 
+def obter_mes_atual_sigla() -> str:
+    mapa = {
+        1: "JAN",
+        2: "FEV",
+        3: "MAR",
+        4: "ABR",
+        5: "MAI",
+        6: "JUN",
+        7: "JUL",
+        8: "AGO",
+        9: "SET",
+        10: "OUT",
+        11: "NOV",
+        12: "DEZ",
+    }
+
+    return mapa.get(date.today().month, "")
+
+
+def montar_dashboard_inicial(ano_base: str) -> dict:
+    ano_final = str(ano_base or date.today().year)
+    mes_atual = obter_mes_atual_sigla()
+    nome_mes_atual = MESES_MAPA.get(mes_atual, mes_atual)
+
+    dashboard_padrao = {
+        "ano": ano_final,
+        "mes": mes_atual,
+        "mes_nome": nome_mes_atual,
+        "erro": None,
+
+        "total_lancamentos": 0,
+        "qtd_receitas": 0,
+        "qtd_despesas": 0,
+        "qtd_investimentos": 0,
+        "qtd_a_classificar": 0,
+
+        "total_receitas_fmt": formatar_moeda(0),
+        "total_despesas_fmt": formatar_moeda(0),
+        "total_investimentos_fmt": formatar_moeda(0),
+        "saldo_fmt": formatar_moeda(0),
+        "saldo_classe": "green",
+
+        "total_receitas_previsto_fmt": formatar_moeda(0),
+        "total_despesas_previsto_fmt": formatar_moeda(0),
+        "total_investimentos_previsto_fmt": formatar_moeda(0),
+
+        "percentual_execucao_despesas_fmt": "Sem previsto",
+        "orcamento_cadastrado": False,
+        "qtd_itens_orcamento": 0,
+
+        "maior_categoria": "Sem despesas",
+        "maior_categoria_valor_fmt": formatar_moeda(0),
+
+        "diagnostico_principal": {
+            "tipo": "info",
+            "titulo": "Sem dados carregados",
+            "texto": "Ainda não foi possível montar o resumo executivo do mês.",
+        },
+    }
+
+    try:
+        registros = ler_base_lancamentos()
+        registros_orcamento_todos = ler_orcamento_mensal()
+
+        registros_mes = filtrar_por_periodo(
+            registros=registros,
+            periodo_tipo="mes_unico",
+            mes_unico=mes_atual,
+            mes_inicio="JAN",
+            mes_fim="DEZ",
+            ano=ano_final,
+        )
+
+        registros_orcamento_mes = filtrar_orcamento_por_periodo(
+            registros_orcamento=registros_orcamento_todos,
+            periodo_tipo="mes_unico",
+            mes_unico=mes_atual,
+            mes_inicio="JAN",
+            mes_fim="DEZ",
+            ano=ano_final,
+        )
+
+        analise_mes = preparar_analise(
+            registros=registros_mes,
+            registros_ano=None,
+            registros_orcamento=registros_orcamento_mes,
+        )
+
+        diagnosticos = analise_mes.get("diagnosticos", [])
+        diagnostico_principal = dashboard_padrao["diagnostico_principal"]
+
+        if diagnosticos:
+            diagnostico_principal = diagnosticos[0]
+
+        saldo = float(analise_mes.get("saldo", 0) or 0)
+
+        return {
+            **dashboard_padrao,
+            "total_lancamentos": analise_mes.get("total_lancamentos", 0),
+            "qtd_receitas": analise_mes.get("qtd_receitas", 0),
+            "qtd_despesas": analise_mes.get("qtd_despesas", 0),
+            "qtd_investimentos": analise_mes.get("qtd_investimentos", 0),
+            "qtd_a_classificar": analise_mes.get("qtd_a_classificar", 0),
+
+            "total_receitas_fmt": analise_mes.get("total_receitas_fmt", formatar_moeda(0)),
+            "total_despesas_fmt": analise_mes.get("total_despesas_fmt", formatar_moeda(0)),
+            "total_investimentos_fmt": analise_mes.get("total_investimentos_fmt", formatar_moeda(0)),
+            "saldo_fmt": analise_mes.get("saldo_fmt", formatar_moeda(0)),
+            "saldo_classe": "green" if saldo >= 0 else "red",
+
+            "total_receitas_previsto_fmt": analise_mes.get("total_receitas_previsto_fmt", formatar_moeda(0)),
+            "total_despesas_previsto_fmt": analise_mes.get("total_despesas_previsto_fmt", formatar_moeda(0)),
+            "total_investimentos_previsto_fmt": analise_mes.get("total_investimentos_previsto_fmt", formatar_moeda(0)),
+
+            "percentual_execucao_despesas_fmt": analise_mes.get("percentual_execucao_despesas_fmt", "Sem previsto"),
+            "orcamento_cadastrado": len(registros_orcamento_mes) > 0,
+            "qtd_itens_orcamento": len(registros_orcamento_mes),
+
+            "maior_categoria": analise_mes.get("maior_categoria", "Sem despesas"),
+            "maior_categoria_valor_fmt": analise_mes.get("maior_categoria_valor_fmt", formatar_moeda(0)),
+
+            "diagnostico_principal": diagnostico_principal,
+        }
+
+    except Exception as e:
+        return {
+            **dashboard_padrao,
+            "erro": str(e),
+            "diagnostico_principal": {
+                "tipo": "alerta",
+                "titulo": "Resumo executivo indisponível",
+                "texto": f"Não foi possível carregar os indicadores do mês: {e}",
+            },
+        }
+
+
 @router.get("/financeiro", response_class=HTMLResponse)
 async def financeiro_get(request: Request):
     config = obter_configuracao_sistema()
@@ -1310,6 +1446,10 @@ async def financeiro_get(request: Request):
 
     configuracao_ok = bool(planilha_google)
 
+    dashboard = montar_dashboard_inicial(
+        ano_base=ano_base or str(date.today().year),
+    )
+
     return templates.TemplateResponse(
         request=request,
         name="financeiro.html",
@@ -1318,6 +1458,7 @@ async def financeiro_get(request: Request):
             "planilha_google": planilha_google,
             "ano_base": ano_base,
             "configuracao_ok": configuracao_ok,
+            "dashboard": dashboard,
         },
     )
 

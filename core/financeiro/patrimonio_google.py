@@ -35,8 +35,8 @@ SUBDIVISOES_PADRAO = {
     ],
     "PAGBANK": [
         "FLV",
-        "SUPERMERCADO",
         "RESTAURANTE",
+        "SUPERMERCADO",
     ],
     "CRIPTOMOEDAS": [
         "MERCADO BITCOIN",
@@ -124,6 +124,9 @@ def ordem_subdivisao(nome_ativo: Any, nome_subdivisao: Any) -> int:
 
     if subdivisao in ordem:
         return ordem.index(subdivisao)
+
+    if subdivisao == SUBDIVISAO_GERAL:
+        return 998
 
     return 999
 
@@ -474,11 +477,12 @@ def obter_patrimonio_por_ano_mes(ano: str, mes: str) -> dict | None:
 
 def dados_formulario_padrao(ano: str, mes: str) -> dict:
     existente = obter_patrimonio_por_ano_mes(ano, mes)
+    itens_padrao = montar_itens_formulario_padrao()
 
     if existente:
         itens_existentes = existente.get("ITENS", [])
 
-        mapa = {
+        mapa_existentes = {
             (
                 normalizar_upper(item.get("ATIVO")),
                 normalizar_upper(item.get("SUBDIVISAO") or SUBDIVISAO_GERAL),
@@ -488,13 +492,13 @@ def dados_formulario_padrao(ano: str, mes: str) -> dict:
 
         itens_formulario = []
 
-        for item_padrao in montar_itens_formulario_padrao():
+        for item_padrao in itens_padrao:
             chave = (
                 normalizar_upper(item_padrao.get("ATIVO")),
-                normalizar_upper(item_padrao.get("SUBDIVISAO")),
+                normalizar_upper(item_padrao.get("SUBDIVISAO") or SUBDIVISAO_GERAL),
             )
 
-            existente_item = mapa.get(chave)
+            existente_item = mapa_existentes.get(chave)
 
             if existente_item:
                 itens_formulario.append(
@@ -507,12 +511,20 @@ def dados_formulario_padrao(ano: str, mes: str) -> dict:
                     }
                 )
             else:
-                itens_formulario.append(item_padrao)
+                itens_formulario.append(
+                    {
+                        "ATIVO": item_padrao["ATIVO"],
+                        "SUBDIVISAO": item_padrao["SUBDIVISAO"],
+                        "VALOR_INICIO": "",
+                        "VALOR_FIM": "",
+                        "OBSERVACAO": "",
+                    }
+                )
 
-        chaves_padrao = {
+        chaves_formulario = {
             (
                 normalizar_upper(item.get("ATIVO")),
-                normalizar_upper(item.get("SUBDIVISAO")),
+                normalizar_upper(item.get("SUBDIVISAO") or SUBDIVISAO_GERAL),
             )
             for item in itens_formulario
         }
@@ -523,7 +535,7 @@ def dados_formulario_padrao(ano: str, mes: str) -> dict:
                 normalizar_upper(item.get("SUBDIVISAO") or SUBDIVISAO_GERAL),
             )
 
-            if chave not in chaves_padrao:
+            if chave not in chaves_formulario:
                 itens_formulario.append(
                     {
                         "ATIVO": item.get("ATIVO", ""),
@@ -558,7 +570,7 @@ def dados_formulario_padrao(ano: str, mes: str) -> dict:
         "DATA_INICIO": "",
         "DATA_FIM": "",
         "OBSERVACAO": "",
-        "ITENS": montar_itens_formulario_padrao(),
+        "ITENS": itens_padrao,
     }
 
 
@@ -718,6 +730,34 @@ def montar_pizza_ativos(ativos: list[dict]) -> dict:
         cor = CORES_EVOLUCAO[indice % len(CORES_EVOLUCAO)]
         fim = inicio + percentual
 
+        subdivisoes = []
+        total_subdivisoes = sum(
+            float(sub.get("fim", 0) or 0)
+            for sub in ativo.get("subdivisoes", [])
+        )
+
+        for indice_sub, sub in enumerate(ativo.get("subdivisoes", [])):
+            nome_sub = str(sub.get("nome", "") or "").strip()
+            valor_sub = float(sub.get("fim", 0) or 0)
+
+            if not nome_sub or nome_sub == SUBDIVISAO_GERAL or valor_sub <= 0:
+                continue
+
+            percentual_sub = 0.0
+            if total_subdivisoes > 0:
+                percentual_sub = (valor_sub / total_subdivisoes) * 100
+
+            subdivisoes.append(
+                {
+                    "nome": nome_sub,
+                    "valor": valor_sub,
+                    "valor_fmt": formatar_moeda(valor_sub),
+                    "percentual": percentual_sub,
+                    "percentual_fmt": f"{percentual_sub:.1f}".replace(".", ",") + "%",
+                    "cor": CORES_EVOLUCAO[(indice + indice_sub + 1) % len(CORES_EVOLUCAO)],
+                }
+            )
+
         fatias.append(
             {
                 "nome": ativo.get("nome", ""),
@@ -726,6 +766,8 @@ def montar_pizza_ativos(ativos: list[dict]) -> dict:
                 "percentual": percentual,
                 "percentual_fmt": ativo.get("participacao_fmt", f"{percentual:.1f}".replace(".", ",") + "%"),
                 "cor": cor,
+                "tem_detalhamento": bool(subdivisoes),
+                "subdivisoes": subdivisoes,
             }
         )
 

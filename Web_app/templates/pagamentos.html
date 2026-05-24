@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <title>Pagamentos</title>
+
+    <style>
+        :root {
+            --bg: #f4f6fb;
+            --card: #ffffff;
+            --text: #172033;
+            --muted: #64748b;
+            --primary: #1d4ed8;
+            --primary-dark: #1e40af;
+            --primary-soft: #eff6ff;
+            --primary-border: #bfdbfe;
+            --green: #047857;
+            --green-bg: #ecfdf5;
+            --green-border: #bbf7d0;
+            --red: #b91c1c;
+            --red-bg: #fef2f2;
+            --red-border: #fecaca;
+            --amber: #b45309;
+            --amber-bg: #fffbeb;
+            --amber-border: #fde68a;
+            --purple: #6d28d9;
+            --purple-bg: #f5f3ff;
+            --purple-border: #ddd6fe;
+            --slate: #475569;
+            --slate-bg: #f8fafc;
+            --slate-border: #cbd5e1;
+            --border: #e5e7eb;
+            --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+            --shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(29, 78, 216, 0.10), transparent 30%),
+                radial-gradient(circle at top right, rgba(109, 40, 217, 0.08), transparent 28%),
+                var(--bg);
+            color: var(--text);
+        }
+
+        .page {
+            max-width: 1540px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #0f172a, #1d4ed8);
+            color: white;
+            border-radius: 30px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1.4fr 0.6fr;
+            gap: 22px;
+            align-items: center;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.10);
+            right: -120px;
+            top: -150px;
+        }
+
+        .hero-content,
+        .hero-side {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            margin: 0 0 8px;
+            font-size: 36px;
+            letter-spacing: -0.045em;
+        }
+
+        .hero p {
+            margin: 0;
+            color: #dbeafe;
+            line-height: 1.55;
+            font-weight: 650;
+            max-width: 960px;
+        }
+
+        .hero-side {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 24px;
+            padding: 20px;
+        }
+
+        .hero-side-label {
+            color: #bfdbfe;
+            font-size: 12px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+
+        .hero-side-value {
+            color: white;
+            font-size: 28px;
+            font-weight: 950;
+            letter-spacing: -0.04em;
+        }
+
+        .nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav a {
+            text-decoration: none;
+            background: white;
+            border: 1px solid var(--border);
+            color: #1e40af;
+            padding: 11px 15px;
+            border-radius: 999px;
+            font-weight: 850;
+            box-shadow: 0 8px 16px rgba(15, 23, 42, 0.04);
+        }
+
+        .nav a.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .alert {
+            padding: 15px 18px;
+            border-radius: 16px;
+            margin-bottom: 18px;
+            font-weight: 750;
+            line-height: 1.45;
+        }
+
+        .success {
+            background: var(--green-bg);
+            border: 1px solid var(--green-border);
+            color: #065f46;
+        }
+
+        .error {
+            background: var(--red-bg);
+            border: 1px solid var(--red-border);
+            color: #991b1b;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            padding: 22px;
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            margin: 0 0 7px;
+            font-size: 22px;
+            letter-spacing: -0.03em;
+        }
+
+        .section-subtitle {
+            margin: 0;
+            color: var(--muted);
+            font-weight: 650;
+            line-height: 1.5;
+        }
+
+        .mode-tabs {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .mode-tab {
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 22px;
+            padding: 18px;
+            box-shadow: var(--shadow-soft);
+            cursor: pointer;
+            text-align: left;
+            color: var(--text);
+        }
+
+        .mode-tab.active {
+            background: linear-gradient(135deg, #0f172a, #1d4ed8);
+            color: white;
+            border-color: #1d4ed8;
+        }
+
+        .mode-tab-title {
+            font-size: 18px;
+            font-weight: 950;
+            letter-spacing: -0.03em;
+            margin-bottom: 6px;
+        }
+
+        .mode-tab-text {
+            font-size: 13px;
+            line-height: 1.45;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .mode-tab.active .mode-tab-text {
+            color: #dbeafe;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .metric {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            padding: 16px;
+        }
+
+        .metric-title {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 21px;
+            font-weight: 950;
+            letter-spacing: -0.04em;
+            color: #111827;
+        }
+
+        .metric-note {
+            margin-top: 7px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 750;
+            line-height: 1.35;
+        }
+
+        .green { color: var(--green); }
+        .red { color: var(--red); }
+        .amber { color: var(--amber); }
+        .purple { color: var(--purple); }
+        .slate { color: var(--slate); }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 12px;
+            align-items: end;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            align-items: end;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 950;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            display: block;
+            margin-bottom: 7px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 11px;
+            background: #f9fafb;
+            font-size: 15px;
+            font-family: inherit;
+            font-weight: 700;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: 2px solid #bfdbfe;
+            border-color: #93c5fd;
+            background: white;
+        }
+
+        button {
+            border: none;
+            background: var(--primary);
+            color: white;
+            border-radius: 13px;
+            padding: 12px 18px;
+            font-weight: 950;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+        }
+
+        .soft-button {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .soft-button:hover {
+            background: #d1d5db;
+        }
+
+        .green-button {
+            background: var(--green);
+        }
+
+        .green-button:hover {
+            background: #065f46;
+        }
+
+        .red-button {
+            background: var(--red);
+        }
+
+        .red-button:hover {
+            background: #991b1b;
+        }
+
+        .clear-link {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            background: #e5e7eb;
+            color: #111827;
+            border-radius: 13px;
+            padding: 12px 18px;
+            font-weight: 950;
+            width: 100%;
+        }
+
+        .view-section,
+        .register-section {
+            display: none;
+        }
+
+        .view-section.active,
+        .register-section.active {
+            display: block;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .payment-groups {
+            display: grid;
+            gap: 18px;
+        }
+
+        .payment-group {
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            background: white;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .payment-group-header {
+            padding: 16px 18px;
+            background:
+                radial-gradient(circle at top right, rgba(29, 78, 216, 0.08), transparent 30%),
+                #f8fafc;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .payment-group-title {
+            font-size: 18px;
+            font-weight: 950;
+            letter-spacing: -0.03em;
+            color: #111827;
+        }
+
+        .payment-group-note {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            margin-top: 4px;
+        }
+
+        .payment-table-wrap {
+            overflow-x: auto;
+        }
+
+        .payment-table {
+            width: 100%;
+            min-width: 1280px;
+            border-collapse: collapse;
+        }
+
+        .payment-table th {
+            background: white;
+            color: #64748b;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .payment-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        .payment-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .payment-table tr:hover td {
+            background: #f8fafc;
+        }
+
+        .payment-title {
+            font-weight: 950;
+            color: #111827;
+            line-height: 1.35;
+        }
+
+        .payment-subtitle {
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 750;
+            line-height: 1.35;
+        }
+
+        .money {
+            text-align: right;
+            font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .pill {
+            display: inline-flex;
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: 950;
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .pill-green {
+            background: var(--green-bg);
+            color: var(--green);
+            border-color: var(--green-border);
+        }
+
+        .pill-red {
+            background: var(--red-bg);
+            color: var(--red);
+            border-color: var(--red-border);
+        }
+
+        .pill-amber {
+            background: var(--amber-bg);
+            color: var(--amber);
+            border-color: var(--amber-border);
+        }
+
+        .pill-purple {
+            background: var(--purple-bg);
+            color: var(--purple);
+            border-color: var(--purple-border);
+        }
+
+        .pill-slate {
+            background: var(--slate-bg);
+            color: var(--slate);
+            border-color: var(--slate-border);
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .action-button {
+            padding: 7px 10px;
+            border-radius: 11px;
+            font-size: 12px;
+        }
+
+        .empty {
+            padding: 22px;
+            text-align: center;
+            color: var(--muted);
+            font-weight: 850;
+            background: #f8fafc;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            background: rgba(15, 23, 42, 0.62);
+            backdrop-filter: blur(3px);
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            pointer-events: none;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+            pointer-events: auto;
+        }
+
+        .loading-box {
+            width: min(420px, 100%);
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 26px;
+            box-shadow: 0 30px 80px rgba(15, 23, 42, 0.30);
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 46px;
+            height: 46px;
+            border-radius: 999px;
+            border: 5px solid #dbeafe;
+            border-top-color: var(--primary);
+            margin: 0 auto 16px;
+            animation: girarLoading 0.9s linear infinite;
+        }
+
+        .loading-title {
+            font-size: 19px;
+            font-weight: 950;
+            color: #111827;
+            letter-spacing: -0.03em;
+            margin-bottom: 7px;
+        }
+
+        .loading-text {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 750;
+            line-height: 1.45;
+        }
+
+        @keyframes girarLoading {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+
+        .payment-row-paid td {
+            background: #f0fdf4;
+        }
+
+        .payment-row-paid:hover td {
+            background: #dcfce7 !important;
+        }
+
+        .payment-row-unpaid td {
+            background: #ffffff;
+        }
+
+        .payment-row-overdue td {
+            background: #fff1f2;
+        }
+
+        .payment-row-overdue:hover td {
+            background: #ffe4e6 !important;
+        }
+
+        .payment-row-today td {
+            background: #fffbeb;
+        }
+
+        .payment-row-today:hover td {
+            background: #fef3c7 !important;
+        }
+
+        .payment-status-flag::before {
+            content: none !important;
+            display: none !important;
+        }
+
+        .payment-status-flag {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            border-radius: 999px;
+            padding: 7px 11px;
+            font-size: 12px;
+            font-weight: 950;
+            white-space: nowrap;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #334155;
+        }
+
+        .payment-status-flag.paid {
+            background: #ecfdf5;
+            color: #047857;
+            border-color: #bbf7d0;
+        }
+
+        .payment-status-flag.pending {
+            background: #fffbeb;
+            color: #b45309;
+            border-color: #fde68a;
+        }
+
+        .payment-status-flag.overdue {
+            background: #fef2f2;
+            color: #b91c1c;
+            border-color: #fecaca;
+        }
+
+        .payment-status-flag.partial {
+            background: #f5f3ff;
+            color: #6d28d9;
+            border-color: #ddd6fe;
+        }
+
+        .payment-status-flag.found {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-color: #bfdbfe;
+        }
+
+        .payment-legend {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+
+        .payment-status-icon {
+            display: inline-flex;
+            width: 16px;
+            height: 16px;
+            min-width: 16px;
+            border-radius: 4px;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 950;
+            line-height: 1;
+            border: 2px solid currentColor;
+            background: transparent;
+        }
+
+        .payment-status-flag.paid .payment-status-icon {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .payment-status-flag.pending .payment-status-icon {
+            background: transparent;
+            border-color: currentColor;
+            color: currentColor;
+        }
+
+        .payment-status-flag.overdue .payment-status-icon {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+        }
+
+        .payment-status-flag.partial .payment-status-icon {
+            background: #8b5cf6;
+            border-color: #8b5cf6;
+            color: white;
+        }
+
+        .payment-status-flag.found .payment-status-icon {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        @media (max-width: 1250px) {
+            .hero,
+            .summary,
+            .filter-grid,
+            .form-grid,
+            .mode-tabs {
+                grid-template-columns: 1fr;
+            }
+
+            .page {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Pagamentos</h1>
+                <p>
+                    Controle contas a pagar, vencimentos, pagamentos pendentes, atrasados e conferência com os lançamentos importados do extrato bancário.
+                </p>
+            </div>
+
+            <aside class="hero-side">
+                <div class="hero-side-label">Pendente no mês</div>
+                <div class="hero-side-value">{{ resumo.total_pendente_fmt }}</div>
+            </aside>
+        </section>
+
+        <nav class="nav">
+            <a href="/financeiro">Início</a>
+            <a href="/financeiro/configuracoes">Configurações</a>
+            <a href="/financeiro/extratos">Extratos</a>
+            <a href="/financeiro/base-lancamentos">Base</a>
+            <a href="/financeiro/lancamento">Lançamento</a>
+            <a href="/financeiro/orcamento">Orçamento</a>
+            <a href="/financeiro/pagamentos" class="active">Pagamentos</a>
+            <a href="/financeiro/analise">Painel Gerencial</a>
+            <a href="/financeiro/patrimonio">Patrimônio</a>
+            <a href="/financeiro/investimentos">Investimentos</a>
+            <a href="/financeiro/metas">Metas</a>
+        </nav>
+
+        {% if mensagem %}
+            <div class="alert success">{{ mensagem }}</div>
+        {% endif %}
+
+        {% if erro %}
+            <div class="alert error">{{ erro }}</div>
+        {% endif %}
+
+        <section class="mode-tabs">
+            <button type="button" class="mode-tab active" id="tabConsultar" onclick="mostrarModo('consultar')">
+                <div class="mode-tab-title">Consultar pagamentos</div>
+                <div class="mode-tab-text">
+                    Consulte vencimentos, pendências, atrasos e pagamentos identificados na base de lançamentos.
+                </div>
+            </button>
+
+            <button type="button" class="mode-tab" id="tabCadastrar" onclick="mostrarModo('cadastrar')">
+                <div class="mode-tab-title">Cadastrar pagamento</div>
+                <div class="mode-tab-text">
+                    Cadastre pagamentos previstos usando categorias/subcategorias padronizadas.
+                </div>
+            </button>
+        </section>
+
+        <section id="secaoConsultar" class="view-section active">
+            <section class="summary">
+                <div class="metric">
+                    <div class="metric-title">Previsto</div>
+                    <div class="metric-value">{{ resumo.total_previsto_fmt }}</div>
+                    <div class="metric-note">Total previsto nos pagamentos filtrados.</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title">Pago</div>
+                    <div class="metric-value green">{{ resumo.total_pago_fmt }}</div>
+                    <div class="metric-note">{{ resumo.qtd_pagos }} pagamento(s) pago(s).</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title">Pendente</div>
+                    <div class="metric-value amber">{{ resumo.total_pendente_fmt }}</div>
+                    <div class="metric-note">{{ resumo.qtd_pendentes }} pagamento(s) pendente(s).</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title">Atrasados</div>
+                    <div class="metric-value red">{{ resumo.qtd_atrasados }}</div>
+                    <div class="metric-note">Contas vencidas e não pagas.</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title">Vencem hoje</div>
+                    <div class="metric-value purple">{{ resumo.qtd_vence_hoje }}</div>
+                    <div class="metric-note">Contas com vencimento na data atual.</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title">Início do mês</div>
+                    <div class="metric-value">{{ resumo.inicio_mes_fmt }}</div>
+                    <div class="metric-note">Vencimentos de 01 a 15.</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title">Final do mês</div>
+                    <div class="metric-value">{{ resumo.final_mes_fmt }}</div>
+                    <div class="metric-note">Vencimentos de 16 a 31.</div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Consultar pagamentos</h2>
+                        <p class="section-subtitle">
+                            Filtre por mês, status, tipo e categoria. Use a conferência para verificar se o pagamento já apareceu nos lançamentos do extrato.
+                        </p>
+                    </div>
+                </div>
+
+                <form method="get" action="/financeiro/pagamentos" onsubmit="return mostrarCarregamento('Consultando pagamentos...');">
+                    <div class="filter-grid">
+                        <div>
+                            <label>Ano</label>
+                            <input type="number" name="ano" value="{{ filtros.ano }}" />
+                        </div>
+
+                        <div>
+                            <label>Mês</label>
+                            <select name="mes">
+                                <option value="">Todos</option>
+                                {% for sigla, nome in meses_opcoes %}
+                                    <option value="{{ sigla }}" {% if filtros.mes == sigla %}selected{% endif %}>{{ nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Status</label>
+                            <select name="status" id="statusCadastro">
+                                {% for status in status_opcoes %}
+                                    <option value="{{ status }}" {% if filtros.status == status %}selected{% endif %}>
+                                        {% if status %}{{ status }}{% else %}Todos{% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Tipo</label>
+                            <select name="tipo">
+                                {% for tipo in tipos_opcoes %}
+                                    <option value="{{ tipo }}" {% if filtros.tipo == tipo %}selected{% endif %}>
+                                        {% if tipo %}{{ tipo }}{% else %}Todos{% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Categoria</label>
+                            <input type="text" name="categoria" value="{{ filtros.categoria }}" placeholder="Ex.: MORADIA" />
+                        </div>
+
+                        <div>
+                            <button type="submit">Consultar</button>
+                        </div>
+
+                        <div>
+                            <a href="/financeiro/pagamentos" class="clear-link">Limpar</a>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <section class="card">
+                <div class="toolbar">
+                    <div>
+                        <h2 class="section-title">Contas e vencimentos</h2>
+                        <p class="section-subtitle">
+                            Pagamentos agrupados por período do mês: início, final ou sem data.
+                        </p>
+                    </div>
+
+                    <div class="toolbar-actions">
+                        <form method="post" action="/financeiro/pagamentos/conciliar" onsubmit="return mostrarCarregamento('Conferindo com lançamentos...');">
+                            <input type="hidden" name="ano" value="{{ filtros.ano }}" />
+                            <input type="hidden" name="mes" value="{{ filtros.mes }}" />
+                            <input type="hidden" name="status" value="{{ filtros.status }}" />
+                            <input type="hidden" name="tipo" value="{{ filtros.tipo }}" />
+                            <input type="hidden" name="categoria" value="{{ filtros.categoria }}" />
+                            <button type="submit" class="green-button">Conferir com lançamentos</button>
+                        </form>
+                    </div>
+                </div>
+
+                {% if pagamentos %}
+                    <div class="payment-groups">
+                        {% set grupos = ["INÍCIO DO MÊS", "FINAL DO MÊS", "SEM DATA"] %}
+
+                        {% for grupo in grupos %}
+                            {% set itens_grupo = [] %}
+
+                            {% for pagamento in pagamentos %}
+                                {% if pagamento.GRUPO_VENCIMENTO == grupo %}
+                                    {% set _ = itens_grupo.append(pagamento) %}
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if itens_grupo %}
+                                <article class="payment-group">
+                                    <header class="payment-group-header">
+                                        <div>
+                                            <div class="payment-group-title">{{ grupo }}</div>
+                                            <div class="payment-group-note">{{ itens_grupo|length }} conta(s)</div>
+                                        </div>
+                                    </header>
+
+                                    <div class="payment-table-wrap">
+                                        <table class="payment-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Conta</th>
+                                                    <th>Tipo</th>
+                                                    <th>Categoria</th>
+                                                    <th>Subcategoria</th>
+                                                    <th>Vencimento</th>
+                                                    <th style="text-align: right;">Previsto</th>
+                                                    <th style="text-align: right;">Pago</th>
+                                                    <th>Status</th>
+                                                    <th>Lançamento encontrado</th>
+                                                    <th style="text-align: right;">Ações</th>
+                                                </tr>
+                                            </thead>
+
+                                            <tbody>
+                                                {% for item in itens_grupo %}
+                                                    {% set status_linha = item.STATUS_CALCULADO %}
+                                                    {% if status_linha == "PAGO" %}
+                                                        {% set classe_linha = "payment-row-paid" %}
+                                                    {% elif status_linha == "ATRASADO" %}
+                                                        {% set classe_linha = "payment-row-overdue" %}
+                                                    {% elif status_linha == "VENCE HOJE" %}
+                                                        {% set classe_linha = "payment-row-today" %}
+                                                    {% else %}
+                                                        {% set classe_linha = "payment-row-unpaid" %}
+                                                    {% endif %}
+                                                    <tr class="{{ classe_linha }}">
+                                                        <td>
+                                                            <div class="payment-title">{{ item.DESCRICAO }}</div>
+                                                            <div class="payment-subtitle">
+                                                                {{ item.CONTA_PAGAMENTO or "Conta não informada" }}
+                                                                {% if item.RECORRENTE == "SIM" %}
+                                                                    • Recorrente
+                                                                {% endif %}
+                                                            </div>
+                                                        </td>
+
+                                                        <td><span class="pill">{{ item.TIPO }}</span></td>
+                                                        <td>{{ item.CATEGORIA }}</td>
+                                                        <td>{{ item.SUBCATEGORIA }}</td>
+                                                        <td>{{ item.DATA_VENCIMENTO_FMT }}</td>
+                                                        <td class="money">{{ item.VALOR_PREVISTO_FMT }}</td>
+                                                        <td class="money">{{ item.VALOR_PAGO_FMT }}</td>
+
+                                                        <td>
+                                                            {% set status = item.STATUS_CALCULADO %}
+                                                            {% if status == "PAGO" %}
+                                                                <span class="payment-status-flag paid">
+                                                                    <span class="payment-status-icon">✓</span>
+                                                                    Pago
+                                                                </span>
+                                                            {% elif status == "ATRASADO" %}
+                                                                <span class="payment-status-flag overdue">
+                                                                    <span class="payment-status-icon">!</span>
+                                                                    Atrasado
+                                                                </span>
+                                                            {% elif status == "VENCE HOJE" %}
+                                                                <span class="payment-status-flag pending">
+                                                                    <span class="payment-status-icon">•</span>
+                                                                    Vence hoje
+                                                                </span>
+                                                            {% elif status == "PARCIAL" %}
+                                                                <span class="payment-status-flag partial">
+                                                                    <span class="payment-status-icon">~</span>
+                                                                    Parcial
+                                                                </span>
+                                                            {% elif status == "CANCELADO" %}
+                                                                <span class="payment-status-flag">
+                                                                    <span class="payment-status-icon">×</span>
+                                                                    Cancelado
+                                                                </span>
+                                                            {% else %}
+                                                                <span class="payment-status-flag pending">
+                                                                    <span class="payment-status-icon">•</span>
+                                                                    Pendente
+                                                                </span>
+                                                            {% endif %}
+                                                        </td>
+
+                                                        <td>
+                                                            {% if item.MATCH_STATUS %}
+                                                                <div><span class="payment-status-flag found"><span class="payment-status-icon">✓</span>{{ item.MATCH_STATUS }}</span></div>
+
+                                                                <div class="payment-subtitle">
+                                                                    Previsto: <strong>{{ item.VALOR_PREVISTO_FMT }}</strong>
+                                                                </div>
+
+                                                                <div class="payment-subtitle">
+                                                                    Encontrado: <strong>{{ item.LANCAMENTO_VALOR }}</strong>
+                                                                </div>
+
+                                                                <div class="payment-subtitle">
+                                                                    Data: {{ item.LANCAMENTO_DATA }}
+                                                                </div>
+
+                                                                {% if item.LANCAMENTO_DESCRICAO %}
+                                                                    <div class="payment-subtitle">
+                                                                        {{ item.LANCAMENTO_DESCRICAO }}
+                                                                    </div>
+                                                                {% endif %}
+                                                            {% else %}
+                                                                <span class="pill pill-slate">Não encontrado</span>
+                                                            {% endif %}
+                                                        </td>
+
+                                                        <td>
+                                                            <div class="actions">
+                                                                <button
+                                                                    type="button"
+                                                                    class="action-button soft-button"
+                                                                    onclick="editarPagamento(this)"
+                                                                    data-id="{{ item.ID|e }}"
+                                                                    data-ano="{{ item.ANO|e }}"
+                                                                    data-mes="{{ item.MES|e }}"
+                                                                    data-descricao="{{ item.DESCRICAO|e }}"
+                                                                    data-status="{{ item.STATUS|e }}"
+                                                                    data-tipo="{{ item.TIPO|e }}"
+                                                                    data-categoria="{{ item.CATEGORIA|e }}"
+                                                                    data-subcategoria="{{ item.SUBCATEGORIA|e }}"
+                                                                    data-valor-previsto="{{ item.VALOR_PREVISTO|e }}"
+                                                                    data-valor-pago="{{ item.VALOR_PAGO|e }}"
+                                                                    data-data-vencimento="{{ item.DATA_VENCIMENTO|e }}"
+                                                                    data-data-pagamento="{{ item.DATA_PAGAMENTO|e }}"
+                                                                    data-recorrente="{{ item.RECORRENTE|e }}"
+                                                                    data-conta-pagamento="{{ item.CONTA_PAGAMENTO|e }}"
+                                                                    data-observacao="{{ item.OBSERVACAO|e }}"
+                                                                >
+                                                                    Editar
+                                                                </button>
+
+                                                                {% if item.STATUS_CALCULADO != "PAGO" %}
+                                                                    <form method="post" action="/financeiro/pagamentos/{{ item.ID }}/pagar">
+                                                                        <button type="submit" class="action-button green-button">Marcar como pago</button>
+                                                                    </form>
+                                                                {% endif %}
+
+                                                                <form method="post" action="/financeiro/pagamentos/{{ item.ID }}/excluir" onsubmit="return confirm('Excluir este pagamento?');">
+                                                                    <button type="submit" class="action-button red-button">Excluir</button>
+                                                                </form>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </article>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty">
+                        Nenhum pagamento encontrado para os filtros aplicados.
+                    </div>
+                {% endif %}
+            </section>
+        </section>
+
+        <section id="secaoCadastrar" class="register-section">
+            <section class="card">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Cadastrar pagamento previsto</h2>
+                        <p class="section-subtitle">
+                            Use categorias e subcategorias padronizadas para evitar divergência com orçamento e lançamentos.
+                        </p>
+                    </div>
+                </div>
+
+                <form method="post" action="/financeiro/pagamentos/salvar" id="formPagamento" onsubmit="return mostrarCarregamento('Salvando pagamento...');">
+                    <input type="hidden" name="pagamento_id" id="pagamento_id" />
+                    <div class="form-grid">
+                        <div>
+                            <label>Ano</label>
+                            <input type="number" name="ano" id="anoCadastro" value="{{ filtros.ano }}" required />
+                        </div>
+
+                        <div>
+                            <label>Mês</label>
+                            <select name="mes" id="mesCadastro" required>
+                                {% for sigla, nome in meses_opcoes %}
+                                    <option value="{{ sigla }}" {% if filtros.mes == sigla %}selected{% endif %}>{{ nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Descrição</label>
+                            <input type="text" name="descricao" id="descricaoCadastro" placeholder="Ex.: Prestação AP" required />
+                        </div>
+
+                        <div>
+                            <label>Status</label>
+                            <select name="status" id="statusCadastro">
+                                {% for status in status_opcoes %}
+                                    {% if status %}
+                                        <option value="{{ status }}" {% if status == "PENDENTE" %}selected{% endif %}>{{ status }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Tipo</label>
+                            <select name="tipo" id="tipoCadastro" onchange="atualizarCategoriasCadastro()" required>
+                                <option value="">Selecione</option>
+                                {% for tipo, cats in categorias.items() %}
+                                    <option value="{{ tipo }}">{{ tipo }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Categoria</label>
+                            <select name="categoria" id="categoriaCadastro" onchange="atualizarSubcategoriasCadastro()" required>
+                                <option value="">Selecione o tipo</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Subcategoria</label>
+                            <select name="subcategoria" id="subcategoriaCadastro">
+                                <option value="">Selecione a categoria</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Valor previsto</label>
+                            <input type="text" name="valor_previsto" id="valorPrevistoCadastro" placeholder="Ex.: 2300,00" required />
+                        </div>
+
+                        <div>
+                            <label>Valor pago</label>
+                            <input type="text" name="valor_pago" id="valorPagoCadastro" placeholder="0,00" />
+                        </div>
+
+                        <div>
+                            <label>Data vencimento</label>
+                            <input type="text" name="data_vencimento" id="dataVencimentoCadastro" placeholder="Ex.: 05/05/2026" required />
+                        </div>
+
+                        <div>
+                            <label>Data pagamento</label>
+                            <input type="text" name="data_pagamento" id="dataPagamentoCadastro" placeholder="Opcional" />
+                        </div>
+
+                        <div>
+                            <label>Recorrente</label>
+                            <select name="recorrente" id="recorrenteCadastro">
+                                <option value="NÃO">NÃO</option>
+                                <option value="SIM">SIM</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Conta pagamento</label>
+                            <input type="text" name="conta_pagamento" id="contaPagamentoCadastro" placeholder="Ex.: Nubank, Banco do Brasil..." />
+                        </div>
+
+                        <div style="grid-column: 1 / -1;">
+                            <label>Observação</label>
+                            <textarea name="observacao" id="observacaoCadastro" placeholder="Opcional. Ex.: débito automático, boleto, fatura, observações de conferência..."></textarea>
+                        </div>
+
+                        <div>
+                            <button type="submit" id="botaoSalvarPagamento">Salvar pagamento</button>
+                        </div>
+
+                        <div>
+                            <button type="button" class="soft-button" onclick="limparFormularioCadastro()">Limpar</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+        </section>
+    </main>
+
+    <div id="loadingConsulta" class="loading-overlay">
+        <div class="loading-box">
+            <div class="loading-spinner"></div>
+            <div class="loading-title" id="loadingTitulo">Processando...</div>
+            <div class="loading-text">
+                Aguarde enquanto os dados são processados.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CATEGORIAS = {{ categorias | default({}) | tojson }};
+
+        function mostrarModo(modo) {
+            const consultar = modo === "consultar";
+
+            const tabConsultar = document.getElementById("tabConsultar");
+            const tabCadastrar = document.getElementById("tabCadastrar");
+            const secaoConsultar = document.getElementById("secaoConsultar");
+            const secaoCadastrar = document.getElementById("secaoCadastrar");
+
+            if (tabConsultar) {
+                tabConsultar.classList.toggle("active", consultar);
+            }
+
+            if (tabCadastrar) {
+                tabCadastrar.classList.toggle("active", !consultar);
+            }
+
+            if (secaoConsultar) {
+                secaoConsultar.classList.toggle("active", consultar);
+            }
+
+            if (secaoCadastrar) {
+                secaoCadastrar.classList.toggle("active", !consultar);
+            }
+        }
+
+        function mostrarCarregamento(titulo) {
+            const overlay = document.getElementById("loadingConsulta");
+            const tituloEl = document.getElementById("loadingTitulo");
+
+            if (tituloEl && titulo) {
+                tituloEl.textContent = titulo;
+            }
+
+            if (overlay) {
+                overlay.classList.add("active");
+            }
+
+            return true;
+        }
+
+        function atualizarCategoriasCadastro() {
+            const tipoEl = document.getElementById("tipoCadastro");
+            const categoria = document.getElementById("categoriaCadastro");
+            const subcategoria = document.getElementById("subcategoriaCadastro");
+
+            if (!tipoEl || !categoria || !subcategoria) {
+                return;
+            }
+
+            const tipo = tipoEl.value;
+
+            categoria.innerHTML = '<option value="">Selecione</option>';
+            subcategoria.innerHTML = '<option value="">Selecione a categoria</option>';
+
+            if (!tipo || !CATEGORIAS || !CATEGORIAS[tipo]) {
+                return;
+            }
+
+            Object.keys(CATEGORIAS[tipo]).forEach(function (cat) {
+                const option = document.createElement("option");
+                option.value = cat;
+                option.textContent = cat;
+                categoria.appendChild(option);
+            });
+        }
+
+        function atualizarSubcategoriasCadastro() {
+            const tipoEl = document.getElementById("tipoCadastro");
+            const categoriaEl = document.getElementById("categoriaCadastro");
+            const subcategoria = document.getElementById("subcategoriaCadastro");
+
+            if (!tipoEl || !categoriaEl || !subcategoria) {
+                return;
+            }
+
+            const tipo = tipoEl.value;
+            const categoriaValor = categoriaEl.value;
+
+            subcategoria.innerHTML = '<option value="">Selecione</option>';
+
+            if (
+                !tipo ||
+                !categoriaValor ||
+                !CATEGORIAS ||
+                !CATEGORIAS[tipo] ||
+                !CATEGORIAS[tipo][categoriaValor]
+            ) {
+                return;
+            }
+
+            CATEGORIAS[tipo][categoriaValor].forEach(function (sub) {
+                const option = document.createElement("option");
+                option.value = sub;
+                option.textContent = sub;
+                subcategoria.appendChild(option);
+            });
+        }
+
+
+        function setCampoValor(id, valor) {
+            const campo = document.getElementById(id);
+
+            if (campo) {
+                campo.value = valor || "";
+            }
+        }
+
+        function editarPagamento(botao) {
+            const dados = botao.dataset || {};
+
+            setCampoValor("pagamento_id", dados.id);
+            setCampoValor("anoCadastro", dados.ano);
+            setCampoValor("mesCadastro", dados.mes);
+            setCampoValor("descricaoCadastro", dados.descricao);
+
+            const statusCadastro = document.querySelector("#secaoCadastrar select[name='status']");
+            if (statusCadastro) {
+                statusCadastro.value = dados.status || "PENDENTE";
+            }
+
+            const tipoCadastro = document.getElementById("tipoCadastro");
+            const categoriaCadastro = document.getElementById("categoriaCadastro");
+            const subcategoriaCadastro = document.getElementById("subcategoriaCadastro");
+
+            if (tipoCadastro) {
+                tipoCadastro.value = dados.tipo || "";
+                atualizarCategoriasCadastro();
+            }
+
+            if (categoriaCadastro) {
+                categoriaCadastro.value = dados.categoria || "";
+                atualizarSubcategoriasCadastro();
+            }
+
+            if (subcategoriaCadastro) {
+                subcategoriaCadastro.value = dados.subcategoria || "";
+            }
+
+            setCampoValor("valorPrevistoCadastro", dados.valorPrevisto);
+            setCampoValor("valorPagoCadastro", dados.valorPago);
+            setCampoValor("dataVencimentoCadastro", dados.dataVencimento);
+            setCampoValor("dataPagamentoCadastro", dados.dataPagamento);
+
+            const recorrenteCadastro = document.getElementById("recorrenteCadastro");
+            if (recorrenteCadastro) {
+                recorrenteCadastro.value = dados.recorrente || "NÃO";
+            }
+
+            setCampoValor("contaPagamentoCadastro", dados.contaPagamento);
+            setCampoValor("observacaoCadastro", dados.observacao);
+
+            const botaoSalvar = document.getElementById("botaoSalvarPagamento");
+            if (botaoSalvar) {
+                botaoSalvar.textContent = "Salvar alteração";
+            }
+
+            mostrarModo("cadastrar");
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        }
+
+        function limparFormularioCadastro() {
+            document.querySelectorAll("#secaoCadastrar input, #secaoCadastrar textarea").forEach(function (campo) {
+                if (campo.name !== "ano") {
+                    campo.value = "";
+                }
+            });
+
+            const tipoCadastro = document.getElementById("tipoCadastro");
+
+            if (tipoCadastro) {
+                tipoCadastro.value = "";
+            }
+
+            setCampoValor("pagamento_id", "");
+
+            const botaoSalvar = document.getElementById("botaoSalvarPagamento");
+            if (botaoSalvar) {
+                botaoSalvar.textContent = "Salvar pagamento";
+            }
+
+            atualizarCategoriasCadastro();
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const params = new URLSearchParams(window.location.search);
+            const modo = params.get("modo");
+
+            if (modo === "cadastrar") {
+                mostrarModo("cadastrar");
+            }
+        });
+    </script>
+</body>
+</html>

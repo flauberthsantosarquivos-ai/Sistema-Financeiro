@@ -10,6 +10,12 @@ from core.financeiro.configuracao_sistema import (
     salvar_planilha_vinculada,
 )
 from core.financeiro.planilha_padrao import criar_planilha_padrao_financeira
+from core.financeiro.categorias_google import (
+    alterar_status_categoria,
+    listar_categorias,
+    obter_estrutura_categorias,
+    salvar_categoria,
+)
 
 
 router = APIRouter()
@@ -25,6 +31,17 @@ def montar_contexto_configuracoes(
 ):
     config = obter_configuracao_sistema()
 
+    categorias = []
+    categorias_estrutura = {}
+
+    try:
+        if str(config.get("planilha_google", "") or "").strip():
+            categorias = listar_categorias(incluir_inativas=True)
+            categorias_estrutura = obter_estrutura_categorias(incluir_inativas=False)
+
+    except Exception as e:
+        erro = erro or f"Erro ao carregar categorias: {e}"
+
     return {
         **config,
         "status_google": status_google,
@@ -32,6 +49,14 @@ def montar_contexto_configuracoes(
         "erro": erro,
         "nova_planilha_url": nova_planilha_url,
         "configuracao_existente": configuracao_runtime_existe(),
+        "categorias": categorias,
+        "categorias_estrutura": categorias_estrutura,
+        "tipos_categoria": [
+            "RECEITA",
+            "DESPESA",
+            "INVESTIMENTO",
+            "TRANSFERÊNCIA",
+        ],
     }
 
 
@@ -107,5 +132,94 @@ async def criar_planilha_post(
             context=montar_contexto_configuracoes(
                 erro=f"Erro ao criar planilha padrão: {e}",
                 status_google="Erro ao criar planilha",
+            ),
+        )
+
+
+@router.post("/financeiro/configuracoes/categorias/salvar", response_class=HTMLResponse)
+async def salvar_categoria_post(
+    request: Request,
+    tipo: str = Form(...),
+    categoria: str = Form(...),
+    subcategoria: str = Form(...),
+    ativo: str = Form("SIM"),
+):
+    try:
+        item = salvar_categoria(
+            tipo=tipo,
+            categoria=categoria,
+            subcategoria=subcategoria,
+            ativo=ativo,
+        )
+
+        return templates.TemplateResponse(
+            request=request,
+            name="configuracoes.html",
+            context=montar_contexto_configuracoes(
+                mensagem=(
+                    "Categoria salva com sucesso: "
+                    f"{item['TIPO']} / {item['CATEGORIA']} / {item['SUBCATEGORIA']}"
+                ),
+                status_google="Categorias atualizadas",
+            ),
+        )
+
+    except Exception as e:
+        return templates.TemplateResponse(
+            request=request,
+            name="configuracoes.html",
+            context=montar_contexto_configuracoes(
+                erro=f"Erro ao salvar categoria: {e}",
+                status_google="Erro ao salvar categoria",
+            ),
+        )
+
+
+@router.post("/financeiro/configuracoes/categorias/{linha}/ativar", response_class=HTMLResponse)
+async def ativar_categoria_post(request: Request, linha: int):
+    try:
+        alterar_status_categoria(linha=linha, ativo="SIM")
+
+        return templates.TemplateResponse(
+            request=request,
+            name="configuracoes.html",
+            context=montar_contexto_configuracoes(
+                mensagem="Categoria ativada com sucesso.",
+                status_google="Categorias atualizadas",
+            ),
+        )
+
+    except Exception as e:
+        return templates.TemplateResponse(
+            request=request,
+            name="configuracoes.html",
+            context=montar_contexto_configuracoes(
+                erro=f"Erro ao ativar categoria: {e}",
+                status_google="Erro ao ativar categoria",
+            ),
+        )
+
+
+@router.post("/financeiro/configuracoes/categorias/{linha}/desativar", response_class=HTMLResponse)
+async def desativar_categoria_post(request: Request, linha: int):
+    try:
+        alterar_status_categoria(linha=linha, ativo="NÃO")
+
+        return templates.TemplateResponse(
+            request=request,
+            name="configuracoes.html",
+            context=montar_contexto_configuracoes(
+                mensagem="Categoria desativada com sucesso.",
+                status_google="Categorias atualizadas",
+            ),
+        )
+
+    except Exception as e:
+        return templates.TemplateResponse(
+            request=request,
+            name="configuracoes.html",
+            context=montar_contexto_configuracoes(
+                erro=f"Erro ao desativar categoria: {e}",
+                status_google="Erro ao desativar categoria",
             ),
         )

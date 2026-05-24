@@ -268,8 +268,136 @@
             margin: 0;
         }
 
+        .category-form-grid {
+            display: grid;
+            grid-template-columns: 180px 1fr 1fr 140px auto;
+            gap: 12px;
+            align-items: end;
+            margin-bottom: 18px;
+        }
+
+        .category-table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: white;
+        }
+
+        .category-table {
+            width: 100%;
+            min-width: 860px;
+            border-collapse: collapse;
+        }
+
+        .category-table th {
+            background: #f8fafc;
+            color: #64748b;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .category-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        .category-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .pill {
+            display: inline-flex;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 900;
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .pill-active {
+            background: #ecfdf5;
+            color: #047857;
+            border-color: #bbf7d0;
+        }
+
+        .pill-inactive {
+            background: #fef2f2;
+            color: #b91c1c;
+            border-color: #fecaca;
+        }
+
+        .inline-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .small-button {
+            padding: 8px 11px;
+            font-size: 12px;
+            border-radius: 11px;
+        }
+
+        .soft-button {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .soft-button:hover {
+            background: #d1d5db;
+        }
+
+        .danger-button {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .danger-button:hover {
+            background: #fee2e2;
+        }
+
+        .category-help {
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        input,
+        select {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 11px;
+            background: #f9fafb;
+            font-size: 15px;
+            font-family: inherit;
+            font-weight: 700;
+        }
+
+        input:focus,
+        select:focus {
+            outline: 2px solid #bfdbfe;
+            border-color: #93c5fd;
+            background: white;
+        }
+
         @media (max-width: 1000px) {
-            .grid {
+            .grid,
+            .category-form-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -290,17 +418,18 @@
             </p>
         </section>
 
-    <nav class="nav">
-      <a href="/financeiro">Início</a>
-      <a href="/financeiro/configuracoes" class="active">Configurações</a>
-      <a href="/financeiro/extratos">Extratos</a>
-      <a href="/financeiro/base-lancamentos">Base</a>
-      <a href="/financeiro/lancamento">Lançamento</a>
-      <a href="/financeiro/orcamento">Orçamento</a>
-      <a href="/financeiro/analise">Painel Gerencial</a>
-      <a href="/financeiro/patrimonio">Patrimônio</a>
-      <a href="/financeiro/investimentos">Investimentos</a>
-    </nav>
+        <nav class="nav">
+            <a href="/financeiro">Início</a>
+            <a href="/financeiro/configuracoes" class="active">Configurações</a>
+            <a href="/financeiro/extratos">Extratos</a>
+            <a href="/financeiro/base-lancamentos">Base</a>
+            <a href="/financeiro/lancamento">Lançamento</a>
+            <a href="/financeiro/orcamento">Orçamento</a>
+            <a href="/financeiro/pagamentos">Pagamentos</a>
+            <a href="/financeiro/analise">Painel Gerencial</a>
+            <a href="/financeiro/patrimonio">Patrimônio</a>
+            <a href="/financeiro/investimentos">Investimentos</a>
+        </nav>
 
         {% if mensagem %}
             <div class="alert success">{{ mensagem }}</div>
@@ -453,6 +582,106 @@
                 </div>
             </section>
         </div>
+
+        <section class="card">
+            <h2>Categorias e Subcategorias</h2>
+
+            <div class="warning">
+                Esta aba é a fonte oficial de categorias do sistema. Orçamento, Lançamentos,
+                Pagamentos e Execução Orçamentária devem usar estes nomes para evitar divergência
+                nas consultas.
+            </div>
+
+            <form method="post" action="/financeiro/configuracoes/categorias/salvar">
+                <div class="category-form-grid">
+                    <div>
+                        <div class="label">Tipo</div>
+                        <select name="tipo" required>
+                            {% for tipo in tipos_categoria %}
+                                <option value="{{ tipo }}">{{ tipo }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <div class="label">Categoria</div>
+                        <input type="text" name="categoria" placeholder="Ex.: MORADIA" required />
+                    </div>
+
+                    <div>
+                        <div class="label">Subcategoria</div>
+                        <input type="text" name="subcategoria" placeholder="Ex.: PRESTAÇÃO AP" required />
+                    </div>
+
+                    <div>
+                        <div class="label">Ativo</div>
+                        <select name="ativo">
+                            <option value="SIM" selected>SIM</option>
+                            <option value="NÃO">NÃO</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <button type="submit">Salvar</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="category-help">
+                Para alterar o nome de uma categoria já usada em lançamentos antigos, prefira cadastrar a nova e desativar a antiga.
+                Isso preserva o histórico e evita inconsistência em consultas anteriores.
+            </div>
+
+            {% if categorias %}
+                <div class="category-table-wrap" style="margin-top: 18px;">
+                    <table class="category-table">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Categoria</th>
+                                <th>Subcategoria</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Ações</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for item in categorias %}
+                                <tr>
+                                    <td><span class="pill">{{ item.TIPO }}</span></td>
+                                    <td><strong>{{ item.CATEGORIA }}</strong></td>
+                                    <td>{{ item.SUBCATEGORIA }}</td>
+                                    <td>
+                                        {% if item.ATIVO == "SIM" %}
+                                            <span class="pill pill-active">ATIVO</span>
+                                        {% else %}
+                                            <span class="pill pill-inactive">INATIVO</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="inline-actions">
+                                            {% if item.ATIVO == "SIM" %}
+                                                <form method="post" action="/financeiro/configuracoes/categorias/{{ item.LINHA }}/desativar">
+                                                    <button type="submit" class="small-button danger-button">Desativar</button>
+                                                </form>
+                                            {% else %}
+                                                <form method="post" action="/financeiro/configuracoes/categorias/{{ item.LINHA }}/ativar">
+                                                    <button type="submit" class="small-button soft-button">Ativar</button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="warning" style="margin-top: 18px;">
+                    Nenhuma categoria cadastrada ainda. Use o formulário acima para criar a primeira categoria.
+                </div>
+            {% endif %}
+        </section>
 
         <div class="danger-note">
             Esta área deve ser usada apenas na configuração inicial ou manutenção do sistema.

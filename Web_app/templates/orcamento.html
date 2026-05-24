@@ -280,9 +280,13 @@
 
         .filter-grid {
             display: grid;
-            grid-template-columns: repeat(7, minmax(0, 1fr));
+            grid-template-columns: repeat(8, minmax(0, 1fr));
             gap: 12px;
             align-items: end;
+        }
+
+        .filter-grid-orcamento {
+            grid-template-columns: repeat(6, minmax(0, 1fr));
         }
 
         label {
@@ -494,6 +498,10 @@
             gap: 12px;
             align-items: end;
             margin-bottom: 16px;
+        }
+
+        .group-toolbar-simple {
+            grid-template-columns: 1fr 220px;
         }
 
         .grouped-list {
@@ -901,6 +909,69 @@
             line-height: 1.35;
         }
 
+
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            background: rgba(15, 23, 42, 0.62);
+            backdrop-filter: blur(3px);
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-box {
+            width: min(420px, 100%);
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 26px;
+            box-shadow: 0 30px 80px rgba(15, 23, 42, 0.30);
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 46px;
+            height: 46px;
+            border-radius: 999px;
+            border: 5px solid #dbeafe;
+            border-top-color: var(--primary);
+            margin: 0 auto 16px;
+            animation: girarLoading 0.9s linear infinite;
+        }
+
+        .loading-title {
+            font-size: 19px;
+            font-weight: 950;
+            color: #111827;
+            letter-spacing: -0.03em;
+            margin-bottom: 7px;
+        }
+
+        .loading-text {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 750;
+            line-height: 1.45;
+        }
+
+        @keyframes girarLoading {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         @media (max-width: 1250px) {
             .summary,
             .form-grid,
@@ -951,7 +1022,7 @@
         <section class="hero">
             <h1>Orçamento Mensal</h1>
             <p>
-                Consulte o orçamento agrupado por categoria, acompanhe o que já foi executado, veja o que ainda falta realizar e detalhe os lançamentos que compõem cada despesa.
+                Planeje o mês em Orçamento, cadastre ou duplique previsões e acompanhe a Execução Orçamentária com o confronto entre previsto e realizado.
             </p>
         </section>
 
@@ -976,210 +1047,168 @@
         {% endif %}
 
         <section class="mode-tabs">
-            <button type="button" class="mode-tab active" id="tabConsultar" onclick="mostrarModo('consultar')">
-                <div class="mode-tab-title">Consultar orçamento</div>
+            <button type="button" class="mode-tab active" id="tabOrcamento" onclick="mostrarAreaPrincipal('orcamento')">
+                <div class="mode-tab-title">Orçamento</div>
                 <div class="mode-tab-text">
-                    Ver resumo, filtros, execução, itens não orçados e lançamentos detalhados.
+                    Consulte o orçamento previsto, cadastre novos itens e duplique a previsão mensal.
                 </div>
             </button>
 
-            <button type="button" class="mode-tab" id="tabCadastrar" onclick="mostrarModo('cadastrar')">
-                <div class="mode-tab-title">Cadastrar orçamento</div>
+            <button type="button" class="mode-tab" id="tabExecucao" onclick="mostrarAreaPrincipal('execucao')">
+                <div class="mode-tab-title">Execução Orçamentária</div>
                 <div class="mode-tab-text">
-                    Criar novo orçamento, editar item existente ou duplicar orçamento mensal.
+                    Compare o que foi previsto com o que foi realizado, incluindo itens sem previsão.
                 </div>
             </button>
         </section>
 
-        <section id="secaoConsultar" class="view-section active">
-            <section class="summary">
-                <div class="metric">
-                    <div class="metric-title">Despesa prevista</div>
-                    <div class="metric-value red">{{ resumo.total_despesas_fmt }}</div>
-                    <div class="metric-note">Total de despesas planejadas no período filtrado.</div>
-                </div>
-
-                <div class="metric">
-                    <div class="metric-title">Despesa executada</div>
-                    <div class="metric-value red">{{ resumo.total_despesas_realizado_fmt }}</div>
-                    <div class="metric-note">Somatório dos executados exibidos no detalhamento.</div>
-                </div>
-
-                <div class="metric">
-                    <div class="metric-title">Receita prevista</div>
-                    <div class="metric-value green">{{ resumo.total_receitas_fmt }}</div>
-                    <div class="metric-note">Total de receitas previstas no orçamento.</div>
-                </div>
-
-                <div class="metric">
-                    <div class="metric-title">Receita realizada</div>
-                    <div class="metric-value green">{{ resumo.total_receitas_realizado_fmt }}</div>
-                    <div class="metric-note">Somatório das receitas realizadas exibidas no detalhamento.</div>
-                </div>
-
-                <div class="metric">
-                    <div class="metric-title">Saldo previsto / realizado</div>
-                    <div class="metric-value {% if resumo.saldo_previsto >= 0 %}green{% else %}red{% endif %}">
-                        {{ resumo.saldo_previsto_fmt }}
-                    </div>
-                    <div class="metric-note">Realizado: {{ resumo.saldo_realizado_fmt }}</div>
-                </div>
-            </section>
-
-            <section class="summary">
-                <div class="metric">
-                    <div class="metric-title">Investimento previsto</div>
-                    <div class="metric-value purple">{{ resumo.total_investimentos_fmt }}</div>
-                    <div class="metric-note">Valor previsto para aplicações, reservas e formação patrimonial.</div>
-                </div>
-
-                <div class="metric">
-                    <div class="metric-title">Investimento executado</div>
-                    <div class="metric-value purple">{{ resumo.total_investimentos_realizado_fmt }}</div>
-                    <div class="metric-note">Valor já executado como investimento.</div>
-                </div>
-
-                <div class="metric">
-                    <div class="metric-title">Transferências previstas</div>
-                    <div class="metric-value slate">{{ resumo.total_transferencias_fmt }}</div>
-                    <div class="metric-note">Movimentações entre contas próprias previstas.</div>
-                </div>
-
-                <div class="metric">
-                    <div class="metric-title">Transferências executadas</div>
-                    <div class="metric-value slate">{{ resumo.total_transferencias_realizado_fmt }}</div>
-                    <div class="metric-note">Movimentações entre contas próprias já realizadas.</div>
-                </div>
-
-                <div class="metric">
-                    <div class="metric-title">Não orçado</div>
-                    <div class="metric-value amber">{{ resumo.total_nao_orcado_geral_fmt }}</div>
-                    <div class="metric-note">Executado encontrado na base sem previsão no orçamento.</div>
-                </div>
-            </section>
-
+        <section id="secaoOrcamento" class="view-section active">
             <section class="card">
-                <h2 class="section-title">Consultar orçamento</h2>
+                <h2 class="section-title">Orçamento</h2>
                 <p class="section-subtitle">
-                    Filtre por ano, mês, tipo, categoria ou situação do orçamento.
-                </p>
-
-                <form method="get" action="/financeiro/orcamento">
-                    <div class="filter-grid">
-                        <div>
-                            <label>Ano</label>
-                            <input type="number" name="ano" value="{{ filtros.ano }}" />
-                        </div>
-
-                        <div>
-                            <label>Mês</label>
-                            <select name="mes">
-                                <option value="">Todos</option>
-                                {% for sigla, nome in meses_opcoes %}
-                                    <option value="{{ sigla }}" {% if filtros.mes == sigla %}selected{% endif %}>{{ nome }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label>Tipo</label>
-                            <select name="tipo">
-                                {% for valor, rotulo in tipos_opcoes %}
-                                    <option value="{{ valor }}" {% if filtros.tipo == valor %}selected{% endif %}>{{ rotulo }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label>Categoria</label>
-                            <select name="categoria">
-                                <option value="">Todas</option>
-                                {% for categoria in categorias_existentes %}
-                                    <option value="{{ categoria }}" {% if filtros.categoria == categoria %}selected{% endif %}>{{ categoria }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label>Situação</label>
-                            <select name="situacao_orcamento">
-                                {% if situacoes_orcamento_opcoes %}
-                                    {% for valor, rotulo in situacoes_orcamento_opcoes %}
-                                        <option value="{{ valor }}" {% if filtros.situacao_orcamento == valor %}selected{% endif %}>{{ rotulo }}</option>
-                                    {% endfor %}
-                                {% else %}
-                                    <option value="" {% if not filtros.situacao_orcamento %}selected{% endif %}>Todos</option>
-                                    <option value="ORCADO" {% if filtros.situacao_orcamento == "ORCADO" %}selected{% endif %}>Somente orçados</option>
-                                    <option value="NAO_ORCADO" {% if filtros.situacao_orcamento == "NAO_ORCADO" %}selected{% endif %}>Somente não orçados</option>
-                                {% endif %}
-                            </select>
-                        </div>
-
-                        <div>
-                            <button type="submit">Consultar</button>
-                        </div>
-
-                        <div>
-                            <a href="/financeiro/orcamento" class="clear-link">Limpar</a>
-                        </div>
-                    </div>
-                </form>
-            </section>
-
-            <section class="card">
-                <h2 class="section-title">Orçamento agrupado</h2>
-                <p class="section-subtitle">
-                    {{ total_registros }} item(ns) encontrado(s). Use o botão <strong>Ver lançamentos</strong> para conferir quais despesas formam cada valor executado.
-                </p>
-
-                {% if registros %}
-                    <div class="group-toolbar">
-                        <div>
-                            <label>Busca rápida</label>
-                            <input
-                                type="text"
-                                id="buscaRapida"
-                                placeholder="Digite categoria, subcategoria, tipo, mês, status ou descrição..."
-                                oninput="renderizarOrcamentoAgrupado()"
-                            />
-                        </div>
-
-                        <div>
-                            <label>Ação</label>
-                            <button type="button" class="soft-button" onclick="limparBuscaRapida()">
-                                Limpar busca
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="orcamentoAgrupado" class="grouped-list"></div>
-                {% else %}
-                    <div class="empty">
-                        Nenhum orçamento encontrado para os filtros aplicados.
-                    </div>
-                {% endif %}
-            </section>
-        </section>
-
-        <section id="secaoCadastrar" class="view-section">
-            <section class="card">
-                <h2 class="section-title">Cadastrar orçamento</h2>
-                <p class="section-subtitle">
-                    Escolha se deseja criar/editar um item individual ou duplicar o orçamento de um mês para outros meses.
+                    Use esta área para consultar somente o orçamento previsto/cadastrado, criar novos itens ou duplicar a previsão de um mês para outros.
                 </p>
 
                 <div class="sub-tabs">
-                    <button type="button" class="sub-tab active" id="subTabNovo" onclick="mostrarCadastro('novo')">
-                        Novo orçamento
+                    <button type="button" class="sub-tab active" id="subTabConsultarOrcamento" onclick="mostrarOrcamentoAba('consultar')">
+                        Consultar
                     </button>
 
-                    <button type="button" class="sub-tab" id="subTabDuplicar" onclick="mostrarCadastro('duplicar')">
-                        Duplicar orçamento
+                    <button type="button" class="sub-tab" id="subTabNovo" onclick="mostrarOrcamentoAba('cadastrar')">
+                        Cadastrar
+                    </button>
+
+                    <button type="button" class="sub-tab" id="subTabDuplicar" onclick="mostrarOrcamentoAba('duplicar')">
+                        Duplicar
                     </button>
                 </div>
             </section>
 
-            <section id="cadastroNovo" class="register-section active">
+            <section id="orcamentoConsultar" class="register-section active">
+                <section class="summary">
+                    <div class="metric">
+                        <div class="metric-title">Receita prevista</div>
+                        <div class="metric-value green">{{ resumo.total_receitas_fmt }}</div>
+                        <div class="metric-note">Total de receitas cadastradas no orçamento.</div>
+                    </div>
+
+                    <div class="metric">
+                        <div class="metric-title">Despesa prevista</div>
+                        <div class="metric-value red">{{ resumo.total_despesas_fmt }}</div>
+                        <div class="metric-note">Total de despesas planejadas no mês/período.</div>
+                    </div>
+
+                    <div class="metric">
+                        <div class="metric-title">Investimento previsto</div>
+                        <div class="metric-value purple">{{ resumo.total_investimentos_fmt }}</div>
+                        <div class="metric-note">Valor previsto para aplicações e reservas.</div>
+                    </div>
+
+                    <div class="metric">
+                        <div class="metric-title">Transferência prevista</div>
+                        <div class="metric-value slate">{{ resumo.total_transferencias_fmt }}</div>
+                        <div class="metric-note">Movimentações entre contas próprias previstas.</div>
+                    </div>
+
+                    <div class="metric">
+                        <div class="metric-title">Saldo previsto</div>
+                        <div class="metric-value {% if resumo.saldo_previsto >= 0 %}green{% else %}red{% endif %}">
+                            {{ resumo.saldo_previsto_fmt }}
+                        </div>
+                        <div class="metric-note">Receitas previstas menos despesas previstas.</div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <h2 class="section-title">Consultar orçamento previsto</h2>
+                    <p class="section-subtitle">
+                        Esta consulta mostra somente os itens cadastrados no orçamento. Itens sem previsão aparecem apenas em Execução Orçamentária.
+                    </p>
+
+                    <form method="get" action="/financeiro/orcamento" onsubmit="return mostrarCarregamentoConsulta();">
+                        <input type="hidden" name="visao" value="orcamento" />
+                        <div class="filter-grid filter-grid-orcamento">
+                            <div>
+                                <label>Ano</label>
+                                <input type="number" name="ano" value="{{ filtros.ano }}" />
+                            </div>
+
+                            <div>
+                                <label>Mês</label>
+                                <select name="mes">
+                                    <option value="">Todos</option>
+                                    {% for sigla, nome in meses_opcoes %}
+                                        <option value="{{ sigla }}" {% if filtros.mes == sigla %}selected{% endif %}>{{ nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Tipo</label>
+                                <select name="tipo">
+                                    {% for valor, rotulo in tipos_opcoes %}
+                                        <option value="{{ valor }}" {% if filtros.tipo == valor %}selected{% endif %}>{{ rotulo }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Categoria</label>
+                                <select name="categoria">
+                                    <option value="">Todas</option>
+                                    {% for categoria in categorias_existentes %}
+                                        <option value="{{ categoria }}" {% if filtros.categoria == categoria %}selected{% endif %}>{{ categoria }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div>
+                                <button type="submit">Consultar</button>
+                            </div>
+
+                            <div>
+                                <a href="/financeiro/orcamento?visao=execucao" class="clear-link">Limpar</a>
+                            </div>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="card">
+                    <h2 class="section-title">Itens previstos no orçamento</h2>
+                    <p class="section-subtitle">
+                        Lista apenas o planejamento cadastrado. Para comparar previsto x realizado, use a aba Execução Orçamentária.
+                    </p>
+
+                    {% if registros %}
+                        <div class="group-toolbar group-toolbar-simple">
+                            <div>
+                                <label>Busca rápida</label>
+                                <input
+                                    type="text"
+                                    id="buscaRapidaOrcamento"
+                                    placeholder="Digite categoria, subcategoria, tipo, mês ou observação..."
+                                    oninput="renderizarOrcamentoPrevisto()"
+                                />
+                            </div>
+
+                            <div>
+                                <label>Ação</label>
+                                <button type="button" class="soft-button" onclick="limparBuscaOrcamentoPrevisto()">
+                                    Limpar busca
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="orcamentoPrevistoLista"></div>
+                    {% else %}
+                        <div class="empty">
+                            Nenhum orçamento cadastrado para os filtros aplicados.
+                        </div>
+                    {% endif %}
+                </section>
+            </section>
+
+<section id="cadastroNovo" class="register-section">
                 <section class="card">
                     <h2 class="section-title">Novo orçamento</h2>
                     <p class="section-subtitle">
@@ -1331,7 +1360,187 @@
                     </form>
                 </section>
             </section>
+        
         </section>
+
+        <section id="secaoExecucao" class="view-section">
+            <section class="summary">
+                <div class="metric">
+                    <div class="metric-title">Despesa prevista</div>
+                    <div class="metric-value red">{{ resumo.total_despesas_fmt }}</div>
+                    <div class="metric-note">Total de despesas planejadas no período filtrado.</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title">Despesa executada</div>
+                    <div class="metric-value red">{{ resumo.total_despesas_realizado_fmt }}</div>
+                    <div class="metric-note">Somatório dos executados exibidos no detalhamento.</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title">Receita prevista</div>
+                    <div class="metric-value green">{{ resumo.total_receitas_fmt }}</div>
+                    <div class="metric-note">Total de receitas previstas no orçamento.</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title">Receita realizada</div>
+                    <div class="metric-value green">{{ resumo.total_receitas_realizado_fmt }}</div>
+                    <div class="metric-note">Somatório das receitas realizadas exibidas no detalhamento.</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title">Saldo previsto / realizado</div>
+                    <div class="metric-value {% if resumo.saldo_previsto >= 0 %}green{% else %}red{% endif %}">
+                        {{ resumo.saldo_previsto_fmt }}
+                    </div>
+                    <div class="metric-note">Realizado: {{ resumo.saldo_realizado_fmt }}</div>
+                </div>
+            </section>
+
+            <section class="summary">
+                <div class="metric">
+                    <div class="metric-title">Investimento previsto</div>
+                    <div class="metric-value purple">{{ resumo.total_investimentos_fmt }}</div>
+                    <div class="metric-note">Valor previsto para aplicações, reservas e formação patrimonial.</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title">Investimento executado</div>
+                    <div class="metric-value purple">{{ resumo.total_investimentos_realizado_fmt }}</div>
+                    <div class="metric-note">Valor já executado como investimento.</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title">Transferências previstas</div>
+                    <div class="metric-value slate">{{ resumo.total_transferencias_fmt }}</div>
+                    <div class="metric-note">Movimentações entre contas próprias previstas.</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title">Transferências executadas</div>
+                    <div class="metric-value slate">{{ resumo.total_transferencias_realizado_fmt }}</div>
+                    <div class="metric-note">Movimentações entre contas próprias já realizadas.</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title">Não orçado</div>
+                    <div class="metric-value amber">{{ resumo.total_nao_orcado_geral_fmt }}</div>
+                    <div class="metric-note">Executado encontrado na base sem previsão no orçamento.</div>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2 class="section-title">Consultar execução orçamentária</h2>
+                <p class="section-subtitle">
+                    Filtre a execução por ano, mês, tipo, categoria, situação e status.
+                </p>
+
+                <form method="get" action="/financeiro/orcamento" onsubmit="return mostrarCarregamentoConsulta();">
+                    <input type="hidden" name="visao" value="execucao" />
+                    <div class="filter-grid">
+                        <div>
+                            <label>Ano</label>
+                            <input type="number" name="ano" value="{{ filtros.ano }}" />
+                        </div>
+
+                        <div>
+                            <label>Mês</label>
+                            <select name="mes">
+                                <option value="">Todos</option>
+                                {% for sigla, nome in meses_opcoes %}
+                                    <option value="{{ sigla }}" {% if filtros.mes == sigla %}selected{% endif %}>{{ nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Tipo</label>
+                            <select name="tipo">
+                                {% for valor, rotulo in tipos_opcoes %}
+                                    <option value="{{ valor }}" {% if filtros.tipo == valor %}selected{% endif %}>{{ rotulo }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Categoria</label>
+                            <select name="categoria">
+                                <option value="">Todas</option>
+                                {% for categoria in categorias_existentes %}
+                                    <option value="{{ categoria }}" {% if filtros.categoria == categoria %}selected{% endif %}>{{ categoria }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Situação</label>
+                            <select id="filtroSituacaoExecucao" name="situacao_execucao">
+                                <option value="" {% if not filtros.situacao_execucao %}selected{% endif %}>Todos</option>
+                                <option value="PREVISTO" {% if filtros.situacao_execucao == "PREVISTO" %}selected{% endif %}>Previsto no orçamento</option>
+                                <option value="NAO_PREVISTO" {% if filtros.situacao_execucao == "NAO_PREVISTO" %}selected{% endif %}>Não previsto no orçamento</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Status</label>
+                            <select id="filtroStatusExecucao" name="status_execucao">
+                                <option value="">Todos</option>
+                                <option value="EXECUTADO" {% if filtros.status_execucao == "EXECUTADO" %}selected{% endif %}>Executado</option>
+                                <option value="EM ANDAMENTO" {% if filtros.status_execucao == "EM ANDAMENTO" %}selected{% endif %}>Em andamento</option>
+                                <option value="ESTOURADO" {% if filtros.status_execucao == "ESTOURADO" %}selected{% endif %}>Estourado</option>
+                                <option value="NÃO INICIADO" {% if filtros.status_execucao == "NÃO INICIADO" %}selected{% endif %}>Não iniciado</option>
+                                <option value="ACIMA DO PREVISTO" {% if filtros.status_execucao == "ACIMA DO PREVISTO" %}selected{% endif %}>Acima do previsto</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <button type="submit">Consultar</button>
+                        </div>
+
+                        <div>
+                            <a href="/financeiro/orcamento" class="clear-link">Limpar</a>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <section class="card">
+                <h2 class="section-title">Execução orçamentária agrupada</h2>
+                <p class="section-subtitle">
+                    {{ total_registros }} item(ns) encontrado(s). Aqui aparecem itens previstos, realizados, estourados e também lançamentos sem previsão.
+                </p>
+
+                {% if registros %}
+                    <div class="group-toolbar">
+                        <div>
+                            <label>Busca rápida</label>
+                            <input
+                                type="text"
+                                id="buscaRapida"
+                                placeholder="Digite categoria, subcategoria, tipo, mês, status ou descrição..."
+                                oninput="renderizarOrcamentoAgrupado()"
+                            />
+                        </div>
+
+
+                        <div>
+                            <label>Ação</label>
+                            <button type="button" class="soft-button" onclick="limparBuscaRapida()">
+                                Limpar filtros
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="orcamentoAgrupado" class="grouped-list"></div>
+                {% else %}
+                    <div class="empty">
+                        Nenhum orçamento encontrado para os filtros aplicados.
+                    </div>
+                {% endif %}
+            </section>
+        </section>
+
     </main>
 
     <div id="modalDetalheLancamentos" class="modal-backdrop" onclick="fecharDetalheLancamentosPorFundo(event)">
@@ -1375,7 +1584,30 @@
         </section>
     </div>
 
+
+
+    <div id="loadingConsulta" class="loading-overlay">
+        <div class="loading-box">
+            <div class="loading-spinner"></div>
+            <div class="loading-title">Consultando dados...</div>
+            <div class="loading-text">
+                Aguarde enquanto o orçamento é processado e os resultados são atualizados.
+            </div>
+        </div>
+    </div>
+
     <script>
+
+        function mostrarCarregamentoConsulta() {
+            const overlay = document.getElementById("loadingConsulta");
+
+            if (overlay) {
+                overlay.classList.add("active");
+            }
+
+            return true;
+        }
+
         const ORDEM_MESES = [
             "JAN", "FEV", "MAR", "ABR", "MAI", "JUN",
             "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"
@@ -1390,24 +1622,48 @@
             }
         }
 
+        function mostrarAreaPrincipal(area) {
+            const orcamento = area === "orcamento";
+
+            document.getElementById("tabOrcamento").classList.toggle("active", orcamento);
+            document.getElementById("tabExecucao").classList.toggle("active", !orcamento);
+
+            document.getElementById("secaoOrcamento").classList.toggle("active", orcamento);
+            document.getElementById("secaoExecucao").classList.toggle("active", !orcamento);
+        }
+
+        function mostrarOrcamentoAba(aba) {
+            const consultar = aba === "consultar";
+            const cadastrar = aba === "cadastrar";
+            const duplicar = aba === "duplicar";
+
+            document.getElementById("subTabConsultarOrcamento").classList.toggle("active", consultar);
+            document.getElementById("subTabNovo").classList.toggle("active", cadastrar);
+            document.getElementById("subTabDuplicar").classList.toggle("active", duplicar);
+
+            document.getElementById("orcamentoConsultar").classList.toggle("active", consultar);
+            document.getElementById("cadastroNovo").classList.toggle("active", cadastrar);
+            document.getElementById("cadastroDuplicar").classList.toggle("active", duplicar);
+        }
+
         function mostrarModo(modo) {
-            const consultar = modo === "consultar";
+            if (modo === "consultar") {
+                mostrarAreaPrincipal("execucao");
+                return;
+            }
 
-            document.getElementById("tabConsultar").classList.toggle("active", consultar);
-            document.getElementById("tabCadastrar").classList.toggle("active", !consultar);
-
-            document.getElementById("secaoConsultar").classList.toggle("active", consultar);
-            document.getElementById("secaoCadastrar").classList.toggle("active", !consultar);
+            mostrarAreaPrincipal("orcamento");
+            mostrarOrcamentoAba("cadastrar");
         }
 
         function mostrarCadastro(tipo) {
-            const novo = tipo === "novo";
+            mostrarAreaPrincipal("orcamento");
 
-            document.getElementById("subTabNovo").classList.toggle("active", novo);
-            document.getElementById("subTabDuplicar").classList.toggle("active", !novo);
-
-            document.getElementById("cadastroNovo").classList.toggle("active", novo);
-            document.getElementById("cadastroDuplicar").classList.toggle("active", !novo);
+            if (tipo === "duplicar") {
+                mostrarOrcamentoAba("duplicar");
+            } else {
+                mostrarOrcamentoAba("cadastrar");
+            }
         }
 
         function editarOrcamento(botao) {
@@ -1424,8 +1680,8 @@
 
             document.getElementById("botaoSalvar").textContent = "Salvar alteração";
 
-            mostrarModo("cadastrar");
-            mostrarCadastro("novo");
+            mostrarAreaPrincipal("orcamento");
+            mostrarOrcamentoAba("cadastrar");
 
             window.scrollTo({
                 top: 0,
@@ -1606,24 +1862,49 @@
             return "pill";
         }
 
-        function classeStatus(status) {
+        function statusEhVerde(status) {
             const s = normalizar(status);
 
-            if (s === "EXECUTADO") {
+            return (
+                s === "EXECUTADO" ||
+                s === "CONCLUIDO" ||
+                s === "CONCLUÍDO" ||
+                s === "PAGO" ||
+                s === "ACIMA DO PREVISTO" ||
+                s === "RECEITA REALIZADA"
+            );
+        }
+
+        function statusEhAmarelo(status) {
+            const s = normalizar(status);
+
+            return (
+                s === "EM ANDAMENTO" ||
+                s === "NAO ORCADO" ||
+                s === "NÃO ORÇADO"
+            );
+        }
+
+        function statusEhVermelho(status) {
+            const s = normalizar(status);
+
+            return (
+                s === "ESTOURADO" ||
+                s === "NAO INICIADO" ||
+                s === "NÃO INICIADO"
+            );
+        }
+
+        function classeStatus(status) {
+            if (statusEhVerde(status)) {
                 return "pill pill-status-green";
             }
 
-            if (s === "EM ANDAMENTO") {
+            if (statusEhAmarelo(status)) {
                 return "pill pill-status-amber";
             }
 
-            if (
-                s === "ESTOURADO" ||
-                s === "NAO INICIADO" ||
-                s === "NÃO INICIADO" ||
-                s === "NAO ORCADO" ||
-                s === "NÃO ORÇADO"
-            ) {
+            if (statusEhVermelho(status)) {
                 return "pill pill-status-red";
             }
 
@@ -1631,23 +1912,15 @@
         }
 
         function classeBarra(status) {
-            const s = normalizar(status);
-
-            if (s === "EXECUTADO") {
+            if (statusEhVerde(status)) {
                 return "green-bg";
             }
 
-            if (s === "EM ANDAMENTO") {
+            if (statusEhAmarelo(status)) {
                 return "amber-bg";
             }
 
-            if (
-                s === "ESTOURADO" ||
-                s === "NAO INICIADO" ||
-                s === "NÃO INICIADO" ||
-                s === "NAO ORCADO" ||
-                s === "NÃO ORÇADO"
-            ) {
+            if (statusEhVermelho(status)) {
                 return "red-bg";
             }
 
@@ -1655,23 +1928,15 @@
         }
 
         function classeBordaGrupo(status) {
-            const s = normalizar(status);
-
-            if (s === "EXECUTADO") {
+            if (statusEhVerde(status)) {
                 return "green-border";
             }
 
-            if (s === "EM ANDAMENTO") {
+            if (statusEhAmarelo(status)) {
                 return "amber-border";
             }
 
-            if (
-                s === "ESTOURADO" ||
-                s === "NAO INICIADO" ||
-                s === "NÃO INICIADO" ||
-                s === "NAO ORCADO" ||
-                s === "NÃO ORÇADO"
-            ) {
+            if (statusEhVermelho(status)) {
                 return "red-border";
             }
 
@@ -1679,27 +1944,118 @@
         }
 
         function classeHeaderGrupo(status) {
-            const s = normalizar(status);
-
-            if (s === "EXECUTADO") {
+            if (statusEhVerde(status)) {
                 return "status-green";
             }
 
-            if (s === "EM ANDAMENTO") {
+            if (statusEhAmarelo(status)) {
                 return "status-amber";
             }
 
-            if (
-                s === "ESTOURADO" ||
-                s === "NAO INICIADO" ||
-                s === "NÃO INICIADO" ||
-                s === "NAO ORCADO" ||
-                s === "NÃO ORÇADO"
-            ) {
+            if (statusEhVermelho(status)) {
                 return "status-red";
             }
 
             return "";
+        }
+
+        function calcularStatusVisualItem(item) {
+            if (item.ITEM_NAO_ORCADO) {
+                return "NÃO ORÇADO";
+            }
+
+            const tipo = normalizar(item.TIPO);
+            const previsto = valorPrevisto(item);
+            const realizado = valorRealizadoSubcategoria(item);
+            const qtdDetalhes = Number(item.QTD_LANCAMENTOS_DETALHE || 0);
+            const tolerancia = 1;
+
+            if (realizado <= 0) {
+                return "NÃO INICIADO";
+            }
+
+            if (previsto <= 0) {
+                return "NÃO ORÇADO";
+            }
+
+            if (tipo === "RECEITA") {
+                if (realizado > previsto + tolerancia) {
+                    return "ACIMA DO PREVISTO";
+                }
+
+                if (realizado >= previsto - tolerancia) {
+                    return "EXECUTADO";
+                }
+
+                return "EM ANDAMENTO";
+            }
+
+            if (tipo === "DESPESA") {
+                if (realizado > previsto + tolerancia) {
+                    return "ESTOURADO";
+                }
+
+                /*
+                    Despesas fixas com um único lançamento no mês, como Prestação AP,
+                    não devem continuar como "em andamento" depois que o lançamento foi localizado.
+                */
+                if (qtdDetalhes === 1 && realizado > 0 && realizado <= previsto + tolerancia) {
+                    return "EXECUTADO";
+                }
+
+                if (realizado >= previsto - tolerancia) {
+                    return "EXECUTADO";
+                }
+
+                return "EM ANDAMENTO";
+            }
+
+            if (realizado > previsto + tolerancia) {
+                return "ESTOURADO";
+            }
+
+            if (realizado >= previsto - tolerancia) {
+                return "EXECUTADO";
+            }
+
+            return "EM ANDAMENTO";
+        }
+
+        function calcularStatusVisualGrupo(grupo) {
+            const tipo = normalizar(grupo.tipo);
+            const previsto = Number(grupo.totalPrevisto || 0);
+            const realizado = Number(grupo.totalRealizado || 0);
+            const tolerancia = 1;
+
+            if (previsto <= 0 && realizado > 0) {
+                return "NÃO ORÇADO";
+            }
+
+            if (realizado <= 0) {
+                return "NÃO INICIADO";
+            }
+
+            if (tipo === "RECEITA") {
+                if (realizado > previsto + tolerancia) {
+                    return "ACIMA DO PREVISTO";
+                }
+
+                if (realizado >= previsto - tolerancia) {
+                    return "EXECUTADO";
+                }
+
+                return "EM ANDAMENTO";
+            }
+
+            if (realizado > previsto + tolerancia) {
+                return "ESTOURADO";
+            }
+
+            if (realizado >= previsto - tolerancia) {
+                return "EXECUTADO";
+            }
+
+            return "EM ANDAMENTO";
         }
 
         function rotuloTipo(tipo) {
@@ -1781,17 +2137,11 @@
 
                 if (grupo.totalPrevisto > 0) {
                     grupo.percentual = grupo.totalRealizado / grupo.totalPrevisto * 100;
+                } else if (grupo.totalRealizado > 0) {
+                    grupo.percentual = 100;
                 }
 
-                if (grupo.totalRealizado <= 0) {
-                    grupo.status = "NÃO INICIADO";
-                } else if (grupo.totalExcesso > 0) {
-                    grupo.status = "ESTOURADO";
-                } else if (grupo.totalRealizado < grupo.totalPrevisto) {
-                    grupo.status = "EM ANDAMENTO";
-                } else {
-                    grupo.status = "EXECUTADO";
-                }
+                grupo.status = calcularStatusVisualGrupo(grupo);
             });
 
             return Object.values(grupos).sort(function (a, b) {
@@ -1883,7 +2233,7 @@
         }
 
         function montarLinhaItem(item) {
-            const status = item.STATUS_EXECUCAO || "NÃO INICIADO";
+            const status = calcularStatusVisualItem(item);
             const percentual = Math.min(percentualExecutado(item), 150);
             const percentualBarra = Math.min(percentual, 100);
             const realizadoSub = valorRealizadoSubcategoria(item);
@@ -2008,6 +2358,116 @@
             `;
         }
 
+        function itemEhOrcamentoPrevisto(item) {
+            return !item.ITEM_NAO_ORCADO;
+        }
+
+        function itemPassaBuscaOrcamentoPrevisto(item, busca) {
+            if (!busca) {
+                return true;
+            }
+
+            const texto = [
+                item.ANO,
+                item.MES,
+                item.TIPO,
+                item.CATEGORIA,
+                item.SUBCATEGORIA,
+                item.VALOR_PREVISTO_FMT,
+                item.OBSERVACAO
+            ].map(normalizar).join(" ");
+
+            return texto.includes(busca);
+        }
+
+        function montarLinhaOrcamentoPrevisto(item) {
+            return `
+                <tr>
+                    <td>
+                        <span class="${classePillTipo(item.TIPO)}">${escaparHtml(rotuloTipo(item.TIPO))}</span>
+                    </td>
+
+                    <td>
+                        <span class="pill">${escaparHtml(item.MES || "-")}</span>
+                    </td>
+
+                    <td>
+                        <div class="subcategoria-principal">${escaparHtml(item.CATEGORIA || "SEM CATEGORIA")}</div>
+                        <div class="subcategoria-ajuda">${escaparHtml(item.SUBCATEGORIA || "Sem subcategoria")}</div>
+                    </td>
+
+                    <td class="money">
+                        ${escaparHtml(item.VALOR_PREVISTO_FMT || formatarMoeda(valorPrevisto(item)))}
+                    </td>
+
+                    <td>
+                        ${escaparHtml(item.OBSERVACAO || "-")}
+                    </td>
+
+                    <td>
+                        <div class="actions">
+                            ${montarBotaoEditar(item)}
+                            ${montarBotaoExcluir(item)}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function renderizarOrcamentoPrevisto() {
+            const container = document.getElementById("orcamentoPrevistoLista");
+
+            if (!container) {
+                return;
+            }
+
+            const busca = normalizar(document.getElementById("buscaRapidaOrcamento")?.value || "");
+
+            const registrosFiltrados = REGISTROS_ORCAMENTO.filter(function (item) {
+                return itemEhOrcamentoPrevisto(item) && itemPassaBuscaOrcamentoPrevisto(item, busca);
+            });
+
+            if (registrosFiltrados.length === 0) {
+                container.innerHTML = `
+                    <div class="empty">
+                        Nenhum item previsto encontrado para a busca/filtros aplicados.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="detail-table-wrap">
+                    <table class="budget-table">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Mês</th>
+                                <th>Categoria / Subcategoria</th>
+                                <th style="text-align: right;">Valor previsto</th>
+                                <th>Observação</th>
+                                <th style="text-align: right;">Ações</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            ${registrosFiltrados.map(montarLinhaOrcamentoPrevisto).join("")}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function limparBuscaOrcamentoPrevisto() {
+            const campo = document.getElementById("buscaRapidaOrcamento");
+
+            if (campo) {
+                campo.value = "";
+            }
+
+            renderizarOrcamentoPrevisto();
+        }
+
         function renderizarOrcamentoAgrupado() {
             const container = document.getElementById("orcamentoAgrupado");
 
@@ -2016,15 +2476,28 @@
             }
 
             const busca = normalizar(document.getElementById("buscaRapida")?.value || "");
+            const situacaoSelecionada = normalizar(document.getElementById("filtroSituacaoExecucao")?.value || "");
+            const statusSelecionado = normalizar(document.getElementById("filtroStatusExecucao")?.value || "");
 
             const registrosFiltrados = REGISTROS_ORCAMENTO.filter(function (item) {
-                return itemPassaBusca(item, busca);
+                const passaBusca = itemPassaBusca(item, busca);
+
+                const situacaoItem = item.ITEM_NAO_ORCADO
+                    ? "NAO_PREVISTO"
+                    : "PREVISTO";
+
+                const passaSituacao = !situacaoSelecionada || normalizar(situacaoItem) === situacaoSelecionada;
+
+                const statusItem = normalizar(calcularStatusVisualItem(item));
+                const passaStatus = !statusSelecionado || statusItem === statusSelecionado;
+
+                return passaBusca && passaSituacao && passaStatus;
             });
 
             if (registrosFiltrados.length === 0) {
                 container.innerHTML = `
                     <div class="empty">
-                        Nenhum item encontrado para a busca rápida informada.
+                        Nenhum item encontrado para os filtros informados.
                     </div>
                 `;
                 return;
@@ -2037,9 +2510,19 @@
 
         function limparBuscaRapida() {
             const campo = document.getElementById("buscaRapida");
+            const filtroSituacao = document.getElementById("filtroSituacaoExecucao");
+            const filtroStatus = document.getElementById("filtroStatusExecucao");
 
             if (campo) {
                 campo.value = "";
+            }
+
+            if (filtroSituacao) {
+                filtroSituacao.value = "";
+            }
+
+            if (filtroStatus) {
+                filtroStatus.value = "";
             }
 
             renderizarOrcamentoAgrupado();
@@ -2061,7 +2544,7 @@
             }, 0);
 
             document.getElementById("modalDetalheTitulo").textContent = "Lançamentos do orçamento";
-            document.getElementById("modalDetalheSubtitulo").textContent = `${item.TIPO || ""} • ${item.MES || ""} • ${item.STATUS_EXECUCAO || ""}`;
+            document.getElementById("modalDetalheSubtitulo").textContent = `${item.TIPO || ""} • ${item.MES || ""} • ${calcularStatusVisualItem(item)}`;
             document.getElementById("modalDetalheCategoria").textContent = item.CATEGORIA || "-";
             document.getElementById("modalDetalheSubcategoria").textContent = item.SUBCATEGORIA || "-";
             document.getElementById("modalDetalheQuantidade").textContent = String(lancamentos.length);
@@ -2138,6 +2621,36 @@
 
         document.addEventListener("DOMContentLoaded", function () {
             atualizarMesesDestino();
+
+            const params = new URLSearchParams(window.location.search);
+            const visao = params.get("visao");
+            const situacaoUrl = params.get("situacao_execucao") || params.get("situacao_orcamento");
+            const statusUrl = params.get("status_execucao");
+            const filtroSituacao = document.getElementById("filtroSituacaoExecucao");
+            const filtroStatus = document.getElementById("filtroStatusExecucao");
+
+            if (filtroSituacao && situacaoUrl) {
+                if (situacaoUrl === "ORCADO") {
+                    filtroSituacao.value = "PREVISTO";
+                } else if (situacaoUrl === "NAO_ORCADO") {
+                    filtroSituacao.value = "NAO_PREVISTO";
+                } else {
+                    filtroSituacao.value = situacaoUrl;
+                }
+            }
+
+            if (filtroStatus && statusUrl) {
+                filtroStatus.value = statusUrl;
+            }
+
+            if (visao === "execucao") {
+                mostrarAreaPrincipal("execucao");
+            } else {
+                mostrarAreaPrincipal("orcamento");
+                mostrarOrcamentoAba("consultar");
+            }
+
+            renderizarOrcamentoPrevisto();
             renderizarOrcamentoAgrupado();
         });
     </script>

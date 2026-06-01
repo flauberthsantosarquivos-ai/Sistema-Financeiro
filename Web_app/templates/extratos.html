@@ -55,32 +55,7 @@
             margin: 0;
             color: #dbeafe;
         }
-
-        .nav {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 22px;
-            flex-wrap: wrap;
-        }
-
-        .nav a {
-            text-decoration: none;
-            background: white;
-            border: 1px solid var(--border);
-            color: #1e40af;
-            padding: 12px 16px;
-            border-radius: 999px;
-            font-weight: 800;
-            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
-        }
-
-        .nav a.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .card {
+.card {
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 22px;
@@ -235,10 +210,144 @@
                 width: 100%;
             }
         }
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            padding: 26px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            flex: 0 0 280px;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: white;
+        }
+
+        .brand span {
+            font-size: 13px;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #cbd5e1;
+            padding: 13px 15px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu a:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        .menu a.ativo {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            font-size: 12px;
+            color: #94a3b8;
+            line-height: 1.5;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .page {
+            flex: 1;
+            max-width: none;
+            margin: 0;
+            padding: 34px;
+        }
+
+        @media (max-width: 900px) {
+            .app {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                flex: none;
+            }
+
+            .page {
+                padding: 22px;
+            }
+        }
+
     </style>
 </head>
 
 <body>
+<div class="app">
+
+    <aside class="sidebar">
+        <div class="brand">
+            <h1>Sistema Financeiro</h1>
+            <span>Controle pessoal, orçamento, pagamentos, patrimônio e metas</span>
+        </div>
+
+        <nav class="menu">
+            <a href="/financeiro">🏠 Início</a>
+            <a href="/financeiro/configuracoes">⚙️ Configurações</a>
+            <a href="/financeiro/extratos" class="ativo">📄 Extratos</a>
+            <a href="/financeiro/base-lancamentos">🗂️ Base</a>
+            <a href="/financeiro/lancamento">➕ Lançamento</a>
+            <a href="/financeiro/orcamento">📊 Orçamento</a>
+            <a href="/financeiro/pagamentos">💳 Pagamentos</a>
+            <a href="/financeiro/analise">📌 Painel Gerencial</a>
+            <a href="/financeiro/patrimonio">🏦 Patrimônio</a>
+            <a href="/financeiro/investimentos">📈 Investimentos</a>
+            <a href="/financeiro/metas">🎯 Metas</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            Dashboard Financeiro — Extratos<br />
+            Importação, prévia e gravação na base
+        </div>
+    </aside>
+
     <main class="page">
         <section class="hero">
             <h1>Dashboard Financeiro</h1>
@@ -246,20 +355,7 @@
                 Importar Extratos: envie CSV ou Excel, confira a prévia, ajuste categorias e grave na BASE_LANCAMENTOS.
             </p>
         </section>
-
-        <nav class="nav">
-          <a href="/financeiro">Início</a>
-          <a href="/financeiro/configuracoes">Configurações</a>
-          <a href="/financeiro/extratos" class="active">Extratos</a>
-          <a href="/financeiro/base-lancamentos">Base</a>
-          <a href="/financeiro/lancamento">Lançamento</a>
-          <a href="/financeiro/orcamento">Orçamento</a>
-          <a href="/financeiro/analise">Painel Gerencial</a>
-          <a href="/financeiro/patrimonio">Patrimônio</a>
-          <a href="/financeiro/investimentos">Investimentos</a>
-        </nav>
-
-        {% if mensagem %}
+{% if mensagem %}
             <div class="alert success">{{ mensagem }}</div>
         {% endif %}
 
@@ -393,5 +489,6 @@
             </section>
         {% endif %}
     </main>
+</div>
 </body>
 </html>

@@ -6,6 +6,31 @@
 
     <style>
         :root {
+            --azul-principal: #2563eb;
+            --azul-escuro: #1e40af;
+            --azul-claro: #dbeafe;
+
+            --verde: #16a34a;
+            --verde-claro: #dcfce7;
+
+            --amarelo: #f59e0b;
+            --amarelo-claro: #fef3c7;
+
+            --vermelho: #dc2626;
+            --vermelho-claro: #fee2e2;
+
+            --cinza-fundo: #f3f4f6;
+            --cinza-borda: #e5e7eb;
+            --cinza-texto: #374151;
+            --cinza-suave: #6b7280;
+
+            --branco: #ffffff;
+            --sombra-card: 0 12px 30px rgba(15, 23, 42, 0.08);
+            --sombra-botao: 0 8px 18px rgba(37, 99, 235, 0.25);
+
+            --raio-card: 18px;
+            --raio-input: 12px;
+
             --bg: #f4f6fb;
             --card: #ffffff;
             --text: #1f2937;
@@ -26,58 +51,135 @@
         body {
             margin: 0;
             font-family: "Segoe UI", Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
+            background: var(--cinza-fundo);
+            color: var(--cinza-texto);
         }
 
-        .page {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 32px;
-        }
-
-        .hero {
-            background: linear-gradient(135deg, #0f172a, #1d4ed8);
-            color: white;
-            border-radius: 26px;
-            padding: 32px;
-            box-shadow: var(--shadow);
-            margin-bottom: 22px;
-        }
-
-        .hero h1 {
-            margin: 0 0 8px;
-            font-size: 32px;
-            letter-spacing: -0.04em;
-        }
-
-        .hero p {
-            margin: 0;
-            color: #dbeafe;
-        }
-
-        .nav {
+        .app {
             display: flex;
-            gap: 12px;
-            margin-bottom: 22px;
-            flex-wrap: wrap;
+            min-height: 100vh;
         }
 
-        .nav a {
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            padding: 26px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .brand span {
+            font-size: 13px;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .menu a {
             text-decoration: none;
-            background: white;
-            border: 1px solid var(--border);
-            color: #1e40af;
-            padding: 12px 16px;
+            color: #cbd5e1;
+            padding: 13px 15px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu a:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        .menu a.ativo {
+            background: var(--azul-principal);
+            color: white;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            font-size: 12px;
+            color: #94a3b8;
+            line-height: 1.5;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .main {
+            flex: 1;
+            padding: 34px;
+            overflow-y: auto;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        .titulo-pagina h2 {
+            margin: 0;
+            font-size: 30px;
+            font-weight: 800;
+            color: #111827;
+            letter-spacing: -0.8px;
+        }
+
+        .titulo-pagina p {
+            margin: 8px 0 0;
+            color: var(--cinza-suave);
+            font-size: 15px;
+            max-width: 900px;
+            line-height: 1.5;
+        }
+
+        .topbar-acoes {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .badge-etapa {
+            background: var(--azul-claro);
+            color: var(--azul-escuro);
+            padding: 10px 14px;
             border-radius: 999px;
             font-weight: 800;
-            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
-        }
-
-        .nav a.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
+            font-size: 13px;
+            white-space: nowrap;
         }
 
         .alert {
@@ -139,6 +241,7 @@
             margin: 0 0 16px;
             font-size: 22px;
             letter-spacing: -0.03em;
+            color: #111827;
         }
 
         .info-list {
@@ -226,6 +329,7 @@
             font-weight: 900;
             cursor: pointer;
             text-decoration: none;
+            font-family: inherit;
         }
 
         button:hover,
@@ -395,43 +499,89 @@
             background: white;
         }
 
-        @media (max-width: 1000px) {
+        @media (max-width: 1180px) {
             .grid,
             .category-form-grid {
                 grid-template-columns: 1fr;
             }
 
-            .page {
-                padding: 18px;
+            .sidebar {
+                width: 245px;
+            }
+        }
+
+        @media (max-width: 820px) {
+            .app {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .main {
+                padding: 22px;
+            }
+
+            .topbar {
+                flex-direction: column;
+            }
+
+            .topbar-acoes {
+                justify-content: flex-start;
             }
         }
     </style>
 </head>
 
 <body>
-    <main class="page">
-        <section class="hero">
-            <h1>Configurações do Sistema</h1>
-            <p>
-                Área administrativa para gerenciar a planilha vinculada, estrutura padrão,
-                conexão com Google Drive e parâmetros financeiros do cliente.
-            </p>
-        </section>
+<div class="app">
 
-        <nav class="nav">
-            <a href="/financeiro">Início</a>
-            <a href="/financeiro/configuracoes" class="active">Configurações</a>
-            <a href="/financeiro/extratos">Extratos</a>
-            <a href="/financeiro/base-lancamentos">Base</a>
-            <a href="/financeiro/lancamento">Lançamento</a>
-            <a href="/financeiro/orcamento">Orçamento</a>
-            <a href="/financeiro/pagamentos">Pagamentos</a>
-            <a href="/financeiro/analise">Painel Gerencial</a>
-            <a href="/financeiro/patrimonio">Patrimônio</a>
-            <a href="/financeiro/investimentos">Investimentos</a>
+    <aside class="sidebar">
+        <div class="brand">
+            <h1>Sistema Financeiro</h1>
+            <span>Controle pessoal, orçamento, pagamentos, patrimônio e metas</span>
+        </div>
+
+        <nav class="menu">
+            <a href="/financeiro">🏠 Início</a>
+            <a href="/financeiro/configuracoes" class="ativo">⚙️ Configurações</a>
+            <a href="/financeiro/extratos">📄 Extratos</a>
+            <a href="/financeiro/base-lancamentos">🗂️ Base</a>
+            <a href="/financeiro/lancamento">➕ Lançamento</a>
+            <a href="/financeiro/orcamento">📊 Orçamento</a>
+            <a href="/financeiro/pagamentos">💳 Pagamentos</a>
+            <a href="/financeiro/analise">📌 Painel Gerencial</a>
+            <a href="/financeiro/patrimonio">🏦 Patrimônio</a>
+            <a href="/financeiro/investimentos">📈 Investimentos</a>
+            <a href="/financeiro/metas">🎯 Metas</a>
         </nav>
 
-        {% if mensagem %}
+        <div class="sidebar-footer">
+            Dashboard Financeiro — Configurações<br />
+            Administração do sistema e categorias
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div class="titulo-pagina">
+                <h2>Configurações do Sistema</h2>
+                <p>
+                    Área administrativa para gerenciar a planilha vinculada, estrutura padrão,
+                    conexão com Google Drive e parâmetros financeiros do cliente.
+                </p>
+            </div>
+
+            <div class="topbar-acoes">
+                <div class="badge-etapa">
+                    Administração
+                </div>
+            </div>
+        </div>
+{% if mensagem %}
             <div class="alert success">{{ mensagem }}</div>
         {% endif %}
 
@@ -689,5 +839,6 @@
             Novo Lançamento, Importar Extrato, BASE_LANCAMENTOS e Dashboard Financeiro.
         </div>
     </main>
+</div>
 </body>
 </html>

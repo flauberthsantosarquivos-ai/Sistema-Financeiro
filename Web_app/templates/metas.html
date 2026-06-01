@@ -57,6 +57,11 @@
             display: flex;
             flex-direction: column;
             gap: 24px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            flex: 0 0 280px;
         }
 
         .brand {
@@ -77,6 +82,7 @@
         .brand span {
             font-size: 13px;
             color: #cbd5e1;
+            line-height: 1.4;
         }
 
         .menu {
@@ -612,9 +618,142 @@
             color: #111827;
         }
 
+
+        .gerencial-card {
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            border: 1px solid var(--cinza-borda);
+            border-left: 6px solid var(--azul-principal);
+            border-radius: var(--raio-card);
+            box-shadow: var(--sombra-card);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .gerencial-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .gerencial-label {
+            font-size: 12px;
+            color: var(--cinza-suave);
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 6px;
+        }
+
+        .gerencial-title {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 900;
+            color: #111827;
+            letter-spacing: -0.03em;
+        }
+
+        .gerencial-text {
+            margin: 8px 0 0;
+            color: #475569;
+            font-size: 15px;
+            font-weight: 650;
+            line-height: 1.55;
+            max-width: 980px;
+        }
+
+        .gerencial-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .gerencial-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .gerencial-mini {
+            border: 1px solid var(--cinza-borda);
+            border-radius: 16px;
+            background: #ffffff;
+            padding: 14px;
+        }
+
+        .gerencial-mini-label {
+            font-size: 11px;
+            color: var(--cinza-suave);
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-bottom: 7px;
+        }
+
+        .gerencial-mini-value {
+            color: #111827;
+            font-size: 18px;
+            font-weight: 950;
+            letter-spacing: -0.03em;
+        }
+
+        .gerencial-mini-detail {
+            margin-top: 5px;
+            color: var(--cinza-suave);
+            font-size: 12px;
+            font-weight: 750;
+            line-height: 1.35;
+        }
+
+        .sugestao-lista {
+            display: grid;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .sugestao-item {
+            border: 1px solid #dbeafe;
+            background: #eff6ff;
+            color: #1e3a8a;
+            border-radius: 16px;
+            padding: 13px 15px;
+            font-weight: 800;
+            line-height: 1.45;
+        }
+
+        .sugestao-item strong {
+            color: #111827;
+        }
+
+        .btn-gerencial {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            box-shadow: var(--sombra-botao);
+        }
+
+        .btn-gerencial:hover {
+            background: var(--azul-escuro);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: #ffffff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+
+        .btn-outline:hover {
+            background: #eff6ff;
+        }
+
         @media (max-width: 1180px) {
             .cards-resumo,
-            .diagnostico-grid {
+            .diagnostico-grid,
+            .gerencial-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
@@ -649,7 +788,8 @@
             }
 
             .cards-resumo,
-            .diagnostico-grid {
+            .diagnostico-grid,
+            .gerencial-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -674,23 +814,26 @@
     <aside class="sidebar">
         <div class="brand">
             <h1>Sistema Financeiro</h1>
-            <span>Controle pessoal, orçamento, patrimônio e metas</span>
+            <span>Controle pessoal, orçamento, pagamentos, patrimônio e metas</span>
         </div>
 
         <nav class="menu">
-            <a href="/financeiro">🏠 Dashboard</a>
-            <a href="/financeiro/lancamentos">➕ Lançamentos</a>
+            <a href="/financeiro">🏠 Início</a>
+            <a href="/financeiro/configuracoes">⚙️ Configurações</a>
             <a href="/financeiro/extratos">📄 Extratos</a>
+            <a href="/financeiro/base-lancamentos">🗂️ Base</a>
+            <a href="/financeiro/lancamento">➕ Lançamento</a>
             <a href="/financeiro/orcamento">📊 Orçamento</a>
+            <a href="/financeiro/pagamentos">💳 Pagamentos</a>
+            <a href="/financeiro/analise">📌 Painel Gerencial</a>
             <a href="/financeiro/patrimonio">🏦 Patrimônio</a>
             <a href="/financeiro/investimentos">📈 Investimentos</a>
-            <a href="/financeiro/metas" class="ativo">🎯 Metas Financeiras</a>
-            <a href="/financeiro/configuracoes">⚙️ Configurações</a>
+            <a href="/financeiro/metas" class="ativo">🎯 Metas</a>
         </nav>
 
         <div class="sidebar-footer">
-            Dashboard Financeiro — Etapa 3<br />
-            Módulo de metas financeiras
+            Dashboard Financeiro — Metas<br />
+            Objetivos financeiros e sugestões gerenciais
         </div>
     </aside>
 
@@ -699,18 +842,23 @@
         <div class="topbar">
             <div class="titulo-pagina">
                 <h2>Metas Financeiras</h2>
-                <p>Cadastre, acompanhe e gere metas automáticas com base no seu fluxo financeiro e patrimônio.</p>
+                <p>Cadastre, acompanhe e gere metas automáticas conectadas ao Painel Gerencial, ao fluxo financeiro e ao patrimônio.</p>
             </div>
 
             <div class="topbar-acoes">
                 <form method="post" action="/financeiro/metas/sugerir">
+                    <input type="hidden" name="origem_sugestao" value="ANALISE_GERENCIAL" />
                     <button type="submit" class="btn btn-sugerir">
-                        ✨ Sugerir metas automaticamente
+                        ✨ Sugerir pela análise gerencial
                     </button>
                 </form>
 
+                <a class="btn btn-outline" href="/financeiro/analise">
+                    📌 Ver Painel Gerencial
+                </a>
+
                 <div class="badge-etapa">
-                    Etapa 3 · Metas
+                    Metas financeiras
                 </div>
             </div>
         </div>
@@ -726,6 +874,96 @@
                 {{ erro }}
             </div>
         {% endif %}
+
+        <section class="gerencial-card">
+            <div class="gerencial-top">
+                <div>
+                    <div class="gerencial-label">Sugestões inteligentes</div>
+                    <h3 class="gerencial-title">Metas orientadas pela análise gerencial</h3>
+                    <p class="gerencial-text">
+                        Use os indicadores do Painel Gerencial, do Patrimônio e dos Investimentos para sugerir metas
+                        mais coerentes com o fluxo financeiro: reserva de emergência, redução de despesas,
+                        organização de pagamentos, aumento de investimentos e saneamento de lançamentos a classificar.
+                    </p>
+                </div>
+
+                <div class="gerencial-actions">
+                    <form method="post" action="/financeiro/metas/sugerir">
+                        <input type="hidden" name="origem_sugestao" value="ANALISE_GERENCIAL" />
+                        <button type="submit" class="btn btn-gerencial">
+                            Gerar metas pela análise
+                        </button>
+                    </form>
+
+                    <a class="btn btn-outline" href="/financeiro/analise">
+                        Abrir Painel Gerencial
+                    </a>
+
+                    <a class="btn btn-outline" href="/financeiro/investimentos">
+                        Abrir Investimentos
+                    </a>
+                </div>
+            </div>
+
+            {% if diagnostico_sugestao %}
+                <div class="gerencial-grid">
+                    <div class="gerencial-mini">
+                        <div class="gerencial-mini-label">Metas criadas</div>
+                        <div class="gerencial-mini-value">{{ diagnostico_sugestao.quantidade_cadastrada }}</div>
+                        <div class="gerencial-mini-detail">Novas metas geradas pelo sistema.</div>
+                    </div>
+
+                    <div class="gerencial-mini">
+                        <div class="gerencial-mini-label">Metas já existentes</div>
+                        <div class="gerencial-mini-value">{{ diagnostico_sugestao.quantidade_ignorada }}</div>
+                        <div class="gerencial-mini-detail">Ignoradas para evitar duplicidade.</div>
+                    </div>
+
+                    <div class="gerencial-mini">
+                        <div class="gerencial-mini-label">Receita média</div>
+                        <div class="gerencial-mini-value">{{ diagnostico_sugestao.dados_fluxo.media_receitas_fmt }}</div>
+                        <div class="gerencial-mini-detail">{{ diagnostico_sugestao.dados_fluxo.quantidade_meses }} mês(es) analisado(s).</div>
+                    </div>
+
+                    <div class="gerencial-mini">
+                        <div class="gerencial-mini-label">Saldo médio</div>
+                        <div class="gerencial-mini-value">{{ diagnostico_sugestao.dados_fluxo.saldo_medio_fmt }}</div>
+                        <div class="gerencial-mini-detail">Base para estimar capacidade mensal de aporte.</div>
+                    </div>
+                </div>
+
+                <div class="sugestao-lista">
+                    <div class="sugestao-item">
+                        <strong>Reserva de emergência:</strong>
+                        se a liquidez estiver abaixo do recomendado, a meta deve priorizar a formação de reserva.
+                    </div>
+
+                    <div class="sugestao-item">
+                        <strong>Controle de despesas:</strong>
+                        se o Painel Gerencial indicar orçamento estourado, a meta deve focar redução da categoria crítica.
+                    </div>
+
+                    <div class="sugestao-item">
+                        <strong>Investimentos:</strong>
+                        se houver sobra mensal positiva e reserva adequada, a meta deve direcionar aportes recorrentes.
+                    </div>
+
+                    <div class="sugestao-item">
+                        <strong>Classificação da base:</strong>
+                        se existirem lançamentos a classificar, a meta operacional deve priorizar saneamento da base.
+                    </div>
+                </div>
+            {% else %}
+                <div class="sugestao-lista">
+                    <div class="sugestao-item">
+                        Clique em <strong>Gerar metas pela análise</strong> para criar metas automáticas.
+                        O ideal é que a rotina use os mesmos indicadores do Painel Gerencial:
+                        saldo operacional, comprometimento, orçamento estourado, pendências de classificação,
+                        patrimônio, liquidez e diagnóstico de investimentos.
+                    </div>
+                </div>
+            {% endif %}
+        </section>
 
         {% if diagnostico_sugestao %}
             <div class="card" style="margin-bottom: 24px;">
@@ -935,8 +1173,8 @@
 
             <div class="card">
                 <div class="card-header">
-                    <h3>Nova meta financeira</h3>
-                    <p>Preencha os dados abaixo para registrar uma nova meta.</p>
+                    <h3>Nova meta financeira manual</h3>
+                    <p>Preencha os dados abaixo para registrar uma meta manual. Para metas inteligentes, use a sugestão pela análise gerencial.</p>
                 </div>
 
                 <div class="card-body">

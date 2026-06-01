@@ -53,8 +53,23 @@ STATUS_METAS = [
 def obter_planilha_por_link(link_planilha: str):
     """
     Abre a planilha pelo link configurado no sistema.
-    Usa o mesmo padrão de autenticação já utilizado nos módulos financeiros.
+
+    Esta versão é mais robusta porque:
+    - valida se o link/ID veio vazio;
+    - aceita link completo ou ID da planilha;
+    - tenta abrir por URL e por ID;
+    - usa token.json/credentials.json do mesmo projeto;
+    - devolve mensagem de erro mais clara para a tela de Metas.
     """
+
+    texto_link = str(link_planilha or "").strip().strip('"').strip("'").strip()
+    texto_link = texto_link.rstrip(" .,;\n\r\t/")
+
+    if not texto_link:
+        raise RuntimeError(
+            "Nenhuma planilha foi informada para o módulo de metas. "
+            "Verifique em Configurações se a Central Financeira possui uma planilha Google vinculada."
+        )
 
     try:
         import os
@@ -70,32 +85,62 @@ def obter_planilha_por_link(link_planilha: str):
         ]
 
         creds = None
+        token_path = "token.json"
+        credentials_path = "credentials.json"
 
-        if os.path.exists("token.json"):
-            creds = Credentials.from_authorized_user_file("token.json", scopes)
+        if os.path.exists(token_path):
+            creds = Credentials.from_authorized_user_file(token_path, scopes)
 
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
+                if not os.path.exists(credentials_path):
+                    raise RuntimeError(
+                        "Arquivo credentials.json não encontrado na pasta do projeto."
+                    )
+
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    "credentials.json",
+                    credentials_path,
                     scopes,
                 )
                 creds = flow.run_local_server(port=0)
 
-            with open("token.json", "w", encoding="utf-8") as token:
+            with open(token_path, "w", encoding="utf-8") as token:
                 token.write(creds.to_json())
 
         cliente = gspread.authorize(creds)
+        spreadsheet_id = extrair_id_planilha(texto_link)
 
-        spreadsheet_id = extrair_id_planilha(link_planilha)
+        erros_tentativas = []
 
-        return cliente.open_by_key(spreadsheet_id)
+        if "docs.google.com/spreadsheets" in texto_link:
+            try:
+                return cliente.open_by_url(texto_link)
+            except Exception as erro_url:
+                erros_tentativas.append(f"open_by_url: {erro_url}")
+
+        try:
+            return cliente.open_by_key(spreadsheet_id)
+        except Exception as erro_key:
+            erros_tentativas.append(f"open_by_key: {erro_key}")
+
+        try:
+            return cliente.open(spreadsheet_id)
+        except Exception as erro_nome:
+            erros_tentativas.append(f"open por nome/ID: {erro_nome}")
+
+        raise RuntimeError(
+            "Não foi possível abrir a planilha informada. "
+            f"ID extraído: {spreadsheet_id}. "
+            f"Tentativas: {' | '.join(erros_tentativas)}"
+        )
 
     except Exception as erro:
         raise RuntimeError(
-            f"Não foi possível abrir a planilha de metas financeiras: {erro}"
+            "Não foi possível abrir a planilha de metas financeiras. "
+            f"Link/ID recebido: {texto_link}. "
+            f"Detalhe técnico: {erro}"
         ) from erro
 
 
@@ -103,18 +148,45 @@ def extrair_id_planilha(link_planilha: str) -> str:
     """
     Extrai o ID da planilha a partir de um link do Google Sheets
     ou aceita diretamente o ID.
+
+    Também remove pontuação acidental no fim do texto, como ponto final,
+    vírgula ou barra, comum quando o link é copiado de uma mensagem.
     """
 
     if not link_planilha:
         raise ValueError("Link da planilha não informado.")
 
-    texto = str(link_planilha).strip()
+    texto = str(link_planilha).strip().strip('"').strip("'").strip()
+
+    # Remove caracteres acidentais no fim do link/ID.
+    # Exemplo: .../1ABCDEF.  ->  .../1ABCDEF
+    texto = texto.rstrip(" .,;\n\r\t/")
 
     if "/spreadsheets/d/" in texto:
         parte = texto.split("/spreadsheets/d/", 1)[1]
-        return parte.split("/", 1)[0].split("?", 1)[0].strip()
+        spreadsheet_id = (
+            parte
+            .split("/", 1)[0]
+            .split("?", 1)[0]
+            .split("#", 1)[0]
+            .strip()
+            .rstrip(" .,;\n\r\t/")
+        )
+    else:
+        spreadsheet_id = (
+            texto
+            .split("?", 1)[0]
+            .split("#", 1)[0]
+            .strip()
+            .rstrip(" .,;\n\r\t/")
+        )
 
-    return texto
+    if not spreadsheet_id:
+        raise ValueError(
+            "Não foi possível extrair o ID da planilha a partir do link informado."
+        )
+
+    return spreadsheet_id
 
 
 def normalizar_texto(valor: Any) -> str:
@@ -623,44 +695,114 @@ def obter_registros_seguros(aba) -> list[dict]:
         return []
 
 
-def aba_parece_movimentacao(titulo: str) -> bool:
-    titulo_norm = normalizar_texto(titulo)
+def obter_mes_ano_atual_siglas() -> tuple[str, str]:
+    """
+    Retorna mês/ano atuais no padrão usado no sistema.
+    """
 
-    palavras = [
-        "LANCAMENTO",
-        "LANCAMENTOS",
-        "BASE",
-        "EXTRATO",
-        "EXTRATOS",
-        "MOVIMENTO",
-        "MOVIMENTACAO",
-        "MOVIMENTACOES",
-        "RECEITA",
-        "RECEITAS",
-        "DESPESA",
-        "DESPESAS",
+    meses = [
+        "JAN",
+        "FEV",
+        "MAR",
+        "ABR",
+        "MAI",
+        "JUN",
+        "JUL",
+        "AGO",
+        "SET",
+        "OUT",
+        "NOV",
+        "DEZ",
     ]
 
-    return any(palavra in titulo_norm for palavra in palavras)
+    hoje = date.today()
+    return meses[hoje.month - 1], str(hoje.year)
+
+
+def filtrar_registros_por_mes_ano_atual(registros: list[dict]) -> list[dict]:
+    """
+    Se a aba possuir colunas MES/ANO, mantém somente o mês/ano atual.
+
+    Se não houver essas colunas, retorna os registros originais para não
+    quebrar planilhas antigas.
+    """
+
+    if not registros:
+        return registros
+
+    cabecalhos = list(registros[0].keys())
+
+    coluna_mes = localizar_coluna(
+        cabecalhos,
+        ["MES", "MÊS", "COMPETENCIA", "COMPETÊNCIA"],
+    )
+    coluna_ano = localizar_coluna(
+        cabecalhos,
+        ["ANO", "YEAR"],
+    )
+
+    if not coluna_mes or not coluna_ano:
+        return registros
+
+    mes_atual, ano_atual = obter_mes_ano_atual_siglas()
+
+    filtrados = []
+
+    for linha in registros:
+        mes_linha = normalizar_texto(linha.get(coluna_mes))
+        ano_linha = str(linha.get(coluna_ano) or "").strip()
+
+        if mes_linha == normalizar_texto(mes_atual) and ano_linha == ano_atual:
+            filtrados.append(linha)
+
+    return filtrados or registros
+
+
+def aba_parece_movimentacao(titulo: str) -> bool:
+    """
+    Identifica a aba oficial de movimentações financeiras.
+
+    A sugestão de metas deve usar somente a BASE_LANCAMENTOS, pois os
+    extratos importados podem conter os mesmos valores antes/depois da
+    classificação e isso infla receitas/despesas.
+
+    Portanto, não usamos abas de EXTRATOS, ORÇAMENTO, RECEITAS ou DESPESAS
+    avulsas na sugestão automática.
+    """
+
+    titulo_norm = normalizar_texto(titulo)
+
+    abas_validas = {
+        "BASE_LANCAMENTOS",
+        "BASE LANCAMENTOS",
+        "BASE DE LANCAMENTOS",
+        "BASE DE LANÇAMENTOS",
+    }
+
+    return titulo_norm in abas_validas
 
 
 def aba_parece_patrimonio(titulo: str) -> bool:
     """
-    Identifica somente abas claramente patrimoniais.
+    Identifica apenas abas patrimoniais oficiais.
 
-    Não inclui INVESTIMENTOS, CARTEIRA, ATIVOS ou BENS para evitar
-    somar dados duplicados ou usar valores que não representam
-    o patrimônio líquido consolidado.
+    A sugestão de metas não deve varrer abas genéricas de investimento,
+    carteira ou histórico. Isso evita somar meses anteriores ou saldos
+    duplicados e gerar metas com valor muito acima do real.
     """
 
     titulo_norm = normalizar_texto(titulo)
 
-    palavras = [
+    abas_validas = {
         "PATRIMONIO",
-        "PATRIMONIAL",
-    ]
+        "PATRIMÔNIO",
+        "PATRIMONIO_FINANCEIRO",
+        "PATRIMÔNIO_FINANCEIRO",
+        "PATRIMONIO FINANCEIRO",
+        "PATRIMÔNIO FINANCEIRO",
+    }
 
-    return any(palavra in titulo_norm for palavra in palavras)
+    return titulo_norm in abas_validas
 
 
 def linha_patrimonial_totalizadora(linha: dict) -> bool:
@@ -755,6 +897,7 @@ def analisar_receitas_despesas(planilha) -> dict:
             continue
 
         registros = obter_registros_seguros(aba)
+        registros = filtrar_registros_por_mes_ano_atual(registros)
 
         detalhe_aba = {
             "aba": aba.title,
@@ -943,6 +1086,7 @@ def analisar_patrimonio(planilha) -> dict:
             continue
 
         registros = obter_registros_seguros(aba)
+        registros = filtrar_registros_por_mes_ano_atual(registros)
 
         detalhe_aba = {
             "aba": aba.title,
@@ -1100,86 +1244,458 @@ def meta_ja_existe(nome_meta: str, metas_existentes: list[dict]) -> bool:
     return False
 
 
+
+
+def indice_mes_por_sigla_ou_nome(valor: Any) -> int | None:
+    """
+    Converte mês em número, aceitando JAN/FEV, nome completo ou 1 a 12.
+    """
+
+    texto = normalizar_texto(valor)
+
+    if not texto:
+        return None
+
+    mapa = {
+        "JAN": 1, "JANEIRO": 1, "1": 1, "01": 1,
+        "FEV": 2, "FEVEREIRO": 2, "2": 2, "02": 2,
+        "MAR": 3, "MARCO": 3, "MARÇO": 3, "3": 3, "03": 3,
+        "ABR": 4, "ABRIL": 4, "4": 4, "04": 4,
+        "MAI": 5, "MAIO": 5, "5": 5, "05": 5,
+        "JUN": 6, "JUNHO": 6, "6": 6, "06": 6,
+        "JUL": 7, "JULHO": 7, "7": 7, "07": 7,
+        "AGO": 8, "AGOSTO": 8, "8": 8, "08": 8,
+        "SET": 9, "SETEMBRO": 9, "9": 9, "09": 9,
+        "OUT": 10, "OUTUBRO": 10, "10": 10,
+        "NOV": 11, "NOVEMBRO": 11, "11": 11,
+        "DEZ": 12, "DEZEMBRO": 12, "12": 12,
+    }
+
+    return mapa.get(texto)
+
+
+def classificar_linha_orcamento_oficial(
+    linha: dict,
+    coluna_tipo: str | None,
+    coluna_categoria: str | None,
+) -> str:
+    """
+    Classifica uma linha de orçamento.
+
+    Por segurança, só considera RECEITA quando houver indicação clara.
+    Linhas de INVESTIMENTO/TRANSFERÊNCIA não entram como despesa mensal.
+    Quando não houver tipo claro, considera DESPESA, pois no orçamento a maior
+    parte das linhas sem tipo explícito representa gasto previsto.
+    """
+
+    textos = []
+
+    if coluna_tipo:
+        textos.append(normalizar_texto(linha.get(coluna_tipo)))
+
+    if coluna_categoria:
+        textos.append(normalizar_texto(linha.get(coluna_categoria)))
+
+    texto = " ".join(textos)
+
+    if "RECEITA" in texto or "ENTRADA" in texto or "SALARIO" in texto or "SALÁRIO" in texto:
+        return "RECEITA"
+
+    if "INVESTIMENTO" in texto or "APORTE" in texto or "RESERVA" in texto:
+        return "INVESTIMENTO"
+
+    if "TRANSFERENCIA" in texto or "TRANSFERÊNCIA" in texto or "ENTRE CONTAS" in texto:
+        return "TRANSFERÊNCIA"
+
+    if "DESPESA" in texto or "SAIDA" in texto or "SAÍDA" in texto or "GASTO" in texto:
+        return "DESPESA"
+
+    return "DESPESA"
+
+
+def obter_totais_orcamento_oficial() -> dict:
+    """
+    Obtém receita/despesa previstas do módulo oficial de orçamento.
+
+    Regra:
+    1. Usa mês/ano corrente se houver valor.
+    2. Se não houver, usa o último mês/ano com orçamento cadastrado.
+    3. Não estima despesa/renda a partir do patrimônio.
+    """
+
+    try:
+        from core.financeiro.orcamento_google import ler_orcamento_mensal
+    except Exception as erro:
+        return {
+            "ok": False,
+            "criterio": "erro_importacao_orcamento",
+            "ano_usado": "",
+            "mes_usado": "",
+            "total_despesas": 0.0,
+            "total_receitas": 0.0,
+            "saldo_previsto": 0.0,
+            "total_despesas_fmt": formatar_moeda(0),
+            "total_receitas_fmt": formatar_moeda(0),
+            "saldo_previsto_fmt": formatar_moeda(0),
+            "linhas_despesa": 0,
+            "linhas_receita": 0,
+            "mensagem": f"Não foi possível importar o módulo oficial de orçamento: {erro}",
+            "detalhes": [],
+        }
+
+    try:
+        registros = ler_orcamento_mensal()
+    except Exception as erro:
+        return {
+            "ok": False,
+            "criterio": "erro_leitura_orcamento",
+            "ano_usado": "",
+            "mes_usado": "",
+            "total_despesas": 0.0,
+            "total_receitas": 0.0,
+            "saldo_previsto": 0.0,
+            "total_despesas_fmt": formatar_moeda(0),
+            "total_receitas_fmt": formatar_moeda(0),
+            "saldo_previsto_fmt": formatar_moeda(0),
+            "linhas_despesa": 0,
+            "linhas_receita": 0,
+            "mensagem": f"Não foi possível ler o orçamento mensal: {erro}",
+            "detalhes": [],
+        }
+
+    hoje = date.today()
+    chave_atual = (hoje.year, hoje.month)
+    grupos: dict[tuple[int, int], dict] = {}
+
+    for linha in registros or []:
+        cabecalhos = list(linha.keys())
+
+        coluna_mes = localizar_coluna(cabecalhos, ["MES", "MÊS", "COMPETENCIA", "COMPETÊNCIA"])
+        coluna_ano = localizar_coluna(cabecalhos, ["ANO", "YEAR"])
+        coluna_tipo = localizar_coluna(cabecalhos, ["TIPO", "NATUREZA", "RECEITA_DESPESA", "ENTRADA_SAIDA"])
+        coluna_categoria = localizar_coluna(cabecalhos, ["CATEGORIA", "GRUPO", "CLASSIFICACAO", "CLASSIFICAÇÃO"])
+        coluna_valor = localizar_coluna(
+            cabecalhos,
+            [
+                "VALOR_PREVISTO_NUM",
+                "VALOR_PREVISTO",
+                "VALOR PREVISTO",
+                "PREVISTO",
+                "VALOR_ORCADO",
+                "VALOR ORÇADO",
+                "VALOR ORCADO",
+                "VALOR",
+            ],
+        )
+
+        if not coluna_valor:
+            continue
+
+        valor = abs(converter_valor(linha.get(coluna_valor)))
+
+        if valor <= 0:
+            continue
+
+        ano_int = hoje.year
+        mes_int = hoje.month
+
+        if coluna_ano:
+            try:
+                ano_int = int(float(str(linha.get(coluna_ano) or "").strip()))
+            except Exception:
+                ano_int = hoje.year
+
+        if coluna_mes:
+            mes_extraido = indice_mes_por_sigla_ou_nome(linha.get(coluna_mes))
+            if mes_extraido:
+                mes_int = mes_extraido
+
+        classificacao = classificar_linha_orcamento_oficial(
+            linha=linha,
+            coluna_tipo=coluna_tipo,
+            coluna_categoria=coluna_categoria,
+        )
+
+        chave = (ano_int, mes_int)
+        grupos.setdefault(
+            chave,
+            {
+                "ano": ano_int,
+                "mes": mes_int,
+                "despesas": 0.0,
+                "receitas": 0.0,
+                "linhas_despesa": 0,
+                "linhas_receita": 0,
+            },
+        )
+
+        if classificacao == "DESPESA":
+            grupos[chave]["despesas"] += valor
+            grupos[chave]["linhas_despesa"] += 1
+        elif classificacao == "RECEITA":
+            grupos[chave]["receitas"] += valor
+            grupos[chave]["linhas_receita"] += 1
+
+    grupos_validos = {
+        chave: dados
+        for chave, dados in grupos.items()
+        if float(dados.get("despesas") or 0) > 0 or float(dados.get("receitas") or 0) > 0
+    }
+
+    if not grupos_validos:
+        return {
+            "ok": False,
+            "criterio": "sem_orcamento_valido",
+            "ano_usado": "",
+            "mes_usado": "",
+            "total_despesas": 0.0,
+            "total_receitas": 0.0,
+            "saldo_previsto": 0.0,
+            "total_despesas_fmt": formatar_moeda(0),
+            "total_receitas_fmt": formatar_moeda(0),
+            "saldo_previsto_fmt": formatar_moeda(0),
+            "linhas_despesa": 0,
+            "linhas_receita": 0,
+            "mensagem": "Nenhum orçamento válido foi localizado.",
+            "detalhes": [],
+        }
+
+    if chave_atual in grupos_validos:
+        chave_escolhida = chave_atual
+        criterio = "orcamento_mes_corrente"
+    else:
+        chave_escolhida = max(grupos_validos.keys())
+        criterio = "orcamento_ultimo_mes_com_valor"
+
+    dados = grupos_validos[chave_escolhida]
+    total_despesas = float(dados.get("despesas") or 0)
+    total_receitas = float(dados.get("receitas") or 0)
+    saldo_previsto = total_receitas - total_despesas
+
+    return {
+        "ok": True,
+        "criterio": criterio,
+        "ano_usado": str(dados.get("ano")),
+        "mes_usado": str(dados.get("mes")).zfill(2),
+        "total_despesas": total_despesas,
+        "total_receitas": total_receitas,
+        "saldo_previsto": saldo_previsto,
+        "total_despesas_fmt": formatar_moeda(total_despesas),
+        "total_receitas_fmt": formatar_moeda(total_receitas),
+        "saldo_previsto_fmt": formatar_moeda(saldo_previsto),
+        "linhas_despesa": int(dados.get("linhas_despesa") or 0),
+        "linhas_receita": int(dados.get("linhas_receita") or 0),
+        "mensagem": (
+            "Totais obtidos do orçamento do mês corrente."
+            if criterio == "orcamento_mes_corrente"
+            else "Totais obtidos do último mês com orçamento cadastrado."
+        ),
+        "detalhes": [
+            {
+                "ano": str(valor.get("ano")),
+                "mes": str(valor.get("mes")).zfill(2),
+                "despesas_fmt": formatar_moeda(valor.get("despesas") or 0),
+                "receitas_fmt": formatar_moeda(valor.get("receitas") or 0),
+                "linhas_despesa": valor.get("linhas_despesa") or 0,
+                "linhas_receita": valor.get("linhas_receita") or 0,
+            }
+            for _, valor in sorted(grupos_validos.items())
+        ],
+    }
+
+
+def obter_patrimonio_oficial() -> dict:
+    """
+    Obtém patrimônio pelo módulo oficial de patrimônio.
+
+    Regra:
+    1. Usa mês/ano corrente se houver valor.
+    2. Se não houver, usa o último mês/ano com patrimônio cadastrado.
+    3. Não varre a planilha diretamente.
+    """
+
+    try:
+        from core.financeiro.patrimonio_google import montar_resumo_patrimonio
+    except Exception as erro:
+        return {
+            "ok": False,
+            "criterio": "erro_importacao_patrimonio",
+            "ano_usado": "",
+            "mes_usado": "",
+            "patrimonio_total": 0.0,
+            "patrimonio_total_fmt": formatar_moeda(0),
+            "linhas_utilizadas": 0,
+            "mensagem": f"Não foi possível importar o módulo oficial de patrimônio: {erro}",
+            "detalhes_abas": [],
+        }
+
+    meses = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"]
+    hoje = date.today()
+    tentativas: list[tuple[int, int, str]] = []
+
+    for ano in range(hoje.year, hoje.year - 3, -1):
+        mes_limite = hoje.month if ano == hoje.year else 12
+        for mes_num in range(mes_limite, 0, -1):
+            tentativas.append((ano, mes_num, meses[mes_num - 1]))
+
+    detalhes = []
+
+    for ano, mes_num, mes_sigla in tentativas:
+        try:
+            resumo = montar_resumo_patrimonio(
+                ano=str(ano),
+                ano_resumo=str(ano),
+                mes_resumo=mes_sigla,
+            )
+        except Exception as erro:
+            detalhes.append({"ano": str(ano), "mes": mes_sigla, "ok": False, "mensagem": str(erro)})
+            continue
+
+        ativos = resumo.get("ativos", []) or []
+        total = 0.0
+
+        for ativo in ativos:
+            total += converter_valor(ativo.get("fim"))
+
+        if total <= 0:
+            for chave in ["total_fim", "total_final", "patrimonio_total", "patrimonio_liquido", "total_patrimonio"]:
+                if chave in resumo:
+                    total = converter_valor(resumo.get(chave))
+                    break
+
+        tem_dados = bool(resumo.get("tem_dados_mes_resumo")) or total > 0
+        detalhes.append({"ano": str(ano), "mes": mes_sigla, "ok": tem_dados, "total_fmt": formatar_moeda(total), "qtd_ativos": len(ativos)})
+
+        if tem_dados and total > 0:
+            criterio = "patrimonio_mes_corrente" if ano == hoje.year and mes_num == hoje.month else "patrimonio_ultimo_mes_com_valor"
+            return {
+                "ok": True,
+                "criterio": criterio,
+                "ano_usado": str(ano),
+                "mes_usado": mes_sigla,
+                "patrimonio_total": total,
+                "patrimonio_total_fmt": formatar_moeda(total),
+                "linhas_utilizadas": len(ativos) if ativos else 1,
+                "mensagem": (
+                    "Patrimônio obtido do mês corrente pelo módulo Patrimônio."
+                    if criterio == "patrimonio_mes_corrente"
+                    else "Patrimônio obtido do último mês com valor pelo módulo Patrimônio."
+                ),
+                "detalhes_abas": detalhes,
+            }
+
+    return {
+        "ok": False,
+        "criterio": "sem_patrimonio_oficial",
+        "ano_usado": "",
+        "mes_usado": "",
+        "patrimonio_total": 0.0,
+        "patrimonio_total_fmt": formatar_moeda(0),
+        "linhas_utilizadas": 0,
+        "mensagem": "Nenhum patrimônio com valor foi localizado pelo módulo Patrimônio.",
+        "detalhes_abas": detalhes,
+    }
+
 def montar_sugestoes_metas(
     dados_fluxo: dict,
     dados_patrimonio: dict,
+    dados_orcamento: dict | None = None,
 ) -> list[dict]:
-    media_receitas = float(dados_fluxo.get("media_receitas") or 0)
-    media_despesas = float(dados_fluxo.get("media_despesas") or 0)
-    saldo_medio = float(dados_fluxo.get("saldo_medio") or 0)
+    """
+    Monta até 5 metas automáticas usando fontes oficiais, sem estimativas artificiais.
+
+    Fontes:
+    - Despesa mensal: orçamento previsto do mês corrente ou último mês cadastrado.
+    - Renda mensal: receita prevista do orçamento do mês corrente ou último mês cadastrado.
+    - Patrimônio: módulo Patrimônio, mês corrente ou último mês com valor.
+    """
+
+    dados_orcamento = dados_orcamento or {}
+
+    despesa_referencia = float(dados_orcamento.get("total_despesas") or 0)
+    receita_referencia = float(dados_orcamento.get("total_receitas") or 0)
+    saldo_referencia = float(dados_orcamento.get("saldo_previsto") or 0)
+
     patrimonio_total = float(dados_patrimonio.get("patrimonio_total") or 0)
     linhas_patrimonio = int(dados_patrimonio.get("linhas_utilizadas") or 0)
+    patrimonio_valido = patrimonio_total > 0 and linhas_patrimonio > 0
 
     sugestoes = []
 
-    if media_despesas > 0:
+    if despesa_referencia > 0:
         sugestoes.append(
             {
                 "nome_meta": "Reserva de emergência de 3 meses",
                 "categoria": "Reserva de Emergência",
-                "valor_alvo": round(media_despesas * 3, 2),
+                "valor_alvo": round(despesa_referencia * 3, 2),
                 "valor_atual": 0,
                 "data_alvo": data_alvo_em_meses(12),
                 "prioridade": "Alta",
                 "status": "Em andamento",
                 "observacao": (
-                    "Meta sugerida automaticamente com base na média de despesas. "
-                    f"Despesa média estimada: {formatar_moeda(media_despesas)}."
+                    "Meta sugerida automaticamente com base no total de despesas previstas do orçamento. "
+                    f"Fonte: {dados_orcamento.get('mensagem', '')} "
+                    f"Despesa mensal de referência: {formatar_moeda(despesa_referencia)}. "
+                    "Valor alvo calculado como 3 meses dessa despesa."
                 ),
             }
         )
 
-    if saldo_medio > 0:
+    if saldo_referencia > 0:
         sugestoes.append(
             {
                 "nome_meta": "Investimento mensal programado",
                 "categoria": "Investimento",
-                "valor_alvo": round(saldo_medio * 6, 2),
+                "valor_alvo": round(saldo_referencia * 6, 2),
                 "valor_atual": 0,
                 "data_alvo": data_alvo_em_meses(6),
                 "prioridade": "Média",
                 "status": "Em andamento",
                 "observacao": (
-                    "Meta sugerida automaticamente com base no saldo médio positivo. "
-                    f"Saldo médio estimado: {formatar_moeda(saldo_medio)}."
+                    "Meta sugerida automaticamente com base na diferença entre receita prevista "
+                    "e despesas previstas do orçamento. "
+                    f"Sobra mensal prevista: {formatar_moeda(saldo_referencia)}."
                 ),
             }
         )
 
+    if receita_referencia > 0:
         sugestoes.append(
             {
                 "nome_meta": "Economizar 10% da renda mensal",
                 "categoria": "Investimento",
-                "valor_alvo": round(media_receitas * 0.10 * 6, 2),
+                "valor_alvo": round(receita_referencia * 0.10 * 6, 2),
                 "valor_atual": 0,
                 "data_alvo": data_alvo_em_meses(6),
                 "prioridade": "Média",
                 "status": "Em andamento",
                 "observacao": (
-                    "Meta sugerida automaticamente para criar disciplina de economia. "
-                    f"Receita média estimada: {formatar_moeda(media_receitas)}."
+                    "Meta sugerida automaticamente com base na receita prevista do orçamento. "
+                    f"Receita mensal de referência: {formatar_moeda(receita_referencia)}. "
+                    "Valor alvo calculado como 10% da renda durante 6 meses."
                 ),
             }
         )
 
-    if media_despesas > 0:
+    if despesa_referencia > 0:
         sugestoes.append(
             {
                 "nome_meta": "Reduzir despesas variáveis em 10%",
                 "categoria": "Outros",
-                "valor_alvo": round(media_despesas * 0.10 * 6, 2),
+                "valor_alvo": round(despesa_referencia * 0.10 * 6, 2),
                 "valor_atual": 0,
                 "data_alvo": data_alvo_em_meses(6),
                 "prioridade": "Alta",
                 "status": "Em andamento",
                 "observacao": (
-                    "Meta sugerida automaticamente para reduzir gastos. "
-                    f"Economia estimada em 6 meses: {formatar_moeda(media_despesas * 0.10 * 6)}."
+                    "Meta sugerida automaticamente com base no total de despesas previstas do orçamento. "
+                    f"Despesa mensal de referência: {formatar_moeda(despesa_referencia)}. "
+                    f"Economia estimada em 6 meses: {formatar_moeda(despesa_referencia * 0.10 * 6)}."
                 ),
             }
         )
 
-    if patrimonio_total > 0 and linhas_patrimonio > 0:
+    if patrimonio_valido:
         sugestoes.append(
             {
                 "nome_meta": "Aumentar patrimônio líquido em 10%",
@@ -1190,41 +1706,82 @@ def montar_sugestoes_metas(
                 "prioridade": "Média",
                 "status": "Em andamento",
                 "observacao": (
-                    "Meta sugerida automaticamente somente com base em aba patrimonial. "
-                    f"Patrimônio líquido estimado: {formatar_moeda(patrimonio_total)}."
+                    "Meta sugerida automaticamente com base no patrimônio oficial do mês corrente "
+                    "ou do último mês com valor cadastrado. "
+                    f"Fonte: {dados_patrimonio.get('mensagem', '')} "
+                    f"Patrimônio líquido usado como referência: {formatar_moeda(patrimonio_total)}."
                 ),
             }
         )
 
-    if not sugestoes:
-        sugestoes.append(
-            {
-                "nome_meta": "Organizar primeira reserva financeira",
-                "categoria": "Reserva de Emergência",
-                "valor_alvo": 1000,
-                "valor_atual": 0,
-                "data_alvo": data_alvo_em_meses(6),
-                "prioridade": "Alta",
-                "status": "Em andamento",
-                "observacao": (
-                    "Meta inicial sugerida automaticamente. "
-                    "Não foram encontrados dados suficientes de receitas, despesas ou patrimônio."
-                ),
-            }
-        )
+    complementares = [
+        {
+            "nome_meta": "Revisar orçamento mensal",
+            "categoria": "Outros",
+            "valor_alvo": 1,
+            "valor_atual": 0,
+            "data_alvo": data_alvo_em_meses(1),
+            "prioridade": "Alta",
+            "status": "Em andamento",
+            "observacao": "Meta operacional para revisar categorias, subcategorias e limites do orçamento mensal.",
+        },
+        {
+            "nome_meta": "Classificar lançamentos pendentes",
+            "categoria": "Outros",
+            "valor_alvo": 1,
+            "valor_atual": 0,
+            "data_alvo": data_alvo_em_meses(1),
+            "prioridade": "Alta",
+            "status": "Em andamento",
+            "observacao": "Meta operacional para manter a BASE_LANCAMENTOS organizada.",
+        },
+        {
+            "nome_meta": "Atualizar patrimônio mensalmente",
+            "categoria": "Investimento",
+            "valor_alvo": 1,
+            "valor_atual": 0,
+            "data_alvo": data_alvo_em_meses(1),
+            "prioridade": "Média",
+            "status": "Em andamento",
+            "observacao": "Meta operacional para manter o patrimônio atualizado no mês corrente ou último mês fechado.",
+        },
+        {
+            "nome_meta": "Conferir orçamento versus realizado",
+            "categoria": "Outros",
+            "valor_alvo": 1,
+            "valor_atual": 0,
+            "data_alvo": data_alvo_em_meses(1),
+            "prioridade": "Média",
+            "status": "Em andamento",
+            "observacao": "Meta operacional para comparar orçamento previsto com lançamentos realizados no Painel Gerencial.",
+        },
+    ]
+
+    nomes_existentes = {normalizar_texto(item.get("nome_meta")) for item in sugestoes}
+
+    for meta_extra in complementares:
+        if len(sugestoes) >= 5:
+            break
+        nome_extra = normalizar_texto(meta_extra.get("nome_meta"))
+        if nome_extra in nomes_existentes:
+            continue
+        sugestoes.append(meta_extra)
+        nomes_existentes.add(nome_extra)
 
     sugestoes_validas = []
-
     for sugestao in sugestoes:
         if converter_valor(sugestao.get("valor_alvo")) <= 0:
             continue
-
         sugestoes_validas.append(sugestao)
+        if len(sugestoes_validas) >= 5:
+            break
 
     return sugestoes_validas
 
-
-def sugerir_metas_automaticas(link_planilha: str) -> dict:
+def sugerir_metas_automaticas(
+    link_planilha: str,
+    origem_sugestao: str = "ANALISE_GERENCIAL",
+) -> dict:
     """
     Analisa receitas, despesas e patrimônio para sugerir metas financeiras.
 
@@ -1242,12 +1799,16 @@ def sugerir_metas_automaticas(link_planilha: str) -> dict:
     resumo_atual = listar_metas_financeiras(link_planilha)
     metas_existentes = resumo_atual.get("metas", [])
 
+    # Mantém o diagnóstico de fluxo para a tela, mas os valores principais das metas
+    # vêm das fontes oficiais: Orçamento e Patrimônio.
     dados_fluxo = analisar_receitas_despesas(planilha)
-    dados_patrimonio = analisar_patrimonio(planilha)
+    dados_orcamento = obter_totais_orcamento_oficial()
+    dados_patrimonio = obter_patrimonio_oficial()
 
     sugestoes = montar_sugestoes_metas(
         dados_fluxo=dados_fluxo,
         dados_patrimonio=dados_patrimonio,
+        dados_orcamento=dados_orcamento,
     )
 
     metas_cadastradas = []
@@ -1272,11 +1833,13 @@ def sugerir_metas_automaticas(link_planilha: str) -> dict:
 
     return {
         "ok": True,
+        "origem_sugestao": origem_sugestao,
         "quantidade_cadastrada": len(metas_cadastradas),
         "quantidade_ignorada": len(metas_ignoradas),
         "metas_cadastradas": metas_cadastradas,
         "metas_ignoradas": metas_ignoradas,
         "dados_fluxo": dados_fluxo,
         "dados_patrimonio": dados_patrimonio,
+        "dados_orcamento": dados_orcamento,
         "url": planilha.url,
     }

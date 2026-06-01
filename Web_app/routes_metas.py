@@ -162,6 +162,7 @@ async def metas_post(
 @router.post("/financeiro/metas/sugerir", response_class=HTMLResponse)
 async def metas_sugerir_post(
     request: Request,
+    origem_sugestao: str = Form("ANALISE_GERENCIAL"),
 ):
     config = obter_configuracao_sistema()
     link_planilha = config.get("planilha_google", "")
@@ -180,7 +181,10 @@ async def metas_sugerir_post(
         )
 
     try:
-        resultado = sugerir_metas_automaticas(link_planilha=link_planilha)
+        resultado = sugerir_metas_automaticas(
+            link_planilha=link_planilha,
+            origem_sugestao=origem_sugestao,
+        )
 
         quantidade_cadastrada = int(resultado.get("quantidade_cadastrada", 0))
         quantidade_ignorada = int(resultado.get("quantidade_ignorada", 0))
@@ -217,7 +221,10 @@ async def metas_sugerir_post(
             name="metas.html",
             context=contexto_base(
                 request=request,
-                erro=f"Erro ao sugerir metas automaticamente: {e}",
+                erro=(
+                    "Erro ao sugerir metas automaticamente. "
+                    f"Detalhe: {e}"
+                ),
                 diagnostico_sugestao=None,
             ),
         )

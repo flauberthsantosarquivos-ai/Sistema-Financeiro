@@ -1466,14 +1466,30 @@ async def financeiro_get(request: Request):
 @router.get("/financeiro/analise", response_class=HTMLResponse)
 async def analise_financeira_get(
     request: Request,
-    periodo_tipo: str = Query("mes_unico"),
-    mes_unico: str = Query("MAI"),
-    mes_inicio: str = Query("JAN"),
-    mes_fim: str = Query("DEZ"),
+    periodo_tipo: str | None = Query(None),
+    mes_unico: str | None = Query(None),
+    mes_inicio: str | None = Query(None),
+    mes_fim: str | None = Query(None),
     ano: str | None = Query(None),
 ):
     config = obter_configuracao_sistema()
-    ano_final = ano or str(config.get("ano_base", date.today().year))
+
+    # Ao abrir /financeiro/analise sem filtros,
+    # o Painel Gerencial deve iniciar no mês corrente.
+    hoje = date.today()
+    ano_final = ano or str(config.get("ano_base") or hoje.year)
+
+    if not periodo_tipo:
+        periodo_tipo = "mes_unico"
+
+    if not mes_unico:
+        mes_unico = obter_mes_atual_sigla()
+
+    if not mes_inicio:
+        mes_inicio = "JAN"
+
+    if not mes_fim:
+        mes_fim = "DEZ"
 
     filtros = {
         "periodo_tipo": periodo_tipo,

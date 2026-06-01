@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import date
-from urllib.parse import quote
 
 from fastapi import APIRouter, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -39,6 +38,19 @@ MESES_OPCOES = [
     ("NOV", "Novembro"),
     ("DEZ", "Dezembro"),
 ]
+
+
+def mes_corrente_sigla() -> str:
+    """
+    Retorna a sigla do mês corrente no mesmo padrão usado na BASE_LANCAMENTOS.
+
+    Exemplo:
+    Janeiro -> JAN
+    Fevereiro -> FEV
+    Maio -> MAI
+    """
+    hoje = date.today()
+    return MESES_OPCOES[hoje.month - 1][0]
 
 
 def normalizar(valor: str | None) -> str:
@@ -187,20 +199,6 @@ def montar_opcoes_unicas(registros: list[dict], campo: str) -> list[str]:
     return sorted(valores)
 
 
-def montar_url_retorno(return_url: str, chave: str, mensagem: str) -> str:
-    """
-    Mantém o usuário na mesma tela/filtro depois da edição rápida.
-    Também evita redirecionamento para fora da área da BASE_LANCAMENTOS.
-    """
-    if not return_url or not return_url.startswith("/financeiro/base-lancamentos"):
-        return_url = "/financeiro/base-lancamentos"
-
-    separador = "&" if "?" in return_url else "?"
-    mensagem_segura = quote(str(mensagem or ""))
-
-    return f"{return_url}{separador}{chave}={mensagem_segura}"
-
-
 def localizar_lancamento_por_id(lancamento_id: str):
     config = obter_configuracao_sistema()
     link_planilha = config.get("planilha_google", "")
@@ -272,10 +270,10 @@ def localizar_linhas_por_ids(ids_lancamentos: list[str]) -> tuple[object, list[i
 @router.get("/financeiro/base-lancamentos", response_class=HTMLResponse)
 async def base_lancamentos_get(
     request: Request,
-    periodo_tipo: str = Query("todos"),
-    mes_unico: str = Query("MAI"),
-    mes_inicio: str = Query("JAN"),
-    mes_fim: str = Query("DEZ"),
+    periodo_tipo: str | None = Query(None),
+    mes_unico: str | None = Query(None),
+    mes_inicio: str | None = Query(None),
+    mes_fim: str | None = Query(None),
     ano: str | None = Query(None),
     tipo: str = Query(""),
     situacao: str = Query(""),
@@ -286,7 +284,23 @@ async def base_lancamentos_get(
     erro: str | None = Query(None),
 ):
     config = obter_configuracao_sistema()
-    ano_final = ano or str(config.get("ano_base", date.today().year))
+
+    # Ao abrir /financeiro/base-lancamentos sem filtros de período,
+    # a tela deve apresentar o mês corrente como padrão.
+    hoje = date.today()
+    ano_final = ano or str(hoje.year)
+
+    if not periodo_tipo:
+        periodo_tipo = "mes_unico"
+
+    if not mes_unico:
+        mes_unico = mes_corrente_sigla()
+
+    if not mes_inicio:
+        mes_inicio = "JAN"
+
+    if not mes_fim:
+        mes_fim = "DEZ"
 
     filtros = {
         "periodo_tipo": periodo_tipo,
@@ -507,7 +521,6 @@ async def editar_lancamento_rapido_post(
     conta: str = Form(""),
     origem: str = Form(""),
     observacao: str = Form(""),
-    return_url: str = Form("/financeiro/base-lancamentos"),
 ):
     try:
         aba, indice_linha, registro_antigo = localizar_lancamento_por_id(lancamento_id)
@@ -538,21 +551,13 @@ async def editar_lancamento_rapido_post(
         )
 
         return RedirectResponse(
-            url=montar_url_retorno(
-                return_url=return_url,
-                chave="mensagem",
-                mensagem="Lançamento atualizado com sucesso.",
-            ),
+            url="/financeiro/base-lancamentos?mensagem=Lançamento atualizado com sucesso.",
             status_code=303,
         )
 
     except Exception as e:
         return RedirectResponse(
-            url=montar_url_retorno(
-                return_url=return_url,
-                chave="erro",
-                mensagem=f"Erro ao atualizar lançamento: {e}",
-            ),
+            url=f"/financeiro/base-lancamentos?erro=Erro ao atualizar lançamento: {e}",
             status_code=303,
         )
 

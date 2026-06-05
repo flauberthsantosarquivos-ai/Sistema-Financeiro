@@ -340,7 +340,7 @@
 
         table {
             width: 100%;
-            min-width: 1550px;
+            min-width: 1720px;
             border-collapse: collapse;
         }
 
@@ -898,6 +898,12 @@
             </div>
 
             <form method="post" action="/financeiro/base-lancamentos/excluir-selecionados" onsubmit="return confirmarExclusaoSelecionados();">
+                <input
+                    type="hidden"
+                    name="return_url"
+                    value="{{ request.url.path }}{% if request.url.query %}?{{ request.url.query }}{% endif %}"
+                />
+
                 <div class="table-actions">
                     <div class="table-actions-left">
                         <label style="margin: 0; display: flex; align-items: center; gap: 8px;">
@@ -922,7 +928,8 @@
                                 <tr>
                                     <th class="select-col">Selecionar</th>
                                     <th>Ações</th>
-                                    <th>Data</th>
+                                    <th>Data competência</th>
+                                    <th>Data banco</th>
                                     <th>Descrição</th>
                                     <th>Valor</th>
                                     <th>Tipo</th>
@@ -958,6 +965,7 @@
                                                     onclick="abrirEdicaoRapida(this)"
                                                     data-id="{{ item.id|e }}"
                                                     data-data="{{ item.data|e }}"
+                                                    data-data-banco="{{ item.data_banco|e }}"
                                                     data-mes="{{ item.mes|e }}"
                                                     data-ano="{{ item.ano|e }}"
                                                     data-tipo="{{ item.tipo|e }}"
@@ -978,10 +986,34 @@
                                                 <a class="edit-link" href="/financeiro/base-lancamentos/editar/{{ item.id }}">
                                                     Completo
                                                 </a>
+
+                                                <form
+                                                    method="post"
+                                                    action="/financeiro/base-lancamentos/excluir/{{ item.id }}"
+                                                    onsubmit="return confirmarExclusaoIndividual();"
+                                                    style="display: inline;"
+                                                >
+                                                    <input type="hidden" name="confirmar_exclusao" value="SIM" />
+                                                    <input
+                                                        type="hidden"
+                                                        name="return_url"
+                                                        value="{{ request.url.path }}{% if request.url.query %}?{{ request.url.query }}{% endif %}"
+                                                    />
+                                                    <button
+                                                        type="submit"
+                                                        class="edit-link"
+                                                        title="Excluir lançamento"
+                                                        style="color: #b91c1c; border-color: #fecaca; background: #fef2f2;"
+                                                    >
+                                                        🗑️
+                                                    </button>
+                                                </form>
                                             </div>
                                         </td>
 
                                         <td><strong>{{ item.data }}</strong></td>
+
+                                        <td class="subtle">{{ item.data_banco }}</td>
 
                                         <td class="desc">{{ item.descricao }}</td>
 
@@ -1079,7 +1111,7 @@
 
                         <div>
                             <label>Tipo</label>
-                            <select name="tipo" id="edit_tipo">
+                            <select name="tipo" id="edit_tipo" onchange="atualizarCategoriasBase()">
                                 <option value="DESPESA">DESPESA</option>
                                 <option value="RECEITA">RECEITA</option>
                                 <option value="TRANSFERÊNCIA">TRANSFERÊNCIA</option>
@@ -1088,12 +1120,16 @@
 
                         <div>
                             <label>Categoria</label>
-                            <input type="text" name="categoria" id="edit_categoria" />
+                            <select name="categoria" id="edit_categoria" onchange="atualizarSubcategoriasBase()">
+                                <option value="">Selecione...</option>
+                            </select>
                         </div>
 
                         <div>
                             <label>Subcategoria</label>
-                            <input type="text" name="subcategoria" id="edit_subcategoria" />
+                            <select name="subcategoria" id="edit_subcategoria">
+                                <option value="">Selecione...</option>
+                            </select>
                         </div>
 
                         <div class="wide">
@@ -1153,6 +1189,69 @@
     </div>
 
     <script>
+        const CATEGORIAS_ESTRUTURA_BASE = {{ categorias_estrutura|default({})|tojson }};
+
+        function obterCategoriasPorTipoBase(tipo) {
+            const tipoNorm = String(tipo || "").trim().toUpperCase();
+            return CATEGORIAS_ESTRUTURA_BASE[tipoNorm] || {};
+        }
+
+        function criarOpcaoBase(valor, texto, selecionado) {
+            const option = document.createElement("option");
+            option.value = valor || "";
+            option.textContent = texto || valor || "";
+            option.selected = Boolean(selecionado);
+            return option;
+        }
+
+        function atualizarCategoriasBase(categoriaAtual = "", subcategoriaAtual = "") {
+            const tipo = document.getElementById("edit_tipo").value;
+            const selectCategoria = document.getElementById("edit_categoria");
+            const categorias = obterCategoriasPorTipoBase(tipo);
+            const categoriaNorm = String(categoriaAtual || "").trim().toUpperCase();
+
+            selectCategoria.innerHTML = "";
+            selectCategoria.appendChild(criarOpcaoBase("", "Selecione...", !categoriaNorm));
+
+            Object.keys(categorias).sort().forEach(function (categoria) {
+                selectCategoria.appendChild(
+                    criarOpcaoBase(categoria, categoria, categoria.toUpperCase() === categoriaNorm)
+                );
+            });
+
+            if (categoriaNorm && !categorias[categoriaNorm]) {
+                selectCategoria.appendChild(
+                    criarOpcaoBase(categoriaNorm, categoriaNorm + " (fora da aba CATEGORIAS)", true)
+                );
+            }
+
+            atualizarSubcategoriasBase(subcategoriaAtual);
+        }
+
+        function atualizarSubcategoriasBase(subcategoriaAtual = "") {
+            const tipo = document.getElementById("edit_tipo").value;
+            const categoria = document.getElementById("edit_categoria").value;
+            const selectSubcategoria = document.getElementById("edit_subcategoria");
+            const categorias = obterCategoriasPorTipoBase(tipo);
+            const subcategorias = categorias[categoria] || [];
+            const subcategoriaNorm = String(subcategoriaAtual || "").trim().toUpperCase();
+
+            selectSubcategoria.innerHTML = "";
+            selectSubcategoria.appendChild(criarOpcaoBase("", "Selecione...", !subcategoriaNorm));
+
+            subcategorias.forEach(function (subcategoria) {
+                selectSubcategoria.appendChild(
+                    criarOpcaoBase(subcategoria, subcategoria, subcategoria.toUpperCase() === subcategoriaNorm)
+                );
+            });
+
+            if (subcategoriaNorm && !subcategorias.some(function (s) { return s.toUpperCase() === subcategoriaNorm; })) {
+                selectSubcategoria.appendChild(
+                    criarOpcaoBase(subcategoriaNorm, subcategoriaNorm + " (fora da aba CATEGORIAS)", true)
+                );
+            }
+        }
+
         function alternarPeriodo() {
             const tipo = document.getElementById("periodo_tipo").value;
 
@@ -1197,6 +1296,10 @@
             );
         }
 
+        function confirmarExclusaoIndividual() {
+            return confirm("Tem certeza que deseja excluir este lançamento da BASE_LANCAMENTOS?");
+        }
+
         function setValor(id, valor) {
             const campo = document.getElementById(id);
 
@@ -1216,8 +1319,7 @@
             setValor("edit_mes", dados.mes);
             setValor("edit_ano", dados.ano);
             setValor("edit_tipo", dados.tipo);
-            setValor("edit_categoria", dados.categoria);
-            setValor("edit_subcategoria", dados.subcategoria);
+            atualizarCategoriasBase(dados.categoria, dados.subcategoria);
             setValor("edit_descricao", dados.descricao);
             setValor("edit_valor_previsto", dados.valorPrevisto);
             setValor("edit_valor_realizado", dados.valorRealizado);

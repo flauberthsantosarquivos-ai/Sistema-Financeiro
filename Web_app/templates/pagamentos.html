@@ -175,20 +175,23 @@
 
         .mode-tabs {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(220px, 1fr));
             gap: 14px;
             margin-bottom: 20px;
+            align-items: stretch;
         }
 
         .mode-tab {
             border: 1px solid var(--border);
             background: white;
             border-radius: 22px;
-            padding: 18px;
+            padding: 16px;
             box-shadow: var(--shadow-soft);
             cursor: pointer;
             text-align: left;
             color: var(--text);
+            min-width: 0;
+            overflow: hidden;
         }
 
         .mode-tab.active {
@@ -198,17 +201,19 @@
         }
 
         .mode-tab-title {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 950;
             letter-spacing: -0.03em;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
+            white-space: normal;
         }
 
         .mode-tab-text {
-            font-size: 13px;
-            line-height: 1.45;
+            font-size: 12px;
+            line-height: 1.35;
             font-weight: 700;
             color: var(--muted);
+            white-space: normal;
         }
 
         .mode-tab.active .mode-tab-text {
@@ -740,6 +745,85 @@
             color: white;
         }
 
+
+        .report-card {
+            border: 1px solid var(--primary-border);
+            background:
+                radial-gradient(circle at top right, rgba(29, 78, 216, 0.10), transparent 28%),
+                linear-gradient(180deg, #ffffff, #eff6ff);
+        }
+
+        .report-card-inner {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .report-filter-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(150px, 1fr));
+            gap: 12px;
+            align-items: end;
+            margin-top: 2px;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            margin-top: 14px;
+        }
+
+        .report-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            border-radius: 14px;
+            padding: 12px 16px;
+            font-weight: 950;
+            white-space: nowrap;
+            border: 1px solid transparent;
+            min-width: 160px;
+        }
+
+        .report-button-pdf {
+            background: var(--red-bg);
+            color: var(--red);
+            border-color: var(--red-border);
+        }
+
+        .report-button-pdf:hover {
+            background: #fee2e2;
+        }
+
+        .report-button-xlsx {
+            background: var(--green-bg);
+            color: var(--green);
+            border-color: var(--green-border);
+        }
+
+        .report-button-xlsx:hover {
+            background: #dcfce7;
+        }
+
+        @media (max-width: 900px) {
+            .report-card-inner,
+            .report-filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .report-actions {
+                justify-content: flex-start;
+            }
+
+            .report-button {
+                width: 100%;
+            }
+        }
+
         @media (max-width: 1250px) {
             .hero,
             .summary,
@@ -917,14 +1001,21 @@
             <button type="button" class="mode-tab active" id="tabConsultar" onclick="mostrarModo('consultar')">
                 <div class="mode-tab-title">Consultar pagamentos</div>
                 <div class="mode-tab-text">
-                    Consulte vencimentos, pendências, atrasos e pagamentos identificados na base de lançamentos.
+                    Vencimentos, pendências e pagamentos identificados.
                 </div>
             </button>
 
             <button type="button" class="mode-tab" id="tabCadastrar" onclick="mostrarModo('cadastrar')">
                 <div class="mode-tab-title">Cadastrar pagamento</div>
                 <div class="mode-tab-text">
-                    Cadastre pagamentos previstos usando categorias/subcategorias padronizadas.
+                    Inclua contas previstas com categorias padronizadas.
+                </div>
+            </button>
+
+            <button type="button" class="mode-tab" id="tabRelatorio" onclick="mostrarModo('relatorio')">
+                <div class="mode-tab-title">Relatório</div>
+                <div class="mode-tab-text">
+                    Escolha filtros e gere PDF ou Excel/XLSX.
                 </div>
             </button>
         </section>
@@ -1049,14 +1140,14 @@
                     </div>
 
                     <div class="toolbar-actions">
-                        <a
-                            class="clear-link"
-                            target="_blank"
-                            href="/financeiro/pagamentos/relatorio?ano={{ filtros.ano }}&mes={{ filtros.mes }}&status={{ filtros.status }}&tipo={{ filtros.tipo }}&categoria={{ filtros.categoria }}"
-                            style="width: auto; background: var(--primary); color: white;"
-                        >
-                            Relatório
-                        </a>
+
+                        <form method="post" action="/financeiro/pagamentos/duplicar-mes" onsubmit="return confirm('Duplicar todos os pagamentos ativos deste mês para o mês seguinte?');">
+                            <input type="hidden" name="ano" value="{{ filtros.ano }}" />
+                            <input type="hidden" name="mes" value="{{ filtros.mes }}" />
+                            <button type="submit" class="soft-button">
+                                Duplicar mês
+                            </button>
+                        </form>
 
                         <form method="post" action="/financeiro/pagamentos/conciliar" onsubmit="return mostrarCarregamento('Conferindo com lançamentos...');">
                             <input type="hidden" name="ano" value="{{ filtros.ano }}" />
@@ -1252,6 +1343,85 @@
             </section>
         </section>
 
+        <section id="secaoRelatorio" class="register-section">
+            <section class="card report-card">
+                <div class="report-card-inner">
+                    <div>
+                        <h2 class="section-title">Relatório</h2>
+                        <p class="section-subtitle">
+                            Escolha os filtros abaixo e gere o relatório em PDF ou Excel/XLSX. O relatório sai sem a coluna Conferência, com dados centralizados e pagamentos pagos destacados em verde.
+                        </p>
+                    </div>
+
+                    <form method="get" target="_blank">
+                        <div class="report-filter-grid">
+                            <div>
+                                <label>Ano</label>
+                                <input type="number" name="ano" value="{{ filtros.ano }}" />
+                            </div>
+
+                            <div>
+                                <label>Mês</label>
+                                <select name="mes">
+                                    <option value="">Todos</option>
+                                    {% for sigla, nome in meses_opcoes %}
+                                        <option value="{{ sigla }}" {% if filtros.mes == sigla %}selected{% endif %}>{{ nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Status</label>
+                                <select name="status">
+                                    {% for status in status_opcoes %}
+                                        <option value="{{ status }}" {% if filtros.status == status %}selected{% endif %}>
+                                            {% if status %}{{ status }}{% else %}Todos{% endif %}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Tipo</label>
+                                <select name="tipo" id="tipoRelatorio" onchange="atualizarCategoriasRelatorio()">
+                                    {% for tipo in tipos_opcoes %}
+                                        <option value="{{ tipo }}" {% if filtros.tipo == tipo %}selected{% endif %}>
+                                            {% if tipo %}{{ tipo }}{% else %}Todos{% endif %}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Categoria</label>
+                                <select name="categoria" id="categoriaRelatorio" data-selecionada="{{ filtros.categoria }}">
+                                    <option value="">Todas</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="report-actions">
+                            <button
+                                type="submit"
+                                class="report-button report-button-pdf"
+                                formaction="/financeiro/pagamentos/relatorio/pdf"
+                            >
+                                📄 Gerar PDF
+                            </button>
+
+                            <button
+                                type="submit"
+                                class="report-button report-button-xlsx"
+                                formaction="/financeiro/pagamentos/relatorio/xlsx"
+                            >
+                                📊 Gerar Excel/XLSX
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </section>
+
         <section id="secaoCadastrar" class="register-section">
             <section class="card">
                 <div class="section-header">
@@ -1386,18 +1556,27 @@
 
         function mostrarModo(modo) {
             const consultar = modo === "consultar";
+            const cadastrar = modo === "cadastrar";
+            const relatorio = modo === "relatorio";
 
             const tabConsultar = document.getElementById("tabConsultar");
             const tabCadastrar = document.getElementById("tabCadastrar");
+            const tabRelatorio = document.getElementById("tabRelatorio");
+
             const secaoConsultar = document.getElementById("secaoConsultar");
             const secaoCadastrar = document.getElementById("secaoCadastrar");
+            const secaoRelatorio = document.getElementById("secaoRelatorio");
 
             if (tabConsultar) {
                 tabConsultar.classList.toggle("active", consultar);
             }
 
             if (tabCadastrar) {
-                tabCadastrar.classList.toggle("active", !consultar);
+                tabCadastrar.classList.toggle("active", cadastrar);
+            }
+
+            if (tabRelatorio) {
+                tabRelatorio.classList.toggle("active", relatorio);
             }
 
             if (secaoConsultar) {
@@ -1405,7 +1584,11 @@
             }
 
             if (secaoCadastrar) {
-                secaoCadastrar.classList.toggle("active", !consultar);
+                secaoCadastrar.classList.toggle("active", cadastrar);
+            }
+
+            if (secaoRelatorio) {
+                secaoRelatorio.classList.toggle("active", relatorio);
             }
         }
 
@@ -1422,6 +1605,43 @@
             }
 
             return true;
+        }
+
+        function preencherCategoriasPorTipo(tipoId, categoriaId) {
+            const tipoEl = document.getElementById(tipoId);
+            const categoriaEl = document.getElementById(categoriaId);
+
+            if (!tipoEl || !categoriaEl) {
+                return;
+            }
+
+            const selecionada = categoriaEl.dataset.selecionada || categoriaEl.value || "";
+            const tipo = tipoEl.value;
+
+            categoriaEl.innerHTML = '<option value="">Todas</option>';
+
+            if (!tipo || !CATEGORIAS || !CATEGORIAS[tipo]) {
+                categoriaEl.value = "";
+                return;
+            }
+
+            Object.keys(CATEGORIAS[tipo]).forEach(function (cat) {
+                const option = document.createElement("option");
+                option.value = cat;
+                option.textContent = cat;
+                if (cat === selecionada) {
+                    option.selected = true;
+                }
+                categoriaEl.appendChild(option);
+            });
+        }
+
+        function atualizarCategoriasFiltro() {
+            preencherCategoriasPorTipo("tipoFiltro", "categoriaFiltro");
+        }
+
+        function atualizarCategoriasRelatorio() {
+            preencherCategoriasPorTipo("tipoRelatorio", "categoriaRelatorio");
         }
 
         function atualizarCategoriasCadastro() {
@@ -1572,11 +1792,16 @@
         }
 
         document.addEventListener("DOMContentLoaded", function () {
+            atualizarCategoriasFiltro();
+            atualizarCategoriasRelatorio();
+
             const params = new URLSearchParams(window.location.search);
             const modo = params.get("modo");
 
             if (modo === "cadastrar") {
                 mostrarModo("cadastrar");
+            } else if (modo === "relatorio") {
+                mostrarModo("relatorio");
             }
         });
     </script>

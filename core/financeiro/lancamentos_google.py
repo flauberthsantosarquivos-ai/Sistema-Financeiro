@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -39,7 +39,43 @@ CABECALHOS_BASE = [
     "ORIGEM",
     "OBSERVACAO",
     "CRIADO_EM",
+    "DATA_BANCO",
 ]
+
+
+MESES_SIGLAS = {
+    1: "JAN",
+    2: "FEV",
+    3: "MAR",
+    4: "ABR",
+    5: "MAI",
+    6: "JUN",
+    7: "JUL",
+    8: "AGO",
+    9: "SET",
+    10: "OUT",
+    11: "NOV",
+    12: "DEZ",
+}
+
+
+def coluna_para_letra(indice: int) -> str:
+    """
+    Converte índice 1-based para letra de coluna do Google Sheets.
+    Exemplo: 1 -> A, 16 -> P, 17 -> Q.
+    """
+
+    letras = ""
+
+    while indice > 0:
+        indice, resto = divmod(indice - 1, 26)
+        letras = chr(65 + resto) + letras
+
+    return letras
+
+
+def range_cabecalho_base() -> str:
+    return f"A1:{coluna_para_letra(len(CABECALHOS_BASE))}1"
 
 
 def extrair_id_planilha(link_ou_id: str) -> str:
@@ -97,19 +133,21 @@ def obter_ou_criar_base(planilha):
             rows=2000,
             cols=len(CABECALHOS_BASE),
         )
-        aba.update("A1:P1", [CABECALHOS_BASE])
+        aba.update(range_cabecalho_base(), [CABECALHOS_BASE])
         return aba
 
     valores = aba.get_all_values()
 
     if not valores:
-        aba.update("A1:P1", [CABECALHOS_BASE])
+        aba.update(range_cabecalho_base(), [CABECALHOS_BASE])
         return aba
 
     cabecalhos_atuais = [item.strip().upper() for item in valores[0]]
 
-    if cabecalhos_atuais[: len(CABECALHOS_BASE)] != CABECALHOS_BASE:
-        aba.update("A1:P1", [CABECALHOS_BASE])
+    cabecalhos_esperados = [item.strip().upper() for item in CABECALHOS_BASE]
+
+    if cabecalhos_atuais[: len(CABECALHOS_BASE)] != cabecalhos_esperados:
+        aba.update(range_cabecalho_base(), [CABECALHOS_BASE])
 
     return aba
 
@@ -128,14 +166,128 @@ def normalizar_valor(valor: str | float | int | None) -> str:
     return texto
 
 
+def converter_serial_excel_para_data(valor: float | int) -> date | None:
+    """
+    Converte serial de data do Excel quando a data vier como número.
+    """
+
+    try:
+        numero = float(valor)
+    except Exception:
+        return None
+
+    if numero <= 0:
+        return None
+
+    try:
+        return date(1899, 12, 30) + timedelta(days=int(numero))
+    except Exception:
+        return None
+
+
+def interpretar_data_lancamento(valor: Any, ano_padrao: str | int | None = None) -> date | None:
+    """
+    Interpreta a data do lançamento.
+
+    Aceita formatos comuns de extrato:
+    - datetime/date do Excel;
+    - 30/05/2026;
+    - 30/05/26;
+    - 2026-05-30;
+    - 30-05-2026;
+    - 30.05.2026;
+    - 30/05, usando ano_padrao.
+    """
+
+    if valor is None:
+        return None
+
+    if isinstance(valor, datetime):
+        return valor.date()
+
+    if isinstance(valor, date):
+        return valor
+
+    if isinstance(valor, (int, float)):
+        return converter_serial_excel_para_data(valor)
+
+    texto = str(valor).strip()
+
+    if not texto:
+        return None
+
+    texto_base = texto.split(" ", 1)[0].strip()
+
+    formatos = [
+        "%d/%m/%Y",
+        "%d/%m/%y",
+        "%Y-%m-%d",
+        "%d-%m-%Y",
+        "%d-%m-%y",
+        "%d.%m.%Y",
+        "%d.%m.%y",
+    ]
+
+    for formato in formatos:
+        try:
+            return datetime.strptime(texto_base[:10], formato).date()
+        except Exception:
+            continue
+
+    if ano_padrao:
+        ano_texto = str(ano_padrao).strip()
+
+        for separador in ["/", "-", "."]:
+            try:
+                return datetime.strptime(
+                    f"{texto_base}{separador}{ano_texto}",
+                    f"%d{separador}%m{separador}%Y",
+                ).date()
+            except Exception:
+                continue
+
+    return None
+
+
+def obter_mes_ano_da_data(
+    data_lancamento: Any,
+    mes_padrao: str | None = None,
+    ano_padrao: str | int | None = None,
+) -> tuple[str, str]:
+    """
+    Define MES e ANO pela DATA real do lançamento.
+
+    Essa regra evita que um extrato importado em junho jogue lançamentos
+    de 30/05 e 31/05 para JUN.
+
+    Se a data não puder ser interpretada, mantém mes_padrao/ano_padrao.
+    """
+
+    data = interpretar_data_lancamento(data_lancamento, ano_padrao=ano_padrao)
+
+    if not data:
+        return (
+            str(mes_padrao or "").strip().upper(),
+            str(ano_padrao or "").strip(),
+        )
+
+    return MESES_SIGLAS[data.month], str(data.year)
+
+
 def montar_linha_lancamento(dados: dict[str, Any]) -> list[str]:
     agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    mes_lancamento, ano_lancamento = obter_mes_ano_da_data(
+        data_lancamento=dados.get("data", ""),
+        mes_padrao=dados.get("mes", ""),
+        ano_padrao=dados.get("ano", ""),
+    )
 
     return [
         dados.get("id") or uuid4().hex,
         dados.get("data", ""),
-        dados.get("mes", ""),
-        dados.get("ano", ""),
+        mes_lancamento,
+        ano_lancamento,
         dados.get("tipo", ""),
         dados.get("categoria", ""),
         dados.get("subcategoria", ""),
@@ -148,6 +300,7 @@ def montar_linha_lancamento(dados: dict[str, Any]) -> list[str]:
         dados.get("origem", "MANUAL"),
         dados.get("observacao", ""),
         dados.get("criado_em") or agora,
+        dados.get("data_banco", ""),
     ]
 
 

@@ -345,11 +345,86 @@ def ler_aba_como_dicts(aba) -> List[Dict[str, Any]]:
 
 
 def obter_opcoes_categorias(id_planilha: Optional[str] = None) -> Dict[str, Any]:
-    try:
-        estrutura = obter_estrutura_categorias(incluir_inativas=False)
-        return estrutura or deepcopy(CATEGORIAS_PADRAO)
-    except Exception:
-        return deepcopy(CATEGORIAS_PADRAO)
+    """
+    Retorna a estrutura oficial da aba CATEGORIAS.
+
+    A partir da padronização da Etapa 3, o módulo Pagamentos não usa mais
+    listas internas/fallback para cadastrar ou editar pagamentos. A fonte única
+    é a aba CATEGORIAS.
+    """
+    estrutura = obter_estrutura_categorias(
+        incluir_inativas=False,
+        id_planilha=id_planilha,
+    )
+
+    if not estrutura:
+        raise ValueError(
+            "Nenhuma categoria ativa foi encontrada na aba CATEGORIAS. "
+            "Cadastre ao menos uma combinação TIPO/CATEGORIA/SUBCATEGORIA ativa."
+        )
+
+    return estrutura
+
+
+def resolver_categoria_na_estrutura(
+    tipo: str,
+    categoria: str,
+    subcategoria: str,
+    estrutura: Dict[str, Any],
+) -> Tuple[str, str, str]:
+    """
+    Resolve uma combinação usando a estrutura já carregada da aba CATEGORIAS.
+
+    Usado principalmente na duplicação mensal para evitar várias leituras
+    repetidas no Google Sheets.
+    """
+    tipo_norm = normalizar_texto(tipo)
+    categoria_norm = normalizar_texto(categoria)
+    subcategoria_norm = normalizar_texto(subcategoria)
+
+    if tipo_norm == "TRANSFERENCIA":
+        tipo_norm = "TRANSFERÊNCIA"
+
+    if tipo_norm not in estrutura:
+        raise ValueError(f"Tipo não cadastrado na aba CATEGORIAS: {tipo}")
+
+    categorias_tipo = estrutura[tipo_norm]
+
+    mapa_categorias = {
+        normalizar_texto(nome): nome
+        for nome in categorias_tipo.keys()
+    }
+
+    categoria_oficial = mapa_categorias.get(categoria_norm)
+
+    if not categoria_oficial:
+        raise ValueError(
+            f"Categoria não cadastrada para {tipo_norm} na aba CATEGORIAS: {categoria}"
+        )
+
+    subcategorias = categorias_tipo.get(categoria_oficial, [])
+
+    if not subcategorias:
+        return tipo_norm, categoria_oficial, ""
+
+    if not subcategoria_norm:
+        raise ValueError(
+            f"Informe uma subcategoria cadastrada para {tipo_norm}/{categoria_oficial}."
+        )
+
+    mapa_subcategorias = {
+        normalizar_texto(nome): nome
+        for nome in subcategorias
+    }
+
+    subcategoria_oficial = mapa_subcategorias.get(subcategoria_norm)
+
+    if not subcategoria_oficial:
+        raise ValueError(
+            f"Subcategoria não cadastrada para {tipo_norm}/{categoria_oficial}: {subcategoria}"
+        )
+
+    return tipo_norm, categoria_oficial, subcategoria_oficial
 
 
 def validar_categoria_subcategoria(
@@ -358,29 +433,17 @@ def validar_categoria_subcategoria(
     subcategoria: str,
     id_planilha: Optional[str] = None,
 ) -> Tuple[str, str, str]:
-    try:
-        return validar_categoria_subcategoria_oficial(tipo, categoria, subcategoria)
-    except Exception:
-        tipo_norm = normalizar_texto(tipo)
-        categoria_norm = normalizar_texto(categoria)
-        subcategoria_norm = normalizar_texto(subcategoria)
+    """
+    Valida sempre contra a aba oficial CATEGORIAS.
 
-        opcoes = obter_opcoes_categorias(id_planilha)
-
-        if tipo_norm not in opcoes:
-            raise ValueError(f"Tipo não cadastrado na base de categorias: {tipo}")
-
-        if categoria_norm not in opcoes[tipo_norm]:
-            raise ValueError(f"Categoria não cadastrada para {tipo_norm}: {categoria}")
-
-        subcategorias = [normalizar_texto(s) for s in opcoes[tipo_norm][categoria_norm]]
-
-        if subcategoria_norm and subcategoria_norm not in subcategorias:
-            raise ValueError(
-                f"Subcategoria não cadastrada para {tipo_norm}/{categoria_norm}: {subcategoria}"
-            )
-
-        return tipo_norm, categoria_norm, subcategoria_norm
+    Não há mais fallback de categorias antigas dentro do módulo Pagamentos.
+    """
+    return validar_categoria_subcategoria_oficial(
+        tipo,
+        categoria,
+        subcategoria,
+        id_planilha=id_planilha,
+    )
 
 
 def status_por_vencimento(data_vencimento: Optional[date], status_atual: str) -> str:
@@ -650,16 +713,122 @@ def obter_campo(item: Dict[str, Any], nomes: List[str]) -> Any:
     return ""
 
 
+def normalizar_categoria_match(valor: Any) -> str:
+    texto = normalizar_texto(valor)
+
+    # A categoria oficial atual é CASA. MORADIA é mantida apenas como alias
+    # para compatibilizar pagamentos/lancamentos antigos.
+    aliases = {
+        "CASA": "CASA",
+        "MORADIA": "CASA",
+        "ALIMENTACAO": "ALIMENTACAO",
+        "ALIMENTAÇÃO": "ALIMENTACAO",
+        "TRANSPORTE": "TRANSPORTE",
+        "SAUDE": "SAUDE",
+        "SAÚDE": "SAUDE",
+        "EDUCACAO": "EDUCACAO",
+        "EDUCAÇÃO": "EDUCACAO",
+        "SERVICOS": "SERVICOS",
+        "SERVIÇOS": "SERVICOS",
+        "CARTAO": "CARTAO",
+        "CARTÃO": "CARTAO",
+        "INVESTIMENTO": "INVESTIMENTO",
+        "TRANSFERENCIA": "TRANSFERENCIA",
+        "TRANSFERÊNCIA": "TRANSFERENCIA",
+        "OUTROS": "OUTROS",
+    }
+
+    return aliases.get(texto, texto)
+
+
+def normalizar_subcategoria_match(
+    categoria: Any,
+    subcategoria: Any,
+    descricao: Any = "",
+) -> str:
+    categoria_n = normalizar_categoria_match(categoria)
+    sub_n = normalizar_texto(subcategoria)
+    desc_n = normalizar_texto(descricao)
+    texto = f"{sub_n} {desc_n}"
+
+    if categoria_n == "ALIMENTACAO":
+        if any(p in texto for p in ["FLV", "FRUTA", "FRUTAS", "LEGUME", "LEGUMES", "VERDURA", "VERDURAS", "HORTIFRUTI", "HORTI FRUTI"]):
+            return "FLV"
+        if any(p in texto for p in ["SUPERMERCADO", "SUPER MERCADO", "MERCADO", "ATACADAO", "ATACADÃO", "ASSAI", "ASSAÍ", "MATEUS", "CARREFOUR", "EXTRA"]):
+            return "SUPERMERCADO"
+        if any(p in texto for p in ["RESTAURANTE", "LANCHONETE", "IFOOD", "DELIVERY", "PIZZARIA", "PADARIA"]):
+            return "RESTAURANTE" if "PADARIA" not in texto else "PADARIA"
+
+    if categoria_n == "TRANSPORTE":
+        if any(p in texto for p in ["COMBUSTIVEL", "COMBUSTÍVEL", "GASOLINA", "ETANOL", "POSTO", "SHELL", "IPIRANGA", "RAIZEN", "BR "]):
+            return "COMBUSTIVEL"
+        if any(p in texto for p in ["UBER", "99", "MOBI", "CORRIDA"]):
+            return "UBER"
+
+    if categoria_n == "CASA":
+        if any(p in texto for p in ["ENERGIA", "ENERGIA ELETRICA", "ENERGIA ELÉTRICA", "EQUATORIAL", "CEMAR", "LUZ"]):
+            return "ENERGIA"
+        if any(p in texto for p in ["CONDOMINIO", "CONDOMÍNIO"]):
+            return "CONDOMINIO"
+        if any(p in texto for p in ["PRESTACAO AP", "PRESTAÇÃO AP", "PRESTACAO", "PRESTAÇÃO", "FINANCIAMENTO", "CAIXA HAB", "HABITACAO", "HABITAÇÃO"]):
+            return "PRESTACAO AP"
+        if any(p in texto for p in ["AMORTIZACAO", "AMORTIZAÇÃO"]):
+            return "AMORTIZACAO"
+        if any(p in texto for p in ["AGUA", "ÁGUA"]):
+            return "AGUA"
+        if "INTERNET" in texto:
+            return "INTERNET"
+
+    if categoria_n == "SAUDE":
+        if any(p in texto for p in ["FARMACIA", "FARMÁCIA", "DROGARIA", "MEDICAMENTO", "REMEDIO", "REMÉDIO"]):
+            return "FARMACIA"
+        if any(p in texto for p in ["PLANO DE SAUDE", "PLANO DE SAÚDE", "UNIMED", "HAPVIDA"]):
+            return "PLANO DE SAUDE"
+
+    if categoria_n == "EDUCACAO":
+        if any(p in texto for p in ["ESCOLA", "ISAAC", "MENSALIDADE"]):
+            return "ESCOLA"
+
+    return sub_n
+
+
+def pagamento_variavel_para_match(pagamento: Dict[str, Any]) -> bool:
+    categoria = normalizar_categoria_match(pagamento.get("CATEGORIA"))
+    sub = normalizar_subcategoria_match(
+        pagamento.get("CATEGORIA"),
+        pagamento.get("SUBCATEGORIA"),
+        pagamento.get("DESCRICAO"),
+    )
+    desc = normalizar_texto(pagamento.get("DESCRICAO"))
+    texto = f"{categoria} {sub} {desc}"
+
+    termos_variaveis = [
+        "COMBUSTIVEL",
+        "SUPERMERCADO",
+        "FLV",
+        "RESTAURANTE",
+        "PADARIA",
+        "FARMACIA",
+        "UBER",
+        "MANUTENCAO",
+        "MANUTENÇÃO",
+    ]
+
+    return any(termo in texto for termo in termos_variaveis)
+
+
 def normalizar_lancamento(item: Dict[str, Any], indice: int) -> Dict[str, Any]:
     data_raw = obter_campo(item, ["DATA", "DATA_LANCAMENTO", "DATA LANÇAMENTO", "DATA DO LANÇAMENTO"])
-    descricao = obter_campo(item, ["DESCRICAO", "DESCRIÇÃO", "HISTORICO", "HISTÓRICO"])
-    tipo = obter_campo(item, ["TIPO"])
-    categoria = obter_campo(item, ["CATEGORIA"])
-    subcategoria = obter_campo(item, ["SUBCATEGORIA", "SUB CATEGORIA"])
-    valor = obter_campo(item, ["VALOR", "VALOR_NUM", "VALOR REALIZADO", "VALOR_REALIZADO"])
+    descricao = obter_campo(item, ["DESCRICAO", "DESCRIÇÃO", "HISTORICO", "HISTÓRICO", "LANÇAMENTO", "LANCAMENTO", "DETALHES"])
+    tipo = obter_campo(item, ["TIPO", "TIPO_LANCAMENTO", "TIPO LANÇAMENTO", "NATUREZA"])
+    categoria = obter_campo(item, ["CATEGORIA", "CATEGORIA_AJUSTADA", "CATEGORIA AJUSTADA"])
+    subcategoria = obter_campo(item, ["SUBCATEGORIA", "SUB CATEGORIA", "SUB_CATEGORIA", "SUBCATEGORIA_AJUSTADA", "SUBCATEGORIA AJUSTADA"])
+    valor = obter_campo(item, ["VALOR", "VALOR_NUM", "VALOR REALIZADO", "VALOR_REALIZADO", "VALOR_LANCAMENTO", "VALOR LANÇAMENTO"])
     conta = obter_campo(item, ["CONTA", "CONTA_PAGAMENTO", "BANCO"])
 
     lancamento_id = obter_campo(item, ["ID", "LANCAMENTO_ID", "ID_LANCAMENTO"]) or f"LINHA-{indice}"
+    categoria_match = normalizar_categoria_match(categoria)
+    subcategoria_match = normalizar_subcategoria_match(categoria, subcategoria, descricao)
 
     return {
         "ID": str(lancamento_id),
@@ -669,6 +838,8 @@ def normalizar_lancamento(item: Dict[str, Any], indice: int) -> Dict[str, Any]:
         "TIPO": normalizar_texto(tipo),
         "CATEGORIA": normalizar_texto(categoria),
         "SUBCATEGORIA": normalizar_texto(subcategoria),
+        "CATEGORIA_MATCH": categoria_match,
+        "SUBCATEGORIA_MATCH": subcategoria_match,
         "VALOR": abs(parse_moeda(valor)),
         "VALOR_RAW": valor,
         "CONTA": str(conta or ""),
@@ -691,43 +862,84 @@ def calcular_score_match(pagamento: Dict[str, Any], lancamento: Dict[str, Any]) 
     motivos: List[str] = []
     score = 0
 
-    cat_pag = normalizar_texto(pagamento.get("CATEGORIA"))
-    sub_pag = normalizar_texto(pagamento.get("SUBCATEGORIA"))
+    cat_pag = normalizar_categoria_match(pagamento.get("CATEGORIA"))
+    sub_pag = normalizar_subcategoria_match(
+        pagamento.get("CATEGORIA"),
+        pagamento.get("SUBCATEGORIA"),
+        pagamento.get("DESCRICAO"),
+    )
     desc_pag = normalizar_texto(pagamento.get("DESCRICAO"))
 
+    cat_lanc = normalizar_categoria_match(
+        lancamento.get("CATEGORIA_MATCH") or lancamento.get("CATEGORIA")
+    )
+    sub_lanc = normalizar_texto(
+        lancamento.get("SUBCATEGORIA_MATCH") or lancamento.get("SUBCATEGORIA")
+    )
+    desc_lanc = normalizar_texto(lancamento.get("DESCRICAO"))
+
     valor_previsto = parse_moeda(pagamento.get("VALOR_PREVISTO"))
-    data_vencimento = parse_data(pagamento.get("DATA_VENCIMENTO"))
-
-    if cat_pag and cat_pag == normalizar_texto(lancamento.get("CATEGORIA")):
-        score += 35
-        motivos.append("categoria igual")
-
-    if sub_pag and sub_pag == normalizar_texto(lancamento.get("SUBCATEGORIA")):
-        score += 35
-        motivos.append("subcategoria igual")
-
     valor_lanc = parse_moeda(lancamento.get("VALOR"))
+    data_vencimento = parse_data(pagamento.get("DATA_VENCIMENTO"))
+    despesa_variavel = pagamento_variavel_para_match(pagamento)
+
+    if cat_pag and cat_lanc and cat_pag == cat_lanc:
+        score += 35
+        motivos.append("categoria compatível")
+
+    if sub_pag and sub_lanc and sub_pag == sub_lanc:
+        score += 45
+        motivos.append("subcategoria compatível")
+
+    texto_pagamento = f"{cat_pag} {sub_pag} {desc_pag}"
+    texto_lancamento = f"{cat_lanc} {sub_lanc} {desc_lanc}"
+
+    termos_fortes = [
+        "COMBUSTIVEL",
+        "GASOLINA",
+        "ETANOL",
+        "POSTO",
+        "ENERGIA",
+        "EQUATORIAL",
+        "CEMAR",
+        "LUZ",
+        "FLV",
+        "SUPERMERCADO",
+        "MERCADO",
+        "CONDOMINIO",
+        "PRESTACAO",
+        "AMORTIZACAO",
+        "FARMACIA",
+    ]
+
+    for termo in termos_fortes:
+        if termo in texto_pagamento and termo in texto_lancamento:
+            score += 12
+            motivos.append(f"termo forte: {termo}")
+            break
+
     diferenca_valor = abs(valor_previsto - valor_lanc)
 
-    if valor_previsto > 0:
+    if valor_previsto > 0 and valor_lanc > 0:
         percentual_diferenca = diferenca_valor / valor_previsto * 100
 
         if diferenca_valor <= 1:
             score += 35
             motivos.append("valor igual/próximo")
         elif percentual_diferenca <= 5:
-            score += 15
+            score += 20
             motivos.append("valor próximo")
-        elif valor_lanc < valor_previsto and valor_lanc > 0:
-            proporcao = valor_lanc / valor_previsto
-            if proporcao >= 0.5 and percentual_diferenca <= 25:
-                score += 6
-                motivos.append("possível pagamento parcial")
-            else:
-                score -= 45
-                motivos.append("valor muito diferente")
+        elif despesa_variavel and valor_lanc < valor_previsto:
+            score += 8
+            motivos.append("lançamento parcial de despesa variável")
+        elif valor_lanc < valor_previsto and percentual_diferenca <= 40:
+            score += 6
+            motivos.append("possível pagamento menor que o previsto")
+        elif sub_pag and sub_lanc and sub_pag == sub_lanc:
+            score -= 8
+            motivos.append("valor diferente, mas subcategoria compatível")
         else:
-            score -= 45
+            score -= 25
             motivos.append("valor muito diferente")
 
     data_lanc = lancamento.get("DATA")
@@ -740,8 +952,9 @@ def calcular_score_match(pagamento: Dict[str, Any], lancamento: Dict[str, Any]) 
         elif diferenca_dias <= 7:
             score += 10
             motivos.append("data aceitável")
-
-    desc_lanc = normalizar_texto(lancamento.get("DESCRICAO"))
+        elif data_lanc.month == data_vencimento.month and data_lanc.year == data_vencimento.year:
+            score += 5
+            motivos.append("mesmo mês")
 
     if desc_pag and desc_lanc:
         palavras_pag = {p for p in desc_pag.split() if len(p) >= 4}
@@ -749,7 +962,7 @@ def calcular_score_match(pagamento: Dict[str, Any], lancamento: Dict[str, Any]) 
         comuns = palavras_pag.intersection(palavras_lanc)
 
         if comuns:
-            score += min(5, len(comuns) * 2)
+            score += min(10, len(comuns) * 3)
             motivos.append("descrição parecida")
 
     return score, motivos
@@ -882,21 +1095,36 @@ def conciliar_pagamentos_com_lancamentos(
 
         valor_igual_ou_proximo = diferenca_valor <= 1
         valor_aceitavel = percentual_diferenca <= 5
-        valor_parcial_possivel = valor_lanc < valor_previsto and percentual_diferenca <= 25
+        valor_parcial_possivel = valor_lanc < valor_previsto and percentual_diferenca <= 40
+        despesa_variavel = pagamento_variavel_para_match(pagamento)
+
+        cat_pag = normalizar_categoria_match(pagamento.get("CATEGORIA"))
+        sub_pag = normalizar_subcategoria_match(
+            pagamento.get("CATEGORIA"),
+            pagamento.get("SUBCATEGORIA"),
+            pagamento.get("DESCRICAO"),
+        )
+        cat_lanc = normalizar_categoria_match(melhor.get("CATEGORIA_MATCH") or melhor.get("CATEGORIA"))
+        sub_lanc = normalizar_texto(melhor.get("SUBCATEGORIA_MATCH") or melhor.get("SUBCATEGORIA"))
+        chave_compativel = bool(cat_pag and cat_lanc and cat_pag == cat_lanc and sub_pag and sub_lanc and sub_pag == sub_lanc)
 
         if melhor_score >= 85 and valor_igual_ou_proximo:
             novo_status = "PAGO"
             match_status = "PAGAMENTO ENCONTRADO"
             atualizados += 1
+        elif despesa_variavel and melhor_score >= 55 and chave_compativel:
+            novo_status = "PAGO" if status_atual == "PAGO" else "PENDENTE"
+            match_status = "PAGAMENTO ENCONTRADO" if status_atual == "PAGO" else "POSSÍVEL LANÇAMENTO"
+            possiveis += 1
         elif melhor_score >= 80 and valor_parcial_possivel:
             novo_status = "PAGO" if status_atual == "PAGO" else "PARCIAL"
             match_status = "PAGAMENTO ENCONTRADO" if status_atual == "PAGO" else "PAGAMENTO PARCIAL"
             parciais += 1
-        elif melhor_score >= 60 and valor_aceitavel:
+        elif melhor_score >= 60 and (valor_aceitavel or chave_compativel):
             novo_status = "PAGO" if status_atual == "PAGO" else "PENDENTE"
             match_status = "PAGAMENTO ENCONTRADO" if status_atual == "PAGO" else "POSSÍVEL LANÇAMENTO"
             possiveis += 1
-        elif melhor_score >= 70 and valor_parcial_possivel:
+        elif melhor_score >= 55 and chave_compativel:
             novo_status = "PAGO" if status_atual == "PAGO" else "PENDENTE"
             match_status = "PAGAMENTO ENCONTRADO" if status_atual == "PAGO" else "POSSÍVEL LANÇAMENTO"
             possiveis += 1
@@ -1006,6 +1234,361 @@ def montar_resumo_pagamentos(pagamentos: List[Dict[str, Any]]) -> Dict[str, Any]
     resumo["final_mes_fmt"] = formatar_moeda(resumo["por_grupo"].get("FINAL DO MÊS", 0))
 
     return resumo
+
+
+def adicionar_meses_data(data_base: Optional[date], meses: int = 1) -> Optional[date]:
+    """
+    Soma meses mantendo o dia quando possível.
+    Ex.: 31/01 + 1 mês vira 28/02 ou 29/02 em ano bissexto.
+    """
+
+    if not data_base:
+        return None
+
+    mes_total = data_base.month + meses
+    ano = data_base.year + ((mes_total - 1) // 12)
+    mes = ((mes_total - 1) % 12) + 1
+
+    ultimo_dia = 31
+
+    for dia in range(31, 27, -1):
+        try:
+            date(ano, mes, dia)
+            ultimo_dia = dia
+            break
+        except ValueError:
+            continue
+
+    dia_final = min(data_base.day, ultimo_dia)
+
+    return date(ano, mes, dia_final)
+
+
+def proximo_mes_ano(ano: Any, mes: Any, data_vencimento: Optional[date] = None) -> tuple[str, str]:
+    """
+    Calcula o próximo mês a partir do mês/ano do pagamento.
+    Se não conseguir usar MES/ANO, usa a data de vencimento.
+    """
+
+    mes_num = mes_para_numero(mes)
+
+    try:
+        ano_num = int(str(ano or "").strip())
+    except Exception:
+        ano_num = data_vencimento.year if data_vencimento else date.today().year
+
+    if not mes_num:
+        mes_num = data_vencimento.month if data_vencimento else date.today().month
+
+    mes_num += 1
+
+    if mes_num > 12:
+        mes_num = 1
+        ano_num += 1
+
+    return str(ano_num), mes_numero_para_sigla(mes_num)
+
+
+def obter_pagamento_por_id(
+    pagamento_id: str,
+    id_planilha: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Busca um pagamento diretamente na aba PAGAMENTOS pelo ID.
+    """
+
+    _, aba = garantir_estrutura_pagamentos(id_planilha)
+    dados = ler_aba_como_dicts(aba)
+
+    for item in dados:
+        if str(item.get("ID", "")).strip() == str(pagamento_id).strip():
+            return preparar_pagamento_para_tela(item)
+
+    raise ValueError("Pagamento não encontrado para duplicação.")
+
+
+def duplicar_pagamento(
+    pagamento_id: str,
+    id_planilha: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Duplica um pagamento para o mês seguinte.
+
+    Regras:
+    - mantém descrição, tipo, categoria, subcategoria, valor previsto,
+      recorrência, conta e observação;
+    - muda ANO/MES para o mês seguinte;
+    - ajusta DATA_VENCIMENTO para o mês seguinte, mantendo o dia;
+    - limpa valor pago, data de pagamento e dados de conciliação;
+    - novo pagamento nasce como PENDENTE.
+    """
+
+    original = obter_pagamento_por_id(pagamento_id, id_planilha=id_planilha)
+
+    data_vencimento_original = parse_data(original.get("DATA_VENCIMENTO"))
+    nova_data_vencimento = adicionar_meses_data(data_vencimento_original, 1)
+
+    novo_ano, novo_mes = proximo_mes_ano(
+        ano=original.get("ANO"),
+        mes=original.get("MES"),
+        data_vencimento=data_vencimento_original,
+    )
+
+    dados_novos = {
+        "ano": novo_ano,
+        "mes": novo_mes,
+        "descricao": original.get("DESCRICAO", ""),
+        "tipo": original.get("TIPO", ""),
+        "categoria": original.get("CATEGORIA", ""),
+        "subcategoria": original.get("SUBCATEGORIA", ""),
+        "valor_previsto": original.get("VALOR_PREVISTO", ""),
+        "valor_pago": "0",
+        "data_vencimento": formatar_data(nova_data_vencimento),
+        "data_pagamento": "",
+        "status": "PENDENTE",
+        "recorrente": original.get("RECORRENTE", "NÃO"),
+        "conta_pagamento": original.get("CONTA_PAGAMENTO", ""),
+        "observacao": original.get("OBSERVACAO", ""),
+    }
+
+    return salvar_pagamento(dados_novos, id_planilha=id_planilha)
+
+
+
+
+def pagamento_duplicado_ja_existe(
+    pagamentos_destino: List[Dict[str, Any]],
+    dados_novos: Dict[str, Any],
+) -> bool:
+    """
+    Evita duplicar novamente o mesmo pagamento no mês de destino.
+    A comparação usa os campos principais do planejamento.
+    """
+
+    ano_novo = normalizar_texto(dados_novos.get("ano"))
+    mes_novo = normalizar_texto(dados_novos.get("mes"))
+    descricao_nova = normalizar_texto(dados_novos.get("descricao"))
+    tipo_novo = normalizar_texto(dados_novos.get("tipo"))
+    categoria_nova = normalizar_texto(dados_novos.get("categoria"))
+    subcategoria_nova = normalizar_texto(dados_novos.get("subcategoria"))
+    valor_novo = parse_moeda(dados_novos.get("valor_previsto"))
+
+    for item in pagamentos_destino:
+        if normalizar_texto(item.get("STATUS")) == "CANCELADO":
+            continue
+
+        mesmo_item = (
+            normalizar_texto(item.get("ANO")) == ano_novo
+            and normalizar_texto(item.get("MES")) == mes_novo
+            and normalizar_texto(item.get("DESCRICAO")) == descricao_nova
+            and normalizar_texto(item.get("TIPO")) == tipo_novo
+            and normalizar_texto(item.get("CATEGORIA")) == categoria_nova
+            and normalizar_texto(item.get("SUBCATEGORIA")) == subcategoria_nova
+            and abs(parse_moeda(item.get("VALOR_PREVISTO")) - valor_novo) <= 0.01
+        )
+
+        if mesmo_item:
+            return True
+
+    return False
+
+
+def duplicar_pagamentos_mes(
+    ano_origem: str,
+    mes_origem: str,
+    id_planilha: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Duplica todos os pagamentos ativos de um mês para o mês seguinte.
+
+    Versão otimizada para evitar erro 429 do Google Sheets.
+
+    Antes, a duplicação chamava salvar_pagamento() dentro do loop. Isso fazia
+    várias leituras da planilha e da aba de categorias, podendo estourar a cota
+    de leitura do Google Sheets. Agora a função:
+    - lê a aba PAGAMENTOS uma única vez;
+    - monta todas as novas linhas em memória;
+    - grava tudo de uma vez com append_rows();
+    - não relê categorias para cada pagamento, porque os pagamentos de origem
+      já estão validados/cadastrados.
+    """
+
+    ano_origem = str(ano_origem or "").strip()
+    mes_origem = normalizar_texto(mes_origem)
+
+    if not ano_origem:
+        raise ValueError("Informe o ano de origem para duplicar os pagamentos.")
+
+    if not mes_origem:
+        raise ValueError("Informe o mês de origem para duplicar os pagamentos.")
+
+    mes_num_origem = mes_para_numero(mes_origem)
+    if not mes_num_origem:
+        raise ValueError("Mês de origem inválido.")
+
+    # Uma única abertura/leitura da aba de pagamentos.
+    _, aba = garantir_estrutura_pagamentos(id_planilha)
+    valores = aba.get_all_values()
+
+    if not valores:
+        return {
+            "ok": True,
+            "criados": 0,
+            "ignorados": 0,
+            "ano_destino": ano_origem,
+            "mes_destino": mes_origem,
+            "pagamentos_criados": [],
+            "mensagem": "A aba de pagamentos está vazia.",
+        }
+
+    cabecalho = valores[0]
+    dados = [
+        linha_para_dict(cabecalho, linha)
+        for linha in valores[1:]
+        if linha and any(str(c).strip() for c in linha)
+    ]
+
+    pagamentos_origem = []
+
+    for item in dados:
+        item_preparado = preparar_pagamento_para_tela(item)
+
+        if normalizar_texto(item_preparado.get("STATUS")) == "CANCELADO":
+            continue
+
+        if str(item_preparado.get("ANO", "")).strip() != ano_origem:
+            continue
+
+        if normalizar_texto(item_preparado.get("MES")) != mes_origem:
+            continue
+
+        pagamentos_origem.append(item_preparado)
+
+    if not pagamentos_origem:
+        return {
+            "ok": True,
+            "criados": 0,
+            "ignorados": 0,
+            "ano_destino": ano_origem,
+            "mes_destino": mes_origem,
+            "pagamentos_criados": [],
+            "mensagem": "Nenhum pagamento ativo encontrado para duplicar.",
+        }
+
+    primeiro = pagamentos_origem[0]
+    data_ref = parse_data(primeiro.get("DATA_VENCIMENTO"))
+    ano_destino, mes_destino = proximo_mes_ano(
+        ano=ano_origem,
+        mes=mes_origem,
+        data_vencimento=data_ref,
+    )
+
+    pagamentos_destino = [
+        preparar_pagamento_para_tela(item)
+        for item in dados
+        if str(item.get("ANO", "")).strip() == ano_destino
+        and normalizar_texto(item.get("MES")) == normalizar_texto(mes_destino)
+    ]
+
+    linhas_novas = []
+    pagamentos_criados = []
+    ignorados = 0
+    estrutura_categorias = obter_opcoes_categorias(id_planilha)
+
+    for original in pagamentos_origem:
+        data_vencimento_original = parse_data(original.get("DATA_VENCIMENTO"))
+        nova_data_vencimento = adicionar_meses_data(data_vencimento_original, 1)
+
+        dados_novos = {
+            "ano": ano_destino,
+            "mes": mes_destino,
+            "descricao": original.get("DESCRICAO", ""),
+            "tipo": original.get("TIPO", ""),
+            "categoria": original.get("CATEGORIA", ""),
+            "subcategoria": original.get("SUBCATEGORIA", ""),
+            "valor_previsto": original.get("VALOR_PREVISTO", ""),
+            "valor_pago": "0",
+            "data_vencimento": formatar_data(nova_data_vencimento),
+            "data_pagamento": "",
+            "status": "PENDENTE",
+            "recorrente": original.get("RECORRENTE", "NÃO"),
+            "conta_pagamento": original.get("CONTA_PAGAMENTO", ""),
+            "observacao": original.get("OBSERVACAO", ""),
+        }
+
+        if pagamento_duplicado_ja_existe(pagamentos_destino, dados_novos):
+            ignorados += 1
+            continue
+
+        try:
+            tipo_oficial, categoria_oficial, subcategoria_oficial = resolver_categoria_na_estrutura(
+                dados_novos.get("tipo"),
+                dados_novos.get("categoria"),
+                dados_novos.get("subcategoria"),
+                estrutura_categorias,
+            )
+        except Exception:
+            # Pagamentos antigos fora da aba CATEGORIAS não são duplicados.
+            # Assim a duplicação mensal não propaga classificações antigas.
+            ignorados += 1
+            continue
+
+        pagamento_id = str(uuid.uuid4())
+        criado_em = agora_iso()
+
+        registro = {
+            "ID": pagamento_id,
+            "ANO": ano_destino,
+            "MES": mes_destino,
+            "DESCRICAO": str(dados_novos.get("descricao") or "").strip(),
+            "TIPO": tipo_oficial,
+            "CATEGORIA": categoria_oficial,
+            "SUBCATEGORIA": subcategoria_oficial,
+            "VALOR_PREVISTO": formatar_moeda(dados_novos.get("valor_previsto") or 0),
+            "VALOR_PAGO": formatar_moeda(0),
+            "DATA_VENCIMENTO": dados_novos.get("data_vencimento") or "",
+            "DATA_PAGAMENTO": "",
+            "STATUS": "PENDENTE",
+            "RECORRENTE": normalizar_texto(dados_novos.get("recorrente") or "NÃO"),
+            "CONTA_PAGAMENTO": str(dados_novos.get("conta_pagamento") or "").strip(),
+            "OBSERVACAO": str(dados_novos.get("observacao") or "").strip(),
+            "LANCAMENTO_ID": "",
+            "LANCAMENTO_DATA": "",
+            "LANCAMENTO_DESCRICAO": "",
+            "LANCAMENTO_VALOR": "",
+            "MATCH_STATUS": "",
+            "MATCH_SCORE": "",
+            "CRIADO_EM": criado_em,
+            "ATUALIZADO_EM": criado_em,
+        }
+
+        linha_final = [registro.get(coluna, "") for coluna in CABECALHO_PAGAMENTOS]
+        linhas_novas.append(linha_final)
+
+        novo_preparado = preparar_pagamento_para_tela(registro)
+        pagamentos_destino.append(novo_preparado)
+        pagamentos_criados.append(novo_preparado)
+
+    if linhas_novas:
+        # Uma única escrita para todas as linhas novas.
+        aba.append_rows(linhas_novas, value_input_option="USER_ENTERED")
+
+    criados = len(linhas_novas)
+
+    mensagem = (
+        f"Pagamentos duplicados de {mes_origem}/{ano_origem} para "
+        f"{mes_destino}/{ano_destino}. Criados: {criados}. Ignorados: {ignorados}."
+    )
+
+    return {
+        "ok": True,
+        "criados": criados,
+        "ignorados": ignorados,
+        "ano_destino": ano_destino,
+        "mes_destino": mes_destino,
+        "pagamentos_criados": pagamentos_criados,
+        "mensagem": mensagem,
+    }
 
 
 def excluir_pagamento(pagamento_id: str, id_planilha: Optional[str] = None) -> bool:

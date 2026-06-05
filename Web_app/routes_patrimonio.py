@@ -10,6 +10,7 @@ from core.financeiro.configuracao_sistema import obter_configuracao_sistema
 from core.financeiro.patrimonio_google import (
     ATIVOS_PATRIMONIO,
     MESES_OPCOES,
+    copiar_patrimonio_mes,
     dados_formulario_padrao,
     montar_itens_formulario_padrao,
     montar_resumo_patrimonio,
@@ -29,6 +30,7 @@ async def patrimonio_get(
     mes: str | None = Query(None),
     modo: str | None = Query(None),
     salvo: str | None = Query(None),
+    erro: str | None = Query(None),
     ano_resumo: str | None = Query(None),
     mes_resumo: str | None = Query(None),
 ):
@@ -75,7 +77,7 @@ async def patrimonio_get(
         request=request,
         name="patrimonio.html",
         context={
-            "erro": None,
+            "erro": erro,
             "salvo": salvo,
             "config": config,
             "ano": ano_final,
@@ -91,6 +93,46 @@ async def patrimonio_get(
             "planilha_google": config.get("planilha_google", ""),
         },
     )
+
+
+@router.post("/financeiro/patrimonio/copiar")
+async def patrimonio_copiar(
+    ano_origem: str = Form(...),
+    mes_origem: str = Form(...),
+    ano_destino: str = Form(...),
+    mes_destino: str = Form(...),
+):
+    try:
+        resultado = copiar_patrimonio_mes(
+            ano_origem=ano_origem,
+            mes_origem=mes_origem,
+            ano_destino=ano_destino,
+            mes_destino=mes_destino,
+        )
+
+        return RedirectResponse(
+            url=(
+                f"/financeiro/patrimonio?"
+                f"ano={resultado['ano']}&"
+                f"mes={resultado['mes']}&"
+                f"ano_resumo={resultado['ano']}&"
+                f"mes_resumo={resultado['mes']}&"
+                f"modo=editar&"
+                f"salvo=copiado"
+            ),
+            status_code=303,
+        )
+
+    except Exception as e:
+        return RedirectResponse(
+            url=(
+                f"/financeiro/patrimonio?"
+                f"ano_resumo={ano_destino}&"
+                f"mes_resumo={mes_destino}&"
+                f"erro=Erro ao copiar patrimônio: {e}"
+            ),
+            status_code=303,
+        )
 
 
 @router.post("/financeiro/patrimonio/salvar")

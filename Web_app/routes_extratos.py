@@ -11,12 +11,16 @@ from fastapi.templating import Jinja2Templates
 
 from core.financeiro.configuracao_sistema import obter_configuracao_sistema
 from core.financeiro.categorias import (
-    CATEGORIAS_DESPESA,
-    CATEGORIAS_RECEITA,
     CONTAS,
     FORMAS_PAGAMENTO,
     MESES,
     SITUACOES,
+)
+from core.financeiro.categorias_google import (
+    TIPOS_OFICIAIS,
+    normalizar_tipo as normalizar_tipo_categoria,
+    obter_estrutura_categorias,
+    validar_categoria_subcategoria,
 )
 from core.financeiro.dashboard_base import ler_base_lancamentos, para_float
 from core.financeiro.lancamentos_google import salvar_lancamentos_em_lote_google
@@ -83,14 +87,21 @@ async def extratos_previsualizar(
                 link_planilha=link_planilha,
             )
 
+        resultado = preparar_resultado_para_categorias_oficiais(resultado)
+
         temp_id = salvar_previa_extrato(resultado)
 
         qtd_regras = resultado.get("qtd_regras_cliente", 0)
 
-        mensagem = f"Extrato lido com sucesso. {len(resultado['movimentacoes'])} movimentações identificadas."
+        mensagem = (
+            f"Extrato lido com sucesso. "
+            f"{len(resultado.get('movimentacoes', []))} movimentações identificadas."
+        )
 
         if qtd_regras:
             mensagem += f" {qtd_regras} regra(s) de classificação do cliente foram carregadas."
+
+        mensagem += " As categorias e subcategorias agora vêm da aba oficial CATEGORIAS."
 
         return templates.TemplateResponse(
             request=request,
@@ -146,12 +157,12 @@ async def extratos_importar(request: Request):
             if importar != "SIM":
                 continue
 
-            valor = float(mov.get("valor", 0))
+            valor = float(mov.get("valor", 0) or 0)
             valor_abs = abs(valor)
 
-            tipo = str(form.get(f"tipo_{indice}", mov.get("tipo", ""))).strip()
-            categoria = str(form.get(f"categoria_{indice}", mov.get("categoria", ""))).strip()
-            subcategoria = str(form.get(f"subcategoria_{indice}", mov.get("subcategoria", ""))).strip()
+            tipo_form = str(form.get(f"tipo_{indice}", mov.get("tipo", ""))).strip()
+            categoria_form = str(form.get(f"categoria_{indice}", mov.get("categoria", ""))).strip()
+            subcategoria_form = str(form.get(f"subcategoria_{indice}", mov.get("subcategoria", ""))).strip()
             situacao = str(form.get(f"situacao_{indice}", mov.get("situacao", ""))).strip()
             forma_pagamento = str(form.get(f"forma_pagamento_{indice}", mov.get("forma_pagamento", ""))).strip()
             conta = str(form.get(f"conta_{indice}", mov.get("conta", ""))).strip()
@@ -167,6 +178,28 @@ async def extratos_importar(request: Request):
             if valor_abs <= 0:
                 continue
 
+            try:
+                tipo, categoria, subcategoria = validar_categoria_subcategoria(
+                    tipo=tipo_form,
+                    categoria=categoria_form,
+                    subcategoria=subcategoria_form,
+                )
+            except Exception as erro_validacao:
+                return templates.TemplateResponse(
+                    request=request,
+                    name="extratos.html",
+                    context=montar_contexto_extratos(
+                        request=request,
+                        etapa="previa",
+                        erro=(
+                            f"Corrija a classificação da movimentação '{descricao}'. "
+                            f"Detalhe: {erro_validacao}"
+                        ),
+                        temp_id=temp_id,
+                        resultado=previa,
+                    ),
+                )
+
             chave_nova = montar_chave_lancamento(
                 data=data,
                 descricao=descricao,
@@ -177,8 +210,11 @@ async def extratos_importar(request: Request):
                 duplicados_ignorados += 1
                 continue
 
+            data_banco = str(mov.get("data_banco", "")).strip()
+
             lancamento = {
                 "data": data,
+                "data_banco": data_banco,
                 "mes": inferir_mes(data),
                 "ano": inferir_ano(data, config.get("ano_base", "")),
                 "tipo": tipo,
@@ -257,12 +293,19 @@ async def extratos_importar(request: Request):
         )
 
     except Exception as e:
+        try:
+            previa = carregar_previa_extrato(temp_id) if temp_id else None
+        except Exception:
+            previa = None
+
         return templates.TemplateResponse(
             request=request,
             name="extratos.html",
             context=montar_contexto_extratos(
                 request=request,
-                etapa="upload",
+                etapa="previa" if previa else "upload",
+                temp_id=temp_id if previa else None,
+                resultado=previa,
                 erro=f"Erro ao importar extrato: {e}",
             ),
         )
@@ -276,6 +319,11 @@ def montar_contexto_extratos(
     temp_id: str | None = None,
     resultado: dict | None = None,
 ):
+    try:
+        estrutura_categorias = obter_estrutura_categorias()
+    except Exception:
+        estrutura_categorias = {}
+
     return {
         "request": request,
         "etapa": etapa,
@@ -287,9 +335,61 @@ def montar_contexto_extratos(
         "situacoes": SITUACOES,
         "formas_pagamento": FORMAS_PAGAMENTO,
         "contas": CONTAS,
-        "categorias_receita": CATEGORIAS_RECEITA,
-        "categorias_despesa": CATEGORIAS_DESPESA,
+        "tipos_oficiais": TIPOS_OFICIAIS,
+        "estrutura_categorias": estrutura_categorias,
     }
+
+
+def preparar_resultado_para_categorias_oficiais(resultado: dict) -> dict:
+    """
+    Mantém as classificações sugeridas por regras quando forem compatíveis
+    com a aba CATEGORIAS. Quando não forem, deixa categoria/subcategoria vazias
+    para o usuário escolher uma opção oficial na prévia.
+    """
+
+    estrutura = obter_estrutura_categorias()
+    movimentacoes = resultado.get("movimentacoes", []) or []
+
+    for mov in movimentacoes:
+        valor = float(mov.get("valor", 0) or 0)
+        tipo_atual = normalizar_tipo_categoria(mov.get("tipo"))
+
+        if tipo_atual not in estrutura:
+            tipo_atual = "DESPESA" if valor < 0 else "RECEITA"
+
+        categoria_atual = str(mov.get("categoria", "") or "").strip().upper()
+        subcategoria_atual = str(mov.get("subcategoria", "") or "").strip().upper()
+
+        categorias_tipo = estrutura.get(tipo_atual, {})
+        categoria_oficial = resolver_nome_oficial(categoria_atual, categorias_tipo.keys())
+
+        if not categoria_oficial:
+            mov["tipo"] = tipo_atual
+            mov["categoria"] = ""
+            mov["subcategoria"] = ""
+            continue
+
+        subcategorias = categorias_tipo.get(categoria_oficial, [])
+        subcategoria_oficial = resolver_nome_oficial(subcategoria_atual, subcategorias)
+
+        mov["tipo"] = tipo_atual
+        mov["categoria"] = categoria_oficial
+        mov["subcategoria"] = subcategoria_oficial or ""
+
+    return resultado
+
+
+def resolver_nome_oficial(valor: str, opcoes) -> str:
+    alvo = normalizar_para_chave(valor)
+
+    if not alvo:
+        return ""
+
+    for opcao in opcoes:
+        if normalizar_para_chave(str(opcao)) == alvo:
+            return str(opcao)
+
+    return ""
 
 
 def obter_chaves_lancamentos_existentes() -> set[str]:

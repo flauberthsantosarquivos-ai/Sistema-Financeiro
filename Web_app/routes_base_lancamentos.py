@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from urllib.parse import quote
 
 from fastapi import APIRouter, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -16,6 +17,10 @@ from core.financeiro.dashboard_base import (
 from core.financeiro.lancamentos_google import (
     CABECALHOS_BASE,
     abrir_planilha_e_base,
+)
+from core.financeiro.categorias_google import (
+    obter_estrutura_categorias,
+    validar_categoria_subcategoria,
 )
 
 
@@ -57,6 +62,70 @@ def normalizar(valor: str | None) -> str:
     return str(valor or "").strip().upper()
 
 
+def coluna_para_letra(indice: int) -> str:
+    """
+    Converte índice 1-based para letra de coluna do Google Sheets.
+    Exemplo: 1 -> A, 16 -> P, 17 -> Q.
+    """
+
+    letras = ""
+
+    while indice > 0:
+        indice, resto = divmod(indice - 1, 26)
+        letras = chr(65 + resto) + letras
+
+    return letras
+
+
+def range_linha_base(indice_linha: int) -> str:
+    return f"A{indice_linha}:{coluna_para_letra(len(CABECALHOS_BASE))}{indice_linha}"
+
+
+def montar_return_url(request: Request | None = None, return_url: str | None = None) -> str:
+    """
+    Mantém o usuário na mesma tela/filtro após editar ou excluir.
+    Só aceita retorno interno da própria Base para evitar redirecionamento externo.
+    """
+
+    if return_url:
+        retorno = str(return_url).strip()
+
+        if retorno.startswith("/financeiro/base-lancamentos"):
+            return retorno
+
+    if request:
+        query = str(request.url.query or "").strip()
+
+        if query:
+            return f"{request.url.path}?{query}"
+
+        return str(request.url.path)
+
+    return "/financeiro/base-lancamentos"
+
+
+def redirecionar_base_com_msg(
+    request: Request | None = None,
+    return_url: str | None = None,
+    mensagem: str | None = None,
+    erro: str | None = None,
+) -> RedirectResponse:
+    destino = montar_return_url(request=request, return_url=return_url)
+    separador = "&" if "?" in destino else "?"
+
+    if mensagem:
+        destino = f"{destino}{separador}mensagem={quote(mensagem)}"
+        separador = "&"
+
+    if erro:
+        destino = f"{destino}{separador}erro={quote(erro)}"
+
+    return RedirectResponse(
+        url=destino,
+        status_code=303,
+    )
+
+
 def formatar_numero_brasil(valor: float) -> str:
     if not valor:
         return ""
@@ -74,6 +143,7 @@ def preparar_linhas(registros: list[dict]) -> list[dict]:
             {
                 "id": item.get("ID", ""),
                 "data": item.get("DATA", ""),
+                "data_banco": item.get("DATA_BANCO", ""),
                 "mes": item.get("MES", ""),
                 "ano": item.get("ANO", ""),
                 "tipo": item.get("TIPO", ""),
@@ -153,6 +223,7 @@ def aplicar_filtros_avancados(
         texto_busca = " ".join(
             [
                 normalizar(item.get("DATA")),
+                normalizar(item.get("DATA_BANCO")),
                 normalizar(item.get("MES")),
                 normalizar(item.get("ANO")),
                 normalizar(item.get("TIPO")),
@@ -197,6 +268,51 @@ def montar_opcoes_unicas(registros: list[dict], campo: str) -> list[str]:
             valores.add(valor)
 
     return sorted(valores)
+
+
+def obter_estrutura_categorias_segura() -> dict:
+    try:
+        return obter_estrutura_categorias(incluir_inativas=False)
+    except Exception:
+        return {}
+
+
+def mesclar_opcoes(*listas: list[str]) -> list[str]:
+    valores = set()
+
+    for lista in listas:
+        for item in lista or []:
+            texto = str(item or "").strip().upper()
+            if texto:
+                valores.add(texto)
+
+    return sorted(valores)
+
+
+def categorias_oficiais_lista(estrutura: dict) -> list[str]:
+    categorias = set()
+
+    for categorias_por_tipo in estrutura.values():
+        for categoria in categorias_por_tipo.keys():
+            texto = str(categoria or "").strip().upper()
+            if texto:
+                categorias.add(texto)
+
+    return sorted(categorias)
+
+
+def validar_categoria_base(tipo: str, categoria: str, subcategoria: str) -> tuple[str, str, str]:
+    if not str(tipo or "").strip():
+        raise ValueError("Informe o tipo do lançamento.")
+
+    if not str(categoria or "").strip():
+        raise ValueError("Informe uma categoria cadastrada na aba CATEGORIAS.")
+
+    return validar_categoria_subcategoria(
+        tipo=tipo,
+        categoria=categoria,
+        subcategoria=subcategoria,
+    )
 
 
 def localizar_lancamento_por_id(lancamento_id: str):
@@ -317,6 +433,7 @@ async def base_lancamentos_get(
 
     try:
         registros = ler_base_lancamentos()
+        categorias_estrutura = obter_estrutura_categorias_segura()
 
         registros_periodo = filtrar_por_periodo(
             registros=registros,
@@ -348,10 +465,11 @@ async def base_lancamentos_get(
                 "linhas": linhas,
                 "filtros": filtros,
                 "meses_opcoes": MESES_OPCOES,
-                "tipos_opcoes": montar_opcoes_unicas(registros, "TIPO"),
+                "tipos_opcoes": mesclar_opcoes(list(categorias_estrutura.keys()), montar_opcoes_unicas(registros, "TIPO")),
                 "situacoes_opcoes": montar_opcoes_unicas(registros, "SITUACAO"),
                 "origens_opcoes": montar_opcoes_unicas(registros, "ORIGEM"),
-                "categorias_opcoes": montar_opcoes_unicas(registros, "CATEGORIA"),
+                "categorias_opcoes": mesclar_opcoes(categorias_oficiais_lista(categorias_estrutura), montar_opcoes_unicas(registros, "CATEGORIA")),
+                "categorias_estrutura": categorias_estrutura,
                 "total_registros": len(linhas),
                 "total_receitas_fmt": totais["total_receitas_fmt"],
                 "total_despesas_fmt": totais["total_despesas_fmt"],
@@ -375,6 +493,7 @@ async def base_lancamentos_get(
                 "situacoes_opcoes": [],
                 "origens_opcoes": [],
                 "categorias_opcoes": [],
+                "categorias_estrutura": {},
                 "total_registros": 0,
                 "total_receitas_fmt": formatar_moeda(0),
                 "total_despesas_fmt": formatar_moeda(0),
@@ -398,6 +517,7 @@ async def editar_lancamento_get(request: Request, lancamento_id: str):
                 "mensagem": None,
                 "lancamento": registro,
                 "meses_opcoes": MESES_OPCOES,
+                "categorias_estrutura": obter_estrutura_categorias_segura(),
             },
         )
 
@@ -410,6 +530,7 @@ async def editar_lancamento_get(request: Request, lancamento_id: str):
                 "mensagem": None,
                 "lancamento": None,
                 "meses_opcoes": MESES_OPCOES,
+                "categorias_estrutura": obter_estrutura_categorias_segura(),
             },
         )
 
@@ -435,6 +556,7 @@ async def editar_lancamento_post(
 ):
     try:
         aba, indice_linha, registro_antigo = localizar_lancamento_por_id(lancamento_id)
+        tipo, categoria, subcategoria = validar_categoria_base(tipo, categoria, subcategoria)
 
         nova_linha = [
             lancamento_id,
@@ -453,10 +575,11 @@ async def editar_lancamento_post(
             origem,
             observacao,
             registro_antigo.get("CRIADO_EM", ""),
+            registro_antigo.get("DATA_BANCO", ""),
         ]
 
         aba.update(
-            f"A{indice_linha}:P{indice_linha}",
+            range_linha_base(indice_linha),
             [nova_linha],
             value_input_option="USER_ENTERED",
         )
@@ -478,6 +601,7 @@ async def editar_lancamento_post(
             "ORIGEM": origem,
             "OBSERVACAO": observacao,
             "CRIADO_EM": registro_antigo.get("CRIADO_EM", ""),
+            "DATA_BANCO": registro_antigo.get("DATA_BANCO", ""),
         }
 
         return templates.TemplateResponse(
@@ -488,6 +612,7 @@ async def editar_lancamento_post(
                 "mensagem": "Lançamento atualizado com sucesso.",
                 "lancamento": registro_atualizado,
                 "meses_opcoes": MESES_OPCOES,
+                "categorias_estrutura": obter_estrutura_categorias_segura(),
             },
         )
 
@@ -500,12 +625,14 @@ async def editar_lancamento_post(
                 "mensagem": None,
                 "lancamento": None,
                 "meses_opcoes": MESES_OPCOES,
+                "categorias_estrutura": obter_estrutura_categorias_segura(),
             },
         )
 
 
 @router.post("/financeiro/base-lancamentos/editar-rapido/{lancamento_id}")
 async def editar_lancamento_rapido_post(
+    request: Request,
     lancamento_id: str,
     data: str = Form(""),
     mes: str = Form(""),
@@ -521,9 +648,11 @@ async def editar_lancamento_rapido_post(
     conta: str = Form(""),
     origem: str = Form(""),
     observacao: str = Form(""),
+    return_url: str = Form(""),
 ):
     try:
         aba, indice_linha, registro_antigo = localizar_lancamento_por_id(lancamento_id)
+        tipo, categoria, subcategoria = validar_categoria_base(tipo, categoria, subcategoria)
 
         nova_linha = [
             lancamento_id,
@@ -542,63 +671,72 @@ async def editar_lancamento_rapido_post(
             origem,
             observacao,
             registro_antigo.get("CRIADO_EM", ""),
+            registro_antigo.get("DATA_BANCO", ""),
         ]
 
         aba.update(
-            f"A{indice_linha}:P{indice_linha}",
+            range_linha_base(indice_linha),
             [nova_linha],
             value_input_option="USER_ENTERED",
         )
 
-        return RedirectResponse(
-            url="/financeiro/base-lancamentos?mensagem=Lançamento atualizado com sucesso.",
-            status_code=303,
+        return redirecionar_base_com_msg(
+            return_url=return_url,
+            mensagem="Lançamento atualizado com sucesso.",
         )
 
     except Exception as e:
-        return RedirectResponse(
-            url=f"/financeiro/base-lancamentos?erro=Erro ao atualizar lançamento: {e}",
-            status_code=303,
+        return redirecionar_base_com_msg(
+            return_url=return_url,
+            erro=f"Erro ao atualizar lançamento: {e}",
         )
 
 
 @router.post("/financeiro/base-lancamentos/excluir/{lancamento_id}")
 async def excluir_lancamento_post(
+    request: Request,
     lancamento_id: str,
     confirmar_exclusao: str = Form("NAO"),
+    return_url: str = Form(""),
 ):
     try:
         if confirmar_exclusao != "SIM":
-            return RedirectResponse(
-                url="/financeiro/base-lancamentos?erro=Confirmação de exclusão não marcada.",
-                status_code=303,
+            return redirecionar_base_com_msg(
+                request=request,
+                return_url=return_url,
+                erro="Confirmação de exclusão não marcada.",
             )
 
         aba, indice_linha, _ = localizar_lancamento_por_id(lancamento_id)
 
         aba.delete_rows(indice_linha)
 
-        return RedirectResponse(
-            url="/financeiro/base-lancamentos?mensagem=Lançamento excluído com sucesso.",
-            status_code=303,
+        return redirecionar_base_com_msg(
+            request=request,
+            return_url=return_url,
+            mensagem="Lançamento excluído com sucesso.",
         )
 
     except Exception as e:
-        return RedirectResponse(
-            url=f"/financeiro/base-lancamentos?erro=Erro ao excluir lançamento: {e}",
-            status_code=303,
+        return redirecionar_base_com_msg(
+            request=request,
+            return_url=return_url,
+            erro=f"Erro ao excluir lançamento: {e}",
         )
 
 
 @router.post("/financeiro/base-lancamentos/excluir-selecionados")
 async def excluir_lancamentos_selecionados_post(
+    request: Request,
     lancamentos_ids: list[str] = Form(default=[]),
+    return_url: str = Form(""),
 ):
     try:
         if not lancamentos_ids:
-            return RedirectResponse(
-                url="/financeiro/base-lancamentos?erro=Nenhum lançamento foi selecionado para exclusão.",
-                status_code=303,
+            return redirecionar_base_com_msg(
+                request=request,
+                return_url=return_url,
+                erro="Nenhum lançamento foi selecionado para exclusão.",
             )
 
         aba, linhas_para_excluir = localizar_linhas_por_ids(lancamentos_ids)
@@ -608,13 +746,15 @@ async def excluir_lancamentos_selecionados_post(
 
         quantidade = len(linhas_para_excluir)
 
-        return RedirectResponse(
-            url=f"/financeiro/base-lancamentos?mensagem={quantidade} lançamento(s) excluído(s) com sucesso.",
-            status_code=303,
+        return redirecionar_base_com_msg(
+            request=request,
+            return_url=return_url,
+            mensagem=f"{quantidade} lançamento(s) excluído(s) com sucesso.",
         )
 
     except Exception as e:
-        return RedirectResponse(
-            url=f"/financeiro/base-lancamentos?erro=Erro ao excluir lançamentos selecionados: {e}",
-            status_code=303,
+        return redirecionar_base_com_msg(
+            request=request,
+            return_url=return_url,
+            erro=f"Erro ao excluir lançamentos selecionados: {e}",
         )

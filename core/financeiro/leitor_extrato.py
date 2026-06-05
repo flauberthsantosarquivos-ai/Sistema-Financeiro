@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import json
 import re
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -353,6 +354,155 @@ def valor_para_texto_brasil(valor: float) -> str:
     return f"{abs(valor):.2f}".replace(".", ",")
 
 
+def interpretar_data_texto(valor: Any, ano_padrao: int | str | None = None) -> date | None:
+    """
+    Interpreta datas comuns em extratos bancários.
+
+    Aceita:
+    - 30/05/2026
+    - 30/05/26
+    - 2026-05-30
+    - 30-05-2026
+    - 30.05.2026
+    - 30/05, usando ano_padrao
+    """
+
+    if valor is None:
+        return None
+
+    if isinstance(valor, datetime):
+        return valor.date()
+
+    if isinstance(valor, date):
+        return valor
+
+    texto = str(valor).strip()
+
+    if not texto:
+        return None
+
+    texto_base = texto.split(" ", 1)[0].strip()
+
+    formatos = [
+        "%d/%m/%Y",
+        "%d/%m/%y",
+        "%Y-%m-%d",
+        "%d-%m-%Y",
+        "%d-%m-%y",
+        "%d.%m.%Y",
+        "%d.%m.%y",
+    ]
+
+    for formato in formatos:
+        try:
+            return datetime.strptime(texto_base[:10], formato).date()
+        except Exception:
+            continue
+
+    if ano_padrao:
+        ano_texto = str(ano_padrao).strip()
+
+        for separador in ["/", "-", "."]:
+            try:
+                return datetime.strptime(
+                    f"{texto_base}{separador}{ano_texto}",
+                    f"%d{separador}%m{separador}%Y",
+                ).date()
+            except Exception:
+                continue
+
+    return None
+
+
+def extrair_ano_da_data_base(data_base: Any) -> int:
+    """
+    Obtém o ano da data principal do extrato, para complementar datas DD/MM
+    encontradas na descrição.
+    """
+
+    data = interpretar_data_texto(data_base)
+
+    if data:
+        return data.year
+
+    return datetime.now().year
+
+
+def extrair_data_da_descricao(
+    descricao: str,
+    data_base: Any = None,
+) -> str | None:
+    """
+    Extrai a data real do débito quando ela vier dentro da descrição.
+
+    Exemplo:
+    DATA do extrato: 03/06/2026
+    DESCRIÇÃO: COMPRA CARTAO 30/05 MERCADO X
+
+    Resultado:
+    30/05/2026
+
+    A função evita capturar números que não sejam datas válidas.
+    """
+
+    texto = str(descricao or "").strip()
+
+    if not texto:
+        return None
+
+    ano_padrao = extrair_ano_da_data_base(data_base)
+
+    padroes = [
+        # 30/05/2026, 30-05-2026, 30.05.2026
+        r"(?<!\d)(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})(?!\d)",
+        # 30/05, 30-05, 30.05
+        r"(?<!\d)(\d{1,2})[\/\-.](\d{1,2})(?!\d)",
+    ]
+
+    for padrao in padroes:
+        for match in re.finditer(padrao, texto):
+            try:
+                dia = int(match.group(1))
+                mes = int(match.group(2))
+
+                if len(match.groups()) >= 3 and match.group(3):
+                    ano = int(match.group(3))
+                    if ano < 100:
+                        ano += 2000
+                else:
+                    ano = ano_padrao
+
+                data_encontrada = date(ano, mes, dia)
+                return data_encontrada.strftime("%d/%m/%Y")
+            except Exception:
+                continue
+
+    return None
+
+
+def corrigir_data_pela_descricao(data_original: Any, descricao: str) -> str:
+    """
+    Usa a data encontrada na descrição quando existir.
+    Caso contrário, mantém a data original do extrato.
+    """
+
+    data_descricao = extrair_data_da_descricao(
+        descricao=descricao,
+        data_base=data_original,
+    )
+
+    if data_descricao:
+        return data_descricao
+
+    if isinstance(data_original, datetime):
+        return data_original.strftime("%d/%m/%Y")
+
+    if isinstance(data_original, date):
+        return data_original.strftime("%d/%m/%Y")
+
+    return str(data_original or "").strip()
+
+
 def detectar_delimitador(caminho: Path) -> str:
     amostra = caminho.read_text(encoding="utf-8", errors="ignore")[:4096]
 
@@ -678,13 +828,22 @@ def processar_extrato(caminho: str | Path) -> dict[str, Any]:
     movimentacoes = []
 
     for indice, registro in enumerate(registros, start=1):
-        data = str(registro.get(colunas["data"], "")).strip() if colunas["data"] else ""
+        data_original = registro.get(colunas["data"], "") if colunas["data"] else ""
 
         descricao = montar_descricao_registro(
             registro=registro,
             coluna_descricao=colunas["descricao"],
             coluna_bb_lancamento=colunas["bb_lancamento"],
             coluna_bb_detalhes=colunas["bb_detalhes"],
+        )
+
+        # Alguns extratos, especialmente de cartão/débito, trazem a data
+        # real da compra dentro da descrição. Exemplo:
+        # DATA: 03/06/2026 | DESCRIÇÃO: COMPRA 30/05 MERCADO.
+        # Nesse caso, a DATA correta do lançamento deve ser 30/05/2026.
+        data = corrigir_data_pela_descricao(
+            data_original=data_original,
+            descricao=descricao,
         )
 
         valor = obter_valor_registro(registro, colunas["valor"])
@@ -727,6 +886,9 @@ def processar_extrato(caminho: str | Path) -> dict[str, Any]:
 
         observacao = f"Importado do extrato: {caminho.name}"
 
+        if str(data_original or "").strip() and str(data_original or "").strip() != str(data or "").strip():
+            observacao += f". Data original do extrato/banco: {data_original}"
+
         if categoria_banco:
             observacao += f". Categoria banco: {categoria_banco}"
 
@@ -738,6 +900,7 @@ def processar_extrato(caminho: str | Path) -> dict[str, Any]:
                 "indice": len(movimentacoes),
                 "linha_original": indice,
                 "data": data,
+                "data_banco": str(data_original or "").strip(),
                 "descricao": descricao or "Movimentação sem descrição",
                 "valor": valor,
                 "valor_fmt": valor_para_texto_brasil(valor),

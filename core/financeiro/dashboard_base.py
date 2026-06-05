@@ -69,6 +69,7 @@ CABECALHOS_BASE = [
     "ORIGEM",
     "OBSERVACAO",
     "CRIADO_EM",
+    "DATA_BANCO",
 ]
 
 
@@ -416,6 +417,7 @@ def processar_dashboard_base(
         linhas.append(
             {
                 "data": item.get("DATA", ""),
+                "data_banco": item.get("DATA_BANCO", ""),
                 "mes": mes,
                 "ano": ano_item,
                 "tipo": tipo,

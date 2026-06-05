@@ -16,6 +16,7 @@ from core.financeiro.orcamento_google import (
     montar_resumo_orcamento,
     salvar_orcamento,
 )
+from core.financeiro.categorias_google import obter_estrutura_categorias
 
 
 router = APIRouter()
@@ -105,6 +106,18 @@ def obter_mes_atual_sigla() -> str:
     return mapa.get(date.today().month, "")
 
 
+
+def listar_categorias_oficiais(estrutura: dict) -> list[str]:
+    categorias = set()
+
+    for categorias_por_tipo in estrutura.values():
+        for categoria_nome in categorias_por_tipo.keys():
+            if str(categoria_nome or "").strip():
+                categorias.add(str(categoria_nome).strip())
+
+    return sorted(categorias)
+
+
 @router.get("/financeiro/orcamento", response_class=HTMLResponse)
 async def orcamento_get(
     request: Request,
@@ -152,13 +165,8 @@ async def orcamento_get(
             categoria=categoria,
         )
 
-        categorias_existentes = sorted(
-            {
-                str(item.get("CATEGORIA", "")).strip()
-                for item in registros + registros_com_execucao
-                if str(item.get("CATEGORIA", "")).strip()
-            }
-        )
+        categorias_estrutura = obter_estrutura_categorias(incluir_inativas=False)
+        categorias_existentes = listar_categorias_oficiais(categorias_estrutura)
 
         if situacao_orcamento_final == "NAO_ORCADO":
             registros_com_execucao = [
@@ -191,6 +199,7 @@ async def orcamento_get(
                 "registros": registros_com_execucao,
                 "resumo": resumo,
                 "categorias_existentes": categorias_existentes,
+                "categorias_estrutura": categorias_estrutura,
                 "total_registros": len(registros_com_execucao),
             },
         )
@@ -209,6 +218,7 @@ async def orcamento_get(
                 "registros": [],
                 "resumo": montar_resumo_orcamento([]),
                 "categorias_existentes": [],
+                "categorias_estrutura": {},
                 "total_registros": 0,
             },
         )

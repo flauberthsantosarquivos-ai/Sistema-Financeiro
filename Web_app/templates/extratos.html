@@ -19,9 +19,7 @@
             --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
@@ -55,7 +53,8 @@
             margin: 0;
             color: #dbeafe;
         }
-.card {
+
+        .card {
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 22px;
@@ -87,11 +86,10 @@
             padding: 11px;
             min-width: 160px;
             font-family: inherit;
+            font-weight: 700;
         }
 
-        input[type="file"] {
-            min-width: 360px;
-        }
+        input[type="file"] { min-width: 360px; }
 
         button {
             border: none;
@@ -103,9 +101,7 @@
             cursor: pointer;
         }
 
-        button:hover {
-            background: var(--primary-dark);
-        }
+        button:hover { background: var(--primary-dark); }
 
         .alert {
             padding: 15px 18px;
@@ -131,21 +127,26 @@
             font-size: 13px;
             font-weight: 700;
             margin-top: 12px;
+            line-height: 1.5;
         }
 
         .table-wrap {
             overflow-x: auto;
             border: 1px solid var(--border);
             border-radius: 18px;
+            background: white;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1250px;
+            min-width: 1320px;
         }
 
         th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
             background: #f8fafc;
             color: #334155;
             text-align: left;
@@ -154,6 +155,7 @@
             letter-spacing: 0.06em;
             padding: 12px;
             border-bottom: 1px solid var(--border);
+            white-space: nowrap;
         }
 
         td {
@@ -163,27 +165,31 @@
             vertical-align: top;
         }
 
+        tr:hover td { background: #f8fafc; }
+
         .money {
             font-weight: 900;
             white-space: nowrap;
         }
 
-        .negative {
-            color: var(--red);
-        }
-
-        .positive {
-            color: var(--green);
-        }
+        .negative { color: var(--red); }
+        .positive { color: var(--green); }
 
         .desc {
             min-width: 280px;
             font-weight: 700;
+            line-height: 1.35;
         }
 
         .small-select {
             min-width: 145px;
-            max-width: 190px;
+            max-width: 210px;
+        }
+
+        .category-select,
+        .subcategory-select {
+            min-width: 190px;
+            max-width: 240px;
         }
 
         .warning {
@@ -196,25 +202,24 @@
             line-height: 1.5;
         }
 
+        .official-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e3a8a;
+            border-radius: 18px;
+            padding: 14px 16px;
+            font-weight: 800;
+            line-height: 1.45;
+            margin-bottom: 16px;
+        }
+
         @media (max-width: 1000px) {
-            .page {
-                padding: 18px;
-            }
-
-            input[type="file"] {
-                min-width: 100%;
-                width: 100%;
-            }
-
-            button {
-                width: 100%;
-            }
+            .page { padding: 18px; }
+            input[type="file"] { min-width: 100%; width: 100%; }
+            button { width: 100%; }
         }
 
-        .app {
-            display: flex;
-            min-height: 100vh;
-        }
+        .app { display: flex; min-height: 100vh; }
 
         .sidebar {
             width: 280px;
@@ -253,11 +258,7 @@
             line-height: 1.4;
         }
 
-        .menu {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        .menu { display: flex; flex-direction: column; gap: 10px; }
 
         .menu a {
             text-decoration: none;
@@ -272,10 +273,7 @@
             gap: 10px;
         }
 
-        .menu a:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: white;
-        }
+        .menu a:hover { background: rgba(255, 255, 255, 0.08); color: white; }
 
         .menu a.ativo {
             background: var(--primary);
@@ -300,22 +298,10 @@
         }
 
         @media (max-width: 900px) {
-            .app {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-                flex: none;
-            }
-
-            .page {
-                padding: 22px;
-            }
+            .app { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; flex: none; }
+            .page { padding: 22px; }
         }
-
     </style>
 </head>
 
@@ -352,10 +338,11 @@
         <section class="hero">
             <h1>Dashboard Financeiro</h1>
             <p>
-                Importar Extratos: envie CSV ou Excel, confira a prévia, ajuste categorias e grave na BASE_LANCAMENTOS.
+                Importar Extratos: envie CSV ou Excel, confira a prévia, ajuste categorias oficiais e grave na BASE_LANCAMENTOS.
             </p>
         </section>
-{% if mensagem %}
+
+        {% if mensagem %}
             <div class="alert success">{{ mensagem }}</div>
         {% endif %}
 
@@ -381,7 +368,7 @@
 
             <div class="warning">
                 Recomendação: antes de importar para a base oficial, confira se o banco exportou corretamente data,
-                descrição e valor. Se o arquivo tiver colunas muito diferentes, podemos adaptar o leitor ao modelo do banco.
+                descrição e valor. A classificação agora usa exclusivamente a aba CATEGORIAS.
             </div>
         {% endif %}
 
@@ -395,6 +382,11 @@
                     Descrição: <strong>{{ resultado.colunas_detectadas.descricao }}</strong> |
                     Valor: <strong>{{ resultado.colunas_detectadas.valor }}</strong>
                 </p>
+
+                <div class="official-box">
+                    As opções de Tipo, Categoria e Subcategoria são carregadas da aba oficial <strong>CATEGORIAS</strong>.
+                    Para importar, cada movimentação selecionada precisa estar vinculada a uma categoria/subcategoria cadastrada e ativa.
+                </div>
 
                 <form method="post" action="/financeiro/extratos/importar">
                     <input type="hidden" name="temp_id" value="{{ temp_id }}" />
@@ -432,19 +424,38 @@
                                         </td>
 
                                         <td>
-                                            <select class="small-select" name="tipo_{{ mov.indice }}">
-                                                <option value="DESPESA" {% if mov.tipo == "DESPESA" %}selected{% endif %}>DESPESA</option>
-                                                <option value="RECEITA" {% if mov.tipo == "RECEITA" %}selected{% endif %}>RECEITA</option>
-                                                <option value="TRANSFERÊNCIA" {% if mov.tipo == "TRANSFERÊNCIA" or mov.tipo == "TRANSFERENCIA" %}selected{% endif %}>TRANSFERÊNCIA</option>
+                                            <select
+                                                class="small-select tipo-select"
+                                                name="tipo_{{ mov.indice }}"
+                                                data-indice="{{ mov.indice }}"
+                                                data-valor-atual="{{ mov.tipo }}"
+                                                onchange="atualizarCategoriasLinha('{{ mov.indice }}')"
+                                            >
+                                                {% for tipo_item in tipos_oficiais %}
+                                                    <option value="{{ tipo_item }}" {% if mov.tipo == tipo_item %}selected{% endif %}>
+                                                        {{ tipo_item }}
+                                                    </option>
+                                                {% endfor %}
                                             </select>
                                         </td>
 
                                         <td>
-                                            <input type="text" name="categoria_{{ mov.indice }}" value="{{ mov.categoria }}" />
+                                            <select
+                                                class="category-select categoria-select"
+                                                name="categoria_{{ mov.indice }}"
+                                                data-indice="{{ mov.indice }}"
+                                                data-valor-atual="{{ mov.categoria }}"
+                                                onchange="atualizarSubcategoriasLinha('{{ mov.indice }}')"
+                                            ></select>
                                         </td>
 
                                         <td>
-                                            <input type="text" name="subcategoria_{{ mov.indice }}" value="{{ mov.subcategoria }}" />
+                                            <select
+                                                class="subcategory-select subcategoria-select"
+                                                name="subcategoria_{{ mov.indice }}"
+                                                data-indice="{{ mov.indice }}"
+                                                data-valor-atual="{{ mov.subcategoria }}"
+                                            ></select>
                                         </td>
 
                                         <td>
@@ -490,5 +501,102 @@
         {% endif %}
     </main>
 </div>
+
+<script>
+    const estruturaCategorias = {{ estrutura_categorias | tojson }};
+
+    function normalizarTexto(valor) {
+        return String(valor || "")
+            .trim()
+            .toUpperCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function encontrarOpcaoOficial(valor, opcoes) {
+        const alvo = normalizarTexto(valor);
+
+        if (!alvo) {
+            return "";
+        }
+
+        for (const opcao of opcoes) {
+            if (normalizarTexto(opcao) === alvo) {
+                return opcao;
+            }
+        }
+
+        return "";
+    }
+
+    function limparSelect(select, textoPrimeiraOpcao) {
+        select.innerHTML = "";
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = textoPrimeiraOpcao;
+        select.appendChild(option);
+    }
+
+    function popularSelect(select, opcoes, valorAtual, textoPrimeiraOpcao) {
+        limparSelect(select, textoPrimeiraOpcao);
+
+        const valorOficial = encontrarOpcaoOficial(valorAtual, opcoes);
+
+        for (const opcao of opcoes) {
+            const option = document.createElement("option");
+            option.value = opcao;
+            option.textContent = opcao;
+
+            if (opcao === valorOficial) {
+                option.selected = true;
+            }
+
+            select.appendChild(option);
+        }
+    }
+
+    function atualizarCategoriasLinha(indice) {
+        const tipoSelect = document.querySelector(`[name="tipo_${indice}"]`);
+        const categoriaSelect = document.querySelector(`[name="categoria_${indice}"]`);
+        const tipo = tipoSelect ? tipoSelect.value : "";
+
+        if (!tipoSelect || !categoriaSelect) {
+            return;
+        }
+
+        const categorias = Object.keys(estruturaCategorias[tipo] || {});
+        const valorAtual = categoriaSelect.dataset.valorAtual || categoriaSelect.value || "";
+
+        popularSelect(categoriaSelect, categorias, valorAtual, "Selecione...");
+        categoriaSelect.dataset.valorAtual = categoriaSelect.value;
+
+        atualizarSubcategoriasLinha(indice);
+    }
+
+    function atualizarSubcategoriasLinha(indice) {
+        const tipoSelect = document.querySelector(`[name="tipo_${indice}"]`);
+        const categoriaSelect = document.querySelector(`[name="categoria_${indice}"]`);
+        const subcategoriaSelect = document.querySelector(`[name="subcategoria_${indice}"]`);
+
+        if (!tipoSelect || !categoriaSelect || !subcategoriaSelect) {
+            return;
+        }
+
+        const tipo = tipoSelect.value;
+        const categoria = categoriaSelect.value;
+        const subcategorias = (estruturaCategorias[tipo] && estruturaCategorias[tipo][categoria]) || [];
+        const valorAtual = subcategoriaSelect.dataset.valorAtual || subcategoriaSelect.value || "";
+
+        popularSelect(subcategoriaSelect, subcategorias, valorAtual, "Selecione...");
+        subcategoriaSelect.dataset.valorAtual = subcategoriaSelect.value;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".tipo-select").forEach(function (select) {
+            const indice = select.dataset.indice;
+            atualizarCategoriasLinha(indice);
+        });
+    });
+</script>
 </body>
 </html>

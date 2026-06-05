@@ -7,6 +7,9 @@ from core.financeiro.configuracao_sistema import obter_configuracao_sistema
 from core.financeiro.dashboard_base import ler_base_lancamentos
 from core.financeiro.lancamentos_google import abrir_planilha_e_base
 from core.financeiro.resumo_base_lancamentos import obter_valor_base_lancamento
+from core.financeiro.categorias_google import (
+    validar_categoria_subcategoria as validar_categoria_subcategoria_oficial,
+)
 
 
 NOME_ABA_ORCAMENTO = "ORCAMENTO_MENSAL"
@@ -348,6 +351,14 @@ def salvar_orcamento(
     valor_previsto_num = para_float_brasil(valor_previsto)
     valor_previsto_formatado = formatar_numero_brasil(valor_previsto_num)
     observacao = normalizar_texto(observacao)
+
+    # A aba CATEGORIAS é a fonte oficial. O orçamento não deve aceitar
+    # categoria/subcategoria fora dessa base, para manter o sistema padronizado.
+    tipo, categoria, subcategoria = validar_categoria_subcategoria_oficial(
+        tipo=tipo,
+        categoria=categoria,
+        subcategoria=subcategoria,
+    )
 
     if not ano:
         raise ValueError("Informe o ano do orçamento.")

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import gspread
 
@@ -34,30 +34,41 @@ CATEGORIAS_PADRAO = [
     ("DESPESA", "CASA", "GÁS", "SIM"),
     ("DESPESA", "CASA", "INTERNET", "SIM"),
     ("DESPESA", "CASA", "IPTU", "SIM"),
+
     ("DESPESA", "ALIMENTAÇÃO", "SUPERMERCADO", "SIM"),
     ("DESPESA", "ALIMENTAÇÃO", "FLV", "SIM"),
     ("DESPESA", "ALIMENTAÇÃO", "RESTAURANTE", "SIM"),
     ("DESPESA", "ALIMENTAÇÃO", "PADARIA", "SIM"),
+
     ("DESPESA", "TRANSPORTE", "COMBUSTÍVEL", "SIM"),
     ("DESPESA", "TRANSPORTE", "UBER", "SIM"),
     ("DESPESA", "TRANSPORTE", "MANUTENÇÃO", "SIM"),
+
     ("DESPESA", "SAÚDE", "PLANO DE SAÚDE", "SIM"),
     ("DESPESA", "SAÚDE", "FARMÁCIA", "SIM"),
     ("DESPESA", "SAÚDE", "CONSULTAS", "SIM"),
+
     ("DESPESA", "EDUCAÇÃO", "ESCOLA", "SIM"),
     ("DESPESA", "EDUCAÇÃO", "CURSO", "SIM"),
     ("DESPESA", "EDUCAÇÃO", "MATERIAL", "SIM"),
+
     ("DESPESA", "CARTÃO", "FATURA CARTÃO", "SIM"),
+
     ("DESPESA", "SERVIÇOS", "TELEFONE", "SIM"),
     ("DESPESA", "SERVIÇOS", "STREAMING", "SIM"),
     ("DESPESA", "SERVIÇOS", "ASSINATURAS", "SIM"),
+
+    ("DESPESA", "LAZER", "LAZER", "SIM"),
+    ("DESPESA", "PESSOAIS", "PESSOAIS", "SIM"),
     ("DESPESA", "OUTROS", "OUTROS", "SIM"),
+
     # RECEITAS
     ("RECEITA", "SALÁRIO", "SALÁRIO PRINCIPAL", "SIM"),
     ("RECEITA", "SALÁRIO", "ADIANTAMENTO", "SIM"),
     ("RECEITA", "RENDIMENTOS", "JUROS", "SIM"),
     ("RECEITA", "RENDIMENTOS", "DIVIDENDOS", "SIM"),
     ("RECEITA", "OUTRAS RECEITAS", "OUTRAS RECEITAS", "SIM"),
+
     # INVESTIMENTOS
     ("INVESTIMENTO", "RESERVA", "TESOURO", "SIM"),
     ("INVESTIMENTO", "RESERVA", "CDB", "SIM"),
@@ -66,6 +77,7 @@ CATEGORIAS_PADRAO = [
     ("INVESTIMENTO", "RENDA VARIÁVEL", "AÇÕES", "SIM"),
     ("INVESTIMENTO", "RENDA VARIÁVEL", "CRIPTO", "SIM"),
     ("INVESTIMENTO", "OUTROS", "OUTROS", "SIM"),
+
     # TRANSFERÊNCIAS
     ("TRANSFERÊNCIA", "CONTAS PRÓPRIAS", "TRANSFERÊNCIA ENTRE CONTAS", "SIM"),
     ("TRANSFERÊNCIA", "CONTAS PRÓPRIAS", "APORTE", "SIM"),
@@ -100,10 +112,13 @@ def normalizar_tipo(valor: Any) -> str:
 
 def normalizar_ativo(valor: Any) -> str:
     texto = normalizar_sem_acentos(valor)
+
     if texto in {"S", "SIM", "TRUE", "1", "ATIVO"}:
         return "SIM"
+
     if texto in {"N", "NAO", "NÃO", "FALSE", "0", "INATIVO"}:
         return "NÃO"
+
     return "SIM"
 
 
@@ -136,6 +151,7 @@ def obter_ou_criar_aba_categorias(id_planilha: str | None = None):
         )
         aba.update("A1:D1", [CABECALHOS_CATEGORIAS])
         aba.append_rows(CATEGORIAS_PADRAO, value_input_option="USER_ENTERED")
+        formatar_aba_categorias(aba)
         return aba
 
     valores = aba.get_all_values()
@@ -143,10 +159,47 @@ def obter_ou_criar_aba_categorias(id_planilha: str | None = None):
     if not valores:
         aba.update("A1:D1", [CABECALHOS_CATEGORIAS])
         aba.append_rows(CATEGORIAS_PADRAO, value_input_option="USER_ENTERED")
+
     elif valores[0][: len(CABECALHOS_CATEGORIAS)] != CABECALHOS_CATEGORIAS:
         aba.update("A1:D1", [CABECALHOS_CATEGORIAS])
 
+    formatar_aba_categorias(aba)
+
     return aba
+
+
+def formatar_aba_categorias(aba) -> None:
+    try:
+        aba.freeze(rows=1)
+    except Exception:
+        pass
+
+    try:
+        aba.format(
+            "A1:D1",
+            {
+                "backgroundColor": {"red": 0.12, "green": 0.25, "blue": 0.52},
+                "textFormat": {
+                    "bold": True,
+                    "foregroundColor": {"red": 1, "green": 1, "blue": 1},
+                },
+                "horizontalAlignment": "CENTER",
+                "verticalAlignment": "MIDDLE",
+            },
+        )
+
+        aba.format(
+            "A:D",
+            {
+                "verticalAlignment": "MIDDLE",
+                "wrapStrategy": "WRAP",
+            },
+        )
+
+        aba.columns_auto_resize(0, 4)
+
+    except Exception:
+        pass
 
 
 def linha_para_categoria(linha: dict[str, Any]) -> dict[str, str]:
@@ -166,7 +219,7 @@ def linha_para_categoria(linha: dict[str, Any]) -> dict[str, str]:
 def listar_categorias(
     incluir_inativas: bool = False,
     id_planilha: str | None = None,
-) -> list[dict[str, str]]:
+) -> list[dict[str, Any]]:
     aba = obter_ou_criar_aba_categorias(id_planilha)
 
     try:
@@ -176,7 +229,7 @@ def listar_categorias(
 
     categorias = []
 
-    for linha in registros:
+    for indice, linha in enumerate(registros, start=2):
         item = linha_para_categoria(linha)
 
         if not item["TIPO"] or not item["CATEGORIA"]:
@@ -188,7 +241,16 @@ def listar_categorias(
         if not incluir_inativas and item["ATIVO"] != "SIM":
             continue
 
+        item["LINHA"] = indice
         categorias.append(item)
+
+    categorias.sort(
+        key=lambda item: (
+            item["TIPO"],
+            item["CATEGORIA"],
+            item["SUBCATEGORIA"],
+        )
+    )
 
     return categorias
 
@@ -199,7 +261,10 @@ def obter_estrutura_categorias(
 ) -> dict[str, dict[str, list[str]]]:
     estrutura: dict[str, dict[str, list[str]]] = {}
 
-    for item in listar_categorias(incluir_inativas=incluir_inativas, id_planilha=id_planilha):
+    for item in listar_categorias(
+        incluir_inativas=incluir_inativas,
+        id_planilha=id_planilha,
+    ):
         tipo = item["TIPO"]
         categoria = item["CATEGORIA"]
         subcategoria = item["SUBCATEGORIA"]
@@ -227,6 +292,7 @@ def obter_categorias_por_tipo(
         incluir_inativas=incluir_inativas,
         id_planilha=id_planilha,
     )
+
     return estrutura.get(normalizar_tipo(tipo), {})
 
 
@@ -278,7 +344,9 @@ def resolver_categoria_subcategoria(
         for sub in subcategorias
     }
 
-    subcategoria_oficial = mapa_subcategorias.get(normalizar_sem_acentos(subcategoria_norm))
+    subcategoria_oficial = mapa_subcategorias.get(
+        normalizar_sem_acentos(subcategoria_norm)
+    )
 
     if not subcategoria_oficial:
         raise ValueError(
@@ -299,5 +367,162 @@ def validar_categoria_subcategoria(
         categoria=categoria,
         subcategoria=subcategoria,
         incluir_inativas=False,
+        id_planilha=id_planilha,
+    )
+
+
+def _localizar_categoria_existente(
+    tipo: str,
+    categoria: str,
+    subcategoria: str,
+    id_planilha: str | None = None,
+):
+    tipo_norm = normalizar_tipo(tipo)
+    categoria_norm = normalizar_texto(categoria)
+    subcategoria_norm = normalizar_texto(subcategoria)
+
+    for item in listar_categorias(incluir_inativas=True, id_planilha=id_planilha):
+        if (
+            normalizar_tipo(item.get("TIPO")) == tipo_norm
+            and normalizar_texto(item.get("CATEGORIA")) == categoria_norm
+            and normalizar_texto(item.get("SUBCATEGORIA")) == subcategoria_norm
+        ):
+            return item
+
+    return None
+
+
+def salvar_categoria(
+    tipo: str,
+    categoria: str,
+    subcategoria: str,
+    ativo: str = "SIM",
+    id_planilha: str | None = None,
+):
+    aba = obter_ou_criar_aba_categorias(id_planilha)
+
+    tipo_norm = normalizar_tipo(tipo)
+    categoria_norm = normalizar_texto(categoria)
+    subcategoria_norm = normalizar_texto(subcategoria)
+    ativo_norm = normalizar_ativo(ativo)
+
+    if not tipo_norm:
+        raise ValueError("Informe o tipo.")
+
+    if tipo_norm not in TIPOS_OFICIAIS:
+        raise ValueError(
+            "Tipo inválido. Use RECEITA, DESPESA, INVESTIMENTO ou TRANSFERÊNCIA."
+        )
+
+    if not categoria_norm:
+        raise ValueError("Informe a categoria.")
+
+    if not subcategoria_norm:
+        raise ValueError("Informe a subcategoria.")
+
+    existente = _localizar_categoria_existente(
+        tipo=tipo_norm,
+        categoria=categoria_norm,
+        subcategoria=subcategoria_norm,
+        id_planilha=id_planilha,
+    )
+
+    if existente:
+        linha = int(existente.get("LINHA") or 0)
+
+        if linha <= 1:
+            raise ValueError("Linha da categoria existente é inválida.")
+
+        aba.update(
+            f"A{linha}:D{linha}",
+            [[tipo_norm, categoria_norm, subcategoria_norm, ativo_norm]],
+            value_input_option="USER_ENTERED",
+        )
+
+        return {
+            "LINHA": linha,
+            "TIPO": tipo_norm,
+            "CATEGORIA": categoria_norm,
+            "SUBCATEGORIA": subcategoria_norm,
+            "ATIVO": ativo_norm,
+        }
+
+    aba.append_row(
+        [tipo_norm, categoria_norm, subcategoria_norm, ativo_norm],
+        value_input_option="USER_ENTERED",
+    )
+
+    valores = aba.get_all_values()
+    linha_nova = len(valores)
+
+    return {
+        "LINHA": linha_nova,
+        "TIPO": tipo_norm,
+        "CATEGORIA": categoria_norm,
+        "SUBCATEGORIA": subcategoria_norm,
+        "ATIVO": ativo_norm,
+    }
+
+
+def alterar_status_categoria(
+    linha: int,
+    ativo: str,
+    id_planilha: str | None = None,
+):
+    aba = obter_ou_criar_aba_categorias(id_planilha)
+
+    try:
+        linha_int = int(linha)
+    except Exception as exc:
+        raise ValueError("Linha inválida para alteração de categoria.") from exc
+
+    if linha_int <= 1:
+        raise ValueError("Linha inválida para alteração de categoria.")
+
+    valores = aba.get_all_values()
+
+    if linha_int > len(valores):
+        raise ValueError("Linha da categoria não encontrada.")
+
+    linha_atual = valores[linha_int - 1]
+    linha_atual = linha_atual + [""] * (
+        len(CABECALHOS_CATEGORIAS) - len(linha_atual)
+    )
+
+    ativo_norm = normalizar_ativo(ativo)
+
+    aba.update(
+        f"D{linha_int}",
+        [[ativo_norm]],
+        value_input_option="USER_ENTERED",
+    )
+
+    return {
+        "LINHA": linha_int,
+        "TIPO": normalizar_tipo(linha_atual[0]),
+        "CATEGORIA": normalizar_texto(linha_atual[1]),
+        "SUBCATEGORIA": normalizar_texto(linha_atual[2]),
+        "ATIVO": ativo_norm,
+    }
+
+
+def ativar_categoria(
+    linha: int,
+    id_planilha: str | None = None,
+):
+    return alterar_status_categoria(
+        linha=linha,
+        ativo="SIM",
+        id_planilha=id_planilha,
+    )
+
+
+def desativar_categoria(
+    linha: int,
+    id_planilha: str | None = None,
+):
+    return alterar_status_categoria(
+        linha=linha,
+        ativo="NÃO",
         id_planilha=id_planilha,
     )

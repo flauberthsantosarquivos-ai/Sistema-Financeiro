@@ -290,7 +290,7 @@
 
         .quick-actions {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: 1fr 1fr;
             gap: 14px;
             margin-bottom: 18px;
         }
@@ -1576,61 +1576,6 @@
                         </button>
                     </div>
                 </div>
-
-                <div class="action-panel">
-                    <div class="action-panel-header">
-                        <div>
-                            <div class="action-panel-title">Copiar patrimônio de outro mês</div>
-                            <div class="action-panel-subtitle">
-                                Copia o fechamento do mês origem para início e fim do mês destino.
-                            </div>
-                        </div>
-                    </div>
-
-                    <form method="post" action="/financeiro/patrimonio/copiar" onsubmit="return confirmarCopiaPatrimonio();">
-                        <div class="edit-grid">
-                            <div>
-                                <label>Ano origem</label>
-                                <input type="number" name="ano_origem" id="ano_origem_copia" value="{{ ano_resumo }}" required />
-                            </div>
-
-                            <div>
-                                <label>Mês origem</label>
-                                <select name="mes_origem" id="mes_origem_copia" required>
-                                    {% for sigla, nome in meses_opcoes %}
-                                        <option value="{{ sigla }}" {% if mes_resumo == sigla %}selected{% endif %}>
-                                            {{ nome }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label>Ano destino</label>
-                                <input type="number" name="ano_destino" id="ano_destino_copia" value="{{ ano }}" required />
-                            </div>
-
-                            <div>
-                                <label>Mês destino</label>
-                                <select name="mes_destino" id="mes_destino_copia" required>
-                                    {% for sigla, nome in meses_opcoes %}
-                                        <option value="{{ sigla }}" {% if mes == sigla %}selected{% endif %}>
-                                            {{ nome }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary">
-                                Copiar mês
-                            </button>
-                        </div>
-
-                        <div class="small-help">
-                            Exemplo: MAI/2026 fechado vira JUN/2026 com o valor final de maio nos campos início e fim de junho.
-                        </div>
-                    </form>
-                </div>
             </div>
         </section>
 
@@ -2381,31 +2326,6 @@
                 bloco.classList.add("open");
                 botao.textContent = "Ocultar";
             }
-        }
-
-        function confirmarCopiaPatrimonio() {
-            const anoOrigem = document.getElementById("ano_origem_copia").value;
-            const mesOrigem = document.getElementById("mes_origem_copia").value;
-            const anoDestino = document.getElementById("ano_destino_copia").value;
-            const mesDestino = document.getElementById("mes_destino_copia").value;
-
-            if (!anoOrigem || !mesOrigem || !anoDestino || !mesDestino) {
-                alert("Informe mês e ano de origem e destino.");
-                return false;
-            }
-
-            if (anoOrigem === anoDestino && mesOrigem === mesDestino) {
-                alert("O mês de origem e o mês de destino não podem ser iguais.");
-                return false;
-            }
-
-            return confirm(
-                "Copiar o patrimônio final de " +
-                mesOrigem + "/" + anoOrigem +
-                " para o início e fim de " +
-                mesDestino + "/" + anoDestino +
-                "?"
-            );
         }
 
         function carregarMesParaEdicao() {

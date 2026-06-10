@@ -162,6 +162,33 @@ CATEGORIAS_PADRAO = {
 }
 
 
+# Subcategorias que normalmente aparecem em vários lançamentos no mês.
+# Para estas, a conferência de Pagamentos deve somar todos os lançamentos
+# compatíveis da BASE_LANCAMENTOS por mês + categoria + subcategoria.
+# As demais continuam usando a regra antiga de melhor lançamento individual.
+SUBCATEGORIAS_CONCILIACAO_POR_SOMA = {
+    "SUPERMERCADO",
+    "RESTAURANTE",
+    "FLV",
+    "PADARIA",
+    "FARMACIA",
+    "COMBUSTIVEL",
+    "UBER",
+    "MANUTENCAO",
+}
+
+CATEGORIAS_CONCILIACAO_POR_SOMA = {
+    ("ALIMENTACAO", "SUPERMERCADO"),
+    ("ALIMENTACAO", "RESTAURANTE"),
+    ("ALIMENTACAO", "FLV"),
+    ("ALIMENTACAO", "PADARIA"),
+    ("SAUDE", "FARMACIA"),
+    ("TRANSPORTE", "COMBUSTIVEL"),
+    ("TRANSPORTE", "UBER"),
+    ("TRANSPORTE", "MANUTENCAO"),
+}
+
+
 def agora_iso() -> str:
     return datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
@@ -817,6 +844,188 @@ def pagamento_variavel_para_match(pagamento: Dict[str, Any]) -> bool:
     return any(termo in texto for termo in termos_variaveis)
 
 
+
+def pagamento_deve_conciliar_por_soma(pagamento: Dict[str, Any]) -> bool:
+    """
+    Define se um pagamento previsto deve ser conferido por soma mensal.
+
+    Importante: esta decisão usa a categoria/subcategoria cadastrada no próprio
+    pagamento. Não usa palavras da descrição para evitar que descrições como
+    "posto" transformem despesas de outra subcategoria em combustível.
+    """
+    categoria = normalizar_categoria_match(pagamento.get("CATEGORIA"))
+    subcategoria = normalizar_texto(pagamento.get("SUBCATEGORIA"))
+
+    if (categoria, subcategoria) in CATEGORIAS_CONCILIACAO_POR_SOMA:
+        return True
+
+    return subcategoria in SUBCATEGORIAS_CONCILIACAO_POR_SOMA
+
+
+def lancamento_pertence_ao_mes_pagamento(
+    pagamento: Dict[str, Any],
+    lancamento: Dict[str, Any],
+) -> bool:
+    """Confere se o lançamento pertence ao mesmo ano/mês do pagamento."""
+    data_lanc = lancamento.get("DATA")
+
+    if not data_lanc:
+        return False
+
+    ano_pag = str(pagamento.get("ANO") or "").strip()
+    mes_pag = mes_para_numero(pagamento.get("MES"))
+
+    if ano_pag and str(data_lanc.year) != ano_pag:
+        return False
+
+    if mes_pag and data_lanc.month != mes_pag:
+        return False
+
+    return True
+
+
+def lancamento_tem_mes_compatível_para_match_individual(
+    pagamento: Dict[str, Any],
+    lancamento: Dict[str, Any],
+) -> bool:
+    """
+    Mantém a regra anterior do match individual: prioriza o mesmo mês,
+    mas aceita poucos dias de diferença quando a data de vencimento justificar.
+    """
+    data_lanc = lancamento.get("DATA")
+
+    if not data_lanc:
+        return True
+
+    ano_pag = str(pagamento.get("ANO") or "")
+    mes_pag = mes_para_numero(pagamento.get("MES"))
+
+    if ano_pag and str(data_lanc.year) != ano_pag:
+        return False
+
+    if mes_pag and data_lanc.month != mes_pag:
+        data_venc = parse_data(pagamento.get("DATA_VENCIMENTO"))
+        if not data_venc or abs((data_lanc - data_venc).days) > 7:
+            return False
+
+    return True
+
+
+def lancamento_tem_categoria_subcategoria_do_pagamento(
+    pagamento: Dict[str, Any],
+    lancamento: Dict[str, Any],
+) -> bool:
+    """
+    Comparação estrita para conciliação por soma.
+
+    Aqui a regra correta é respeitar a classificação que já está gravada na
+    BASE_LANCAMENTOS. A descrição do lançamento não deve reclassificar nada.
+    Exemplo: compra em POSTO classificada na Base como ADITIVO não pode entrar
+    na soma de COMBUSTÍVEL apenas porque a descrição contém "posto".
+    """
+    cat_pag = normalizar_categoria_match(pagamento.get("CATEGORIA"))
+    sub_pag = normalizar_texto(pagamento.get("SUBCATEGORIA"))
+
+    cat_lanc = normalizar_categoria_match(lancamento.get("CATEGORIA"))
+    sub_lanc = normalizar_texto(lancamento.get("SUBCATEGORIA"))
+
+    return bool(
+        cat_pag
+        and cat_lanc
+        and cat_pag == cat_lanc
+        and sub_pag
+        and sub_lanc
+        and sub_pag == sub_lanc
+    )
+
+
+def resumir_lancamentos_somados(lancamentos: List[Dict[str, Any]]) -> str:
+    if not lancamentos:
+        return ""
+
+    partes = []
+    for lanc in lancamentos[:4]:
+        data_txt = formatar_data(lanc.get("DATA"))
+        desc_txt = str(lanc.get("DESCRICAO") or "").strip()
+        valor_txt = formatar_moeda(lanc.get("VALOR"))
+        trecho = " - ".join([p for p in [data_txt, desc_txt, valor_txt] if p])
+        if trecho:
+            partes.append(trecho)
+
+    if len(lancamentos) > 4:
+        partes.append(f"+ {len(lancamentos) - 4} lançamento(s)")
+
+    return " | ".join(partes)
+
+
+def conciliar_pagamento_por_soma(
+    pagamento: Dict[str, Any],
+    lancamentos: List[Dict[str, Any]],
+    usados_lancamentos: set,
+) -> Optional[Dict[str, Any]]:
+    """
+    Concilia despesas variáveis somando todos os lançamentos do mês
+    com a mesma categoria/subcategoria.
+    """
+    lancamentos_compativeis = []
+
+    for lanc in lancamentos:
+        if lanc.get("ID") in usados_lancamentos:
+            continue
+
+        if not lancamento_pertence_ao_mes_pagamento(pagamento, lanc):
+            continue
+
+        if not lancamento_tem_categoria_subcategoria_do_pagamento(pagamento, lanc):
+            continue
+
+        valor_lanc = parse_moeda(lanc.get("VALOR"))
+        if valor_lanc <= 0:
+            continue
+
+        lancamentos_compativeis.append(lanc)
+
+    if not lancamentos_compativeis:
+        return None
+
+    valor_previsto = parse_moeda(pagamento.get("VALOR_PREVISTO"))
+    total_pago = sum(parse_moeda(lanc.get("VALOR")) for lanc in lancamentos_compativeis)
+    diferenca = valor_previsto - total_pago
+
+    if valor_previsto > 0 and total_pago + 1 >= valor_previsto:
+        novo_status = "PAGO"
+        match_status = "PAGAMENTO ENCONTRADO"
+        tipo_resultado = "atualizado"
+    elif total_pago > 0:
+        novo_status = "PARCIAL"
+        match_status = "PAGAMENTO PARCIAL"
+        tipo_resultado = "parcial"
+    else:
+        return None
+
+    datas_validas = [lanc.get("DATA") for lanc in lancamentos_compativeis if lanc.get("DATA")]
+    data_pagamento = max(datas_validas) if datas_validas else None
+
+    return {
+        "novo_status": novo_status,
+        "match_status": match_status,
+        "match_score": f"SOMA:{len(lancamentos_compativeis)}",
+        "tipo_resultado": tipo_resultado,
+        "valor_pago": total_pago,
+        "data_pagamento": data_pagamento,
+        "lancamento_id": ", ".join(str(lanc.get("ID") or "") for lanc in lancamentos_compativeis),
+        "lancamento_data": formatar_data(data_pagamento),
+        "lancamento_descricao": resumir_lancamentos_somados(lancamentos_compativeis),
+        "lancamento_valor": total_pago,
+        "lancamentos": lancamentos_compativeis,
+        "motivos": [
+            "conciliação por soma mensal",
+            "categoria/subcategoria compatível",
+            f"{len(lancamentos_compativeis)} lançamento(s) somado(s)",
+            f"diferença: {formatar_moeda(max(diferenca, 0))}",
+        ],
+    }
+
 def normalizar_lancamento(item: Dict[str, Any], indice: int) -> Dict[str, Any]:
     data_raw = obter_campo(item, ["DATA", "DATA_LANCAMENTO", "DATA LANÇAMENTO", "DATA DO LANÇAMENTO"])
     descricao = obter_campo(item, ["DESCRICAO", "DESCRIÇÃO", "HISTORICO", "HISTÓRICO", "LANÇAMENTO", "LANCAMENTO", "DETALHES"])
@@ -1053,6 +1262,73 @@ def conciliar_pagamentos_com_lancamentos(
                     aba.update(f"A{idx}", [linha], value_input_option="USER_ENTERED")
                     break
 
+        resultado_soma = None
+
+        if pagamento_deve_conciliar_por_soma(pagamento):
+            resultado_soma = conciliar_pagamento_por_soma(
+                pagamento=pagamento,
+                lancamentos=lancamentos,
+                usados_lancamentos=usados_lancamentos,
+            )
+
+        if resultado_soma:
+            novo_status = resultado_soma["novo_status"]
+            match_status = resultado_soma["match_status"]
+            valor_pago = resultado_soma["valor_pago"]
+
+            if resultado_soma["tipo_resultado"] == "atualizado":
+                atualizados += 1
+            elif resultado_soma["tipo_resultado"] == "parcial":
+                parciais += 1
+
+            for lanc in resultado_soma.get("lancamentos", []):
+                usados_lancamentos.add(lanc.get("ID"))
+
+            resultados.append(
+                {
+                    "pagamento_id": pagamento.get("ID"),
+                    "descricao": pagamento.get("DESCRICAO"),
+                    "status": novo_status,
+                    "score": resultado_soma.get("match_score"),
+                    "motivos": resultado_soma.get("motivos", []),
+                    "lancamento": {
+                        "ID": resultado_soma.get("lancamento_id"),
+                        "DATA": resultado_soma.get("data_pagamento"),
+                        "DESCRICAO": resultado_soma.get("lancamento_descricao"),
+                        "VALOR": valor_pago,
+                    },
+                }
+            )
+
+            if aplicar_alteracoes:
+                pagamento_id = str(pagamento.get("ID") or "")
+                linha_idx = None
+
+                for idx, linha in enumerate(valores[1:], start=2):
+                    if linha and str(linha[0]).strip() == pagamento_id:
+                        linha_idx = idx
+                        while len(linha) < len(cabecalho):
+                            linha.append("")
+                        break
+
+                if linha_idx:
+                    linha = valores[linha_idx - 1]
+                    linha[idx_status] = novo_status
+                    linha[idx_valor_pago] = formatar_moeda(valor_pago)
+                    linha[idx_data_pagamento] = formatar_data(resultado_soma.get("data_pagamento"))
+                    linha[idx_lancamento_id] = resultado_soma.get("lancamento_id") or ""
+                    linha[idx_lancamento_data] = resultado_soma.get("lancamento_data") or ""
+                    linha[idx_lancamento_desc] = resultado_soma.get("lancamento_descricao") or ""
+                    linha[idx_lancamento_valor] = formatar_moeda(valor_pago)
+                    linha[idx_match_status] = match_status
+                    linha[idx_match_score] = resultado_soma.get("match_score") or ""
+                    linha[idx_atualizado] = agora_iso()
+
+                    valores[linha_idx - 1] = linha
+                    aba.update(f"A{linha_idx}", [linha], value_input_option="USER_ENTERED")
+
+            continue
+
         melhor = None
         melhor_score = -1
         melhores_motivos: List[str] = []
@@ -1061,18 +1337,8 @@ def conciliar_pagamentos_com_lancamentos(
             if lanc["ID"] in usados_lancamentos:
                 continue
 
-            data_lanc = lanc.get("DATA")
-            if data_lanc:
-                ano_pag = str(pagamento.get("ANO") or "")
-                mes_pag = mes_para_numero(pagamento.get("MES"))
-
-                if ano_pag and str(data_lanc.year) != ano_pag:
-                    continue
-
-                if mes_pag and data_lanc.month != mes_pag:
-                    data_venc = parse_data(pagamento.get("DATA_VENCIMENTO"))
-                    if not data_venc or abs((data_lanc - data_venc).days) > 7:
-                        continue
+            if not lancamento_tem_mes_compatível_para_match_individual(pagamento, lanc):
+                continue
 
             score, motivos = calcular_score_match(pagamento, lanc)
 
@@ -1181,7 +1447,6 @@ def conciliar_pagamentos_com_lancamentos(
             f"{possiveis} possível(is), {parciais} parcial(is)."
         ),
     }
-
 
 def montar_resumo_pagamentos(pagamentos: List[Dict[str, Any]]) -> Dict[str, Any]:
     resumo = {

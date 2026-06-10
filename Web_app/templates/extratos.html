@@ -202,6 +202,46 @@
             line-height: 1.5;
         }
 
+
+        .selection-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+        }
+
+        .select-all-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 900;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .select-all-label input,
+        .import-checkbox {
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .selection-count {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
         .official-box {
             background: #eff6ff;
             border: 1px solid #bfdbfe;
@@ -391,6 +431,21 @@
                 <form method="post" action="/financeiro/extratos/importar">
                     <input type="hidden" name="temp_id" value="{{ temp_id }}" />
 
+                    <div class="selection-toolbar">
+                        <label class="select-all-label">
+                            <input
+                                type="checkbox"
+                                id="marcarTodosExtratos"
+                                checked
+                            />
+                            Marcar / desmarcar todos
+                        </label>
+
+                        <span class="selection-count" id="contadorSelecionados">
+                            Todos os lançamentos da prévia estão selecionados.
+                        </span>
+                    </div>
+
                     <div class="table-wrap">
                         <table>
                             <thead>
@@ -412,7 +467,13 @@
                                 {% for mov in resultado.movimentacoes %}
                                     <tr>
                                         <td>
-                                            <input type="checkbox" name="importar_{{ mov.indice }}" value="SIM" checked />
+                                            <input
+                                                type="checkbox"
+                                                name="importar_{{ mov.indice }}"
+                                                value="SIM"
+                                                class="import-checkbox"
+                                                checked
+                                            />
                                         </td>
 
                                         <td>{{ mov.data }}</td>
@@ -591,11 +652,61 @@
         subcategoriaSelect.dataset.valorAtual = subcategoriaSelect.value;
     }
 
+
+    function atualizarContadorSelecionados() {
+        const checkboxes = document.querySelectorAll(".import-checkbox");
+        const contador = document.getElementById("contadorSelecionados");
+        const master = document.getElementById("marcarTodosExtratos");
+
+        if (!contador || !master || checkboxes.length === 0) {
+            return;
+        }
+
+        const total = checkboxes.length;
+        const selecionados = document.querySelectorAll(".import-checkbox:checked").length;
+
+        if (selecionados === total) {
+            contador.textContent = "Todos os lançamentos da prévia estão selecionados.";
+        } else if (selecionados === 0) {
+            contador.textContent = "Nenhum lançamento está selecionado para importação.";
+        } else {
+            contador.textContent = `${selecionados} de ${total} lançamento(s) selecionado(s) para importação.`;
+        }
+
+        master.checked = total > 0 && selecionados === total;
+        master.indeterminate = selecionados > 0 && selecionados < total;
+    }
+
+    function configurarMarcacaoEmMassaExtratos() {
+        const master = document.getElementById("marcarTodosExtratos");
+        const checkboxes = document.querySelectorAll(".import-checkbox");
+
+        if (!master || checkboxes.length === 0) {
+            return;
+        }
+
+        master.addEventListener("change", function () {
+            checkboxes.forEach(function (checkbox) {
+                checkbox.checked = master.checked;
+            });
+
+            atualizarContadorSelecionados();
+        });
+
+        checkboxes.forEach(function (checkbox) {
+            checkbox.addEventListener("change", atualizarContadorSelecionados);
+        });
+
+        atualizarContadorSelecionados();
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll(".tipo-select").forEach(function (select) {
             const indice = select.dataset.indice;
             atualizarCategoriasLinha(indice);
         });
+
+        configurarMarcacaoEmMassaExtratos();
     });
 </script>
 </body>

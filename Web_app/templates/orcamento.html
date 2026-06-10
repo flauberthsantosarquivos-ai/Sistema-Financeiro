@@ -2858,6 +2858,10 @@
                 "FARMÁCIA",
                 "DROGARIA",
                 "MEDICAMENTO",
+                "AGUA MINERAL",
+                "ÁGUA MINERAL",
+                "GALAO",
+                "GALÃO",
                 "UBER",
                 "99",
                 "APP",
@@ -2886,6 +2890,21 @@
                 item.CATEGORIA,
                 item.SUBCATEGORIA
             ].map(normalizar).join(" ");
+
+            // Água mineral/galão é compra recorrente no mês. Não deve ser
+            // confundida com conta de água de execução única apenas por conter "ÁGUA".
+            const termosQueNuncaSaoExecucaoUnica = [
+                "AGUA MINERAL",
+                "ÁGUA MINERAL",
+                "GALAO",
+                "GALÃO"
+            ];
+
+            if (termosQueNuncaSaoExecucaoUnica.some(function (termo) {
+                return texto.includes(normalizar(termo));
+            })) {
+                return false;
+            }
 
             const termosExecucaoUnica = [
                 "PRESTACAO AP",

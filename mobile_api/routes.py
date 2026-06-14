@@ -11,6 +11,7 @@ from mobile_api.pagamentos_service import (
     listar_pagamentos_mobile,
     marcar_pagamento_como_pago_mobile,
 )
+from mobile_api.painel_gerencial_service import obter_painel_gerencial_mobile
 from mobile_api.patrimonio_service import obter_patrimonio_mobile
 from mobile_api.responses import resposta_sucesso
 
@@ -26,7 +27,7 @@ def status_mobile():
         dados={
             "status": "online",
             "modulo": "mobile",
-            "versao": "fase-mobile-1.5",
+            "versao": "fase-mobile-1.6",
         },
         mensagem="API mobile do Sistema Financeiro funcionando",
     )
@@ -42,6 +43,19 @@ def dashboard_mobile(
     return resposta_sucesso(
         dados=dados,
         mensagem="Dashboard mobile carregado com sucesso",
+    )
+
+
+@router.get("/painel-gerencial")
+def painel_gerencial_mobile(
+    ano: int | None = Query(None, description="Ano de referência"),
+    mes: int | None = Query(None, ge=1, le=12, description="Mês de referência"),
+):
+    dados = obter_painel_gerencial_mobile(ano=ano, mes=mes)
+
+    return resposta_sucesso(
+        dados=dados,
+        mensagem="Painel gerencial mobile carregado com sucesso",
     )
 
 

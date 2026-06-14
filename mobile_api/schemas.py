@@ -10,6 +10,22 @@ class MetaPrincipalMobile(BaseModel):
     percentual: float
 
 
+class CardDashboardMobile(BaseModel):
+    titulo: str
+    valor: float
+    tipo: str
+    icone: str
+    quantidade: Optional[int] = None
+    valor_alvo: Optional[float] = None
+    percentual: Optional[float] = None
+
+
+class AcaoRapidaMobile(BaseModel):
+    titulo: str
+    tipo: str
+    rota: str
+
+
 class DashboardMobile(BaseModel):
     mes: str
     saldo_mes: float
@@ -19,3 +35,5 @@ class DashboardMobile(BaseModel):
     total_pendente: float
     patrimonio_total: float
     meta_principal: Optional[MetaPrincipalMobile] = None
+    cards: list[CardDashboardMobile]
+    acoes_rapidas: list[AcaoRapidaMobile]

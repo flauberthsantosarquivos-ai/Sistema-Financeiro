@@ -6,6 +6,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from mobile_api.routes import router as mobile_router
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -18,6 +19,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
+app.include_router(mobile_router)
 
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")

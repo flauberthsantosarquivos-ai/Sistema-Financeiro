@@ -281,6 +281,11 @@ def formatar_percentual(valor: Any) -> str:
 def obter_aba_metas(planilha):
     """
     Obtém ou cria a aba METAS_FINANCEIRAS.
+
+    Ponto importante:
+    - Não força o cabeçalho quando a aba já possui os campos essenciais.
+    - Isso evita desalinhamento quando a planilha já existe ou foi criada em
+      versão anterior com pequenas diferenças.
     """
 
     try:
@@ -297,12 +302,32 @@ def obter_aba_metas(planilha):
     if not valores:
         aba.update("A1:J1", [CABECALHO_METAS])
         formatar_aba_metas(aba)
-    else:
-        cabecalho_atual = valores[0]
+        return aba
 
-        if cabecalho_atual[: len(CABECALHO_METAS)] != CABECALHO_METAS:
-            aba.update("A1:J1", [CABECALHO_METAS])
-            formatar_aba_metas(aba)
+    cabecalho_atual = valores[0]
+
+    # Se a aba já possui os campos essenciais, não sobrescreve o cabeçalho.
+    # Sobrescrever cabeçalho em aba existente pode deslocar a interpretação dos
+    # campos e fazer VALOR_ATUAL aparecer como zero na tela.
+    campos_essenciais = {
+        "NOME_META",
+        "CATEGORIA",
+        "VALOR_ALVO",
+        "VALOR_ATUAL",
+    }
+
+    campos_atuais = {
+        normalizar_texto(campo)
+        for campo in cabecalho_atual
+        if str(campo or "").strip()
+    }
+
+    if campos_essenciais.issubset(campos_atuais):
+        return aba
+
+    # Só recria o cabeçalho se a aba não tiver estrutura mínima de metas.
+    aba.update("A1:J1", [CABECALHO_METAS])
+    formatar_aba_metas(aba)
 
     return aba
 
@@ -445,19 +470,157 @@ def calcular_dados_meta(meta: dict) -> dict:
     return meta_formatada
 
 
+def linha_metas_para_dict(cabecalho: list[str], linha: list[Any], indice_linha: int) -> dict:
+    """
+    Converte uma linha da aba METAS_FINANCEIRAS para o padrão interno.
+
+    A leitura é feita pelo nome real do cabeçalho, não por posição fixa.
+    Isso evita que VALOR_ATUAL seja lido como zero quando a aba tem formato
+    antigo, coluna ID ausente ou pequenas variações de cabeçalho.
+    """
+
+    linha_completa = linha + [""] * max(len(cabecalho) - len(linha), 0)
+    bruto = {
+        str(cabecalho[indice] or "").strip(): linha_completa[indice]
+        for indice in range(len(cabecalho))
+    }
+
+    def valor_por_opcoes(opcoes: list[str]) -> Any:
+        coluna = localizar_coluna(cabecalho, opcoes)
+        if not coluna:
+            return ""
+        return bruto.get(coluna, "")
+
+    registro = {
+        "ID": valor_por_opcoes(["ID", "META_ID", "ID_META"]) or f"LINHA_{indice_linha}",
+        "DATA_CADASTRO": valor_por_opcoes(["DATA_CADASTRO", "DATA CADASTRO", "CADASTRO", "CRIADO_EM"]),
+        "NOME_META": valor_por_opcoes(["NOME_META", "NOME META", "META", "DESCRICAO", "DESCRIÇÃO"]),
+        "CATEGORIA": valor_por_opcoes(["CATEGORIA", "TIPO_META", "TIPO META"]),
+        "VALOR_ALVO": valor_por_opcoes(["VALOR_ALVO", "VALOR ALVO", "ALVO", "META_VALOR"]),
+        "VALOR_ATUAL": valor_por_opcoes(["VALOR_ATUAL", "VALOR ATUAL", "ATUAL", "SALDO_ATUAL", "SALDO ATUAL"]),
+        "DATA_ALVO": valor_por_opcoes(["DATA_ALVO", "DATA ALVO", "PRAZO", "DATA_FINAL", "DATA FINAL"]),
+        "PRIORIDADE": valor_por_opcoes(["PRIORIDADE"]),
+        "STATUS": valor_por_opcoes(["STATUS", "SITUACAO", "SITUAÇÃO"]),
+        "OBSERVACAO": valor_por_opcoes(["OBSERVACAO", "OBSERVAÇÃO", "OBS", "COMENTARIO", "COMENTÁRIO"]),
+    }
+
+    return registro
+
+
+def ler_registros_metas(aba) -> list[dict]:
+    """
+    Lê METAS_FINANCEIRAS de forma tolerante, preservando VALOR_ATUAL.
+
+    Não usa get_all_records() porque em planilhas existentes ele pode ficar
+    sensível a cabeçalhos alterados em versões anteriores.
+    """
+
+    valores = aba.get_all_values()
+
+    if not valores or len(valores) <= 1:
+        return []
+
+    cabecalho = valores[0]
+    registros = []
+
+    for indice_linha, linha in enumerate(valores[1:], start=2):
+        if not any(str(celula or "").strip() for celula in linha):
+            continue
+
+        registro = linha_metas_para_dict(cabecalho, linha, indice_linha)
+
+        if not str(registro.get("NOME_META") or "").strip():
+            continue
+
+        registros.append(registro)
+
+    return registros
+
+
+def meta_usa_patrimonio_atual(meta: dict) -> bool:
+    """
+    Identifica metas cujo VALOR_ATUAL deve refletir o patrimônio atual.
+
+    Por decisão da Etapa 4, tanto Reserva de Emergência quanto Aumentar
+    Patrimônio usam o mesmo patrimônio atual exibido pelo módulo Patrimônio.
+    """
+
+    texto = " ".join(
+        [
+            normalizar_texto(meta.get("NOME_META")),
+            normalizar_texto(meta.get("CATEGORIA")),
+            normalizar_texto(meta.get("OBSERVACAO")),
+        ]
+    )
+
+    if "RESERVA" in texto or "EMERGENCIA" in texto:
+        return True
+
+    if "AUMENTAR PATRIMONIO" in texto:
+        return True
+
+    if "PATRIMONIO LIQUIDO" in texto:
+        return True
+
+    return False
+
+
+def obter_valor_atual_positivo_das_metas(registros: list[dict]) -> float:
+    """
+    Fallback seguro: se o módulo Patrimônio não retornar valor, aproveita
+    um VALOR_ATUAL positivo já gravado em uma meta patrimonial.
+    """
+
+    for linha in registros:
+        if not meta_usa_patrimonio_atual(linha):
+            continue
+
+        valor = converter_valor(linha.get("VALOR_ATUAL"))
+
+        if valor > 0:
+            return valor
+
+    return 0.0
+
 def listar_metas_financeiras(link_planilha: str) -> dict:
     planilha = obter_planilha_por_link(link_planilha)
     aba = obter_aba_metas(planilha)
 
-    registros = aba.get_all_records()
+    registros = ler_registros_metas(aba)
 
     metas = []
 
+    # Busca o patrimônio atual do módulo Patrimônio. Este valor só será usado
+    # se for positivo. Se vier zero, preservamos o VALOR_ATUAL existente na
+    # própria aba METAS_FINANCEIRAS.
+    patrimonio_atual = 0.0
+
+    try:
+        dados_patrimonio = obter_patrimonio_oficial()
+        patrimonio_atual = converter_valor(dados_patrimonio.get("patrimonio_total"))
+    except Exception:
+        patrimonio_atual = 0.0
+
+    # Fallback: se o módulo Patrimônio não conseguir responder no carregamento
+    # da tela, usa um VALOR_ATUAL positivo já existente em meta patrimonial.
+    if patrimonio_atual <= 0:
+        patrimonio_atual = obter_valor_atual_positivo_das_metas(registros)
+
     for linha in registros:
-        if not linha.get("ID") and not linha.get("NOME_META"):
+        if not linha.get("NOME_META"):
             continue
 
-        metas.append(calcular_dados_meta(linha))
+        linha_meta = dict(linha)
+
+        # Regra simples e segura:
+        # - Reserva de Emergência usa o patrimônio atual.
+        # - Aumentar patrimônio líquido usa o patrimônio atual.
+        # - Nunca substitui valor positivo por zero.
+        # - Não grava nada na planilha; altera apenas em memória para a tela.
+        if patrimonio_atual > 0 and meta_usa_patrimonio_atual(linha_meta):
+            linha_meta["VALOR_ATUAL"] = patrimonio_atual
+
+        metas.append(calcular_dados_meta(linha_meta))
 
     total_alvo = sum(meta["valor_alvo"] for meta in metas)
     total_atual = sum(meta["valor_atual"] for meta in metas)
@@ -1504,6 +1667,160 @@ def obter_totais_orcamento_oficial() -> dict:
     }
 
 
+
+
+def meta_eh_reserva_emergencia(meta: dict) -> bool:
+    """
+    Identifica metas de Reserva de Emergência.
+
+    Essas metas não devem usar o patrimônio total como valor atual. O valor
+    atual deve vir apenas da parte líquida/reserva informada no módulo
+    Patrimônio, para evitar que imóvel, veículo, previdência ou patrimônio
+    total inflem a meta.
+    """
+
+    texto = " ".join(
+        [
+            normalizar_texto(meta.get("NOME_META")),
+            normalizar_texto(meta.get("CATEGORIA")),
+            normalizar_texto(meta.get("OBSERVACAO")),
+        ]
+    )
+
+    return "RESERVA" in texto or "EMERGENCIA" in texto
+
+
+def ativo_parece_reserva_liquida(ativo: dict) -> bool:
+    """
+    Retorna True apenas para ativos que parecem compor reserva/liquidez.
+
+    A classificação é feita com base nos campos do próprio ativo vindo do
+    módulo Patrimônio. Não usa o patrimônio total e não soma todos os ativos.
+    """
+
+    texto = " ".join(
+        normalizar_texto(valor)
+        for valor in ativo.values()
+        if valor is not None
+    )
+
+    if not texto:
+        return False
+
+    bloqueios = [
+        "DIVIDA",
+        "PASSIVO",
+        "FINANCIAMENTO",
+        "EMPRESTIMO",
+        "EMPRÉSTIMO",
+        "IMOVEL",
+        "IMÓVEL",
+        "VEICULO",
+        "VEÍCULO",
+        "APARTAMENTO",
+        "CASA",
+        "APOSENTADORIA",
+        "PREVIDENCIA",
+        "PREVIDÊNCIA",
+    ]
+
+    if any(palavra in texto for palavra in bloqueios):
+        return False
+
+    palavras_reserva = [
+        "RESERVA",
+        "EMERGENCIA",
+        "EMERGÊNCIA",
+        "LIQUIDEZ",
+        "POUPANCA",
+        "POUPANÇA",
+        "TESOURO SELIC",
+        "TESOURO RESERVA",
+        "CDB LIQUIDEZ",
+        "CAIXINHA",
+        "CAIXA RESERVA",
+        "NU RESERVA",
+    ]
+
+    return any(palavra in texto for palavra in palavras_reserva)
+
+
+def obter_valor_fim_ativo(ativo: dict) -> float:
+    """
+    Obtém o valor final do ativo no mês, aceitando variações de chave.
+    """
+
+    chaves = [
+        "fim",
+        "valor_fim",
+        "VALOR_FIM",
+        "valor_final",
+        "VALOR_FINAL",
+        "saldo_final",
+        "SALDO_FINAL",
+        "valor_atual",
+        "VALOR_ATUAL",
+        "saldo",
+        "SALDO",
+    ]
+
+    for chave in chaves:
+        if chave in ativo:
+            valor = converter_valor(ativo.get(chave))
+            if valor != 0:
+                return valor
+
+    return 0.0
+
+
+def calcular_reserva_liquida_resumo_patrimonio(resumo: dict) -> dict:
+    """
+    Calcula a reserva líquida a partir dos ativos do resumo de patrimônio.
+
+    Regra: soma somente VALOR_FIM/fim dos ativos que tenham indicação de
+    reserva, emergência, liquidez, poupança, Tesouro Selic/Reserva, CDB
+    liquidez ou caixinha.
+    """
+
+    ativos = resumo.get("ativos", []) or []
+    total_reserva = 0.0
+    ativos_reserva = []
+
+    for ativo in ativos:
+        if not isinstance(ativo, dict):
+            continue
+
+        if not ativo_parece_reserva_liquida(ativo):
+            continue
+
+        valor = obter_valor_fim_ativo(ativo)
+
+        if valor <= 0:
+            continue
+
+        total_reserva += valor
+        ativos_reserva.append(
+            {
+                "nome": str(
+                    ativo.get("nome")
+                    or ativo.get("conta")
+                    or ativo.get("descricao")
+                    or ativo.get("DESCRICAO")
+                    or ativo.get("CATEGORIA")
+                    or "Ativo de reserva"
+                ),
+                "valor": valor,
+                "valor_fmt": formatar_moeda(valor),
+            }
+        )
+
+    return {
+        "reserva_total": total_reserva,
+        "reserva_total_fmt": formatar_moeda(total_reserva),
+        "linhas_reserva": len(ativos_reserva),
+        "ativos_reserva": ativos_reserva,
+    }
+
 def obter_patrimonio_oficial() -> dict:
     """
     Obtém patrimônio pelo módulo oficial de patrimônio.
@@ -1512,6 +1829,7 @@ def obter_patrimonio_oficial() -> dict:
     1. Usa mês/ano corrente se houver valor.
     2. Se não houver, usa o último mês/ano com patrimônio cadastrado.
     3. Não varre a planilha diretamente.
+    4. Calcula, separadamente, a reserva líquida para metas de Reserva.
     """
 
     try:
@@ -1524,6 +1842,9 @@ def obter_patrimonio_oficial() -> dict:
             "mes_usado": "",
             "patrimonio_total": 0.0,
             "patrimonio_total_fmt": formatar_moeda(0),
+            "reserva_total": 0.0,
+            "reserva_total_fmt": formatar_moeda(0),
+            "linhas_reserva": 0,
             "linhas_utilizadas": 0,
             "mensagem": f"Não foi possível importar o módulo oficial de patrimônio: {erro}",
             "detalhes_abas": [],
@@ -1555,7 +1876,7 @@ def obter_patrimonio_oficial() -> dict:
         total = 0.0
 
         for ativo in ativos:
-            total += converter_valor(ativo.get("fim"))
+            total += obter_valor_fim_ativo(ativo)
 
         if total <= 0:
             for chave in ["total_fim", "total_final", "patrimonio_total", "patrimonio_liquido", "total_patrimonio"]:
@@ -1563,10 +1884,24 @@ def obter_patrimonio_oficial() -> dict:
                     total = converter_valor(resumo.get(chave))
                     break
 
-        tem_dados = bool(resumo.get("tem_dados_mes_resumo")) or total > 0
-        detalhes.append({"ano": str(ano), "mes": mes_sigla, "ok": tem_dados, "total_fmt": formatar_moeda(total), "qtd_ativos": len(ativos)})
+        dados_reserva = calcular_reserva_liquida_resumo_patrimonio(resumo)
+        reserva_total = float(dados_reserva.get("reserva_total") or 0)
+        linhas_reserva = int(dados_reserva.get("linhas_reserva") or 0)
 
-        if tem_dados and total > 0:
+        tem_dados = bool(resumo.get("tem_dados_mes_resumo")) or total > 0 or reserva_total > 0
+        detalhes.append(
+            {
+                "ano": str(ano),
+                "mes": mes_sigla,
+                "ok": tem_dados,
+                "total_fmt": formatar_moeda(total),
+                "reserva_fmt": formatar_moeda(reserva_total),
+                "qtd_ativos": len(ativos),
+                "qtd_ativos_reserva": linhas_reserva,
+            }
+        )
+
+        if tem_dados and (total > 0 or reserva_total > 0):
             criterio = "patrimonio_mes_corrente" if ano == hoje.year and mes_num == hoje.month else "patrimonio_ultimo_mes_com_valor"
             return {
                 "ok": True,
@@ -1575,11 +1910,17 @@ def obter_patrimonio_oficial() -> dict:
                 "mes_usado": mes_sigla,
                 "patrimonio_total": total,
                 "patrimonio_total_fmt": formatar_moeda(total),
+                "reserva_total": reserva_total,
+                "reserva_total_fmt": formatar_moeda(reserva_total),
+                "linhas_reserva": linhas_reserva,
+                "ativos_reserva": dados_reserva.get("ativos_reserva", []),
                 "linhas_utilizadas": len(ativos) if ativos else 1,
                 "mensagem": (
-                    "Patrimônio obtido do mês corrente pelo módulo Patrimônio."
+                    "Patrimônio obtido do mês corrente pelo módulo Patrimônio. "
+                    "Reserva calculada separadamente por ativos de liquidez/reserva."
                     if criterio == "patrimonio_mes_corrente"
-                    else "Patrimônio obtido do último mês com valor pelo módulo Patrimônio."
+                    else "Patrimônio obtido do último mês com valor pelo módulo Patrimônio. "
+                    "Reserva calculada separadamente por ativos de liquidez/reserva."
                 ),
                 "detalhes_abas": detalhes,
             }
@@ -1591,6 +1932,9 @@ def obter_patrimonio_oficial() -> dict:
         "mes_usado": "",
         "patrimonio_total": 0.0,
         "patrimonio_total_fmt": formatar_moeda(0),
+        "reserva_total": 0.0,
+        "reserva_total_fmt": formatar_moeda(0),
+        "linhas_reserva": 0,
         "linhas_utilizadas": 0,
         "mensagem": "Nenhum patrimônio com valor foi localizado pelo módulo Patrimônio.",
         "detalhes_abas": detalhes,
@@ -1602,12 +1946,12 @@ def montar_sugestoes_metas(
     dados_orcamento: dict | None = None,
 ) -> list[dict]:
     """
-    Monta até 5 metas automáticas usando fontes oficiais, sem estimativas artificiais.
+    Monta metas automáticas financeiras, sem metas operacionais.
 
     Fontes:
     - Despesa mensal: orçamento previsto do mês corrente ou último mês cadastrado.
-    - Renda mensal: receita prevista do orçamento do mês corrente ou último mês cadastrado.
-    - Patrimônio: módulo Patrimônio, mês corrente ou último mês com valor.
+    - Renda mensal: receita prevista do orçamento.
+    - Patrimônio atual: módulo Patrimônio.
     """
 
     dados_orcamento = dados_orcamento or {}
@@ -1628,7 +1972,9 @@ def montar_sugestoes_metas(
                 "nome_meta": "Reserva de emergência de 3 meses",
                 "categoria": "Reserva de Emergência",
                 "valor_alvo": round(despesa_referencia * 3, 2),
-                "valor_atual": 0,
+                # Conforme regra adotada na tela: Reserva e Aumentar Patrimônio
+                # usam o mesmo patrimônio atual como valor de referência.
+                "valor_atual": round(patrimonio_total, 2) if patrimonio_total > 0 else 0,
                 "data_alvo": data_alvo_em_meses(12),
                 "prioridade": "Alta",
                 "status": "Em andamento",
@@ -1714,65 +2060,14 @@ def montar_sugestoes_metas(
             }
         )
 
-    complementares = [
-        {
-            "nome_meta": "Revisar orçamento mensal",
-            "categoria": "Outros",
-            "valor_alvo": 1,
-            "valor_atual": 0,
-            "data_alvo": data_alvo_em_meses(1),
-            "prioridade": "Alta",
-            "status": "Em andamento",
-            "observacao": "Meta operacional para revisar categorias, subcategorias e limites do orçamento mensal.",
-        },
-        {
-            "nome_meta": "Classificar lançamentos pendentes",
-            "categoria": "Outros",
-            "valor_alvo": 1,
-            "valor_atual": 0,
-            "data_alvo": data_alvo_em_meses(1),
-            "prioridade": "Alta",
-            "status": "Em andamento",
-            "observacao": "Meta operacional para manter a BASE_LANCAMENTOS organizada.",
-        },
-        {
-            "nome_meta": "Atualizar patrimônio mensalmente",
-            "categoria": "Investimento",
-            "valor_alvo": 1,
-            "valor_atual": 0,
-            "data_alvo": data_alvo_em_meses(1),
-            "prioridade": "Média",
-            "status": "Em andamento",
-            "observacao": "Meta operacional para manter o patrimônio atualizado no mês corrente ou último mês fechado.",
-        },
-        {
-            "nome_meta": "Conferir orçamento versus realizado",
-            "categoria": "Outros",
-            "valor_alvo": 1,
-            "valor_atual": 0,
-            "data_alvo": data_alvo_em_meses(1),
-            "prioridade": "Média",
-            "status": "Em andamento",
-            "observacao": "Meta operacional para comparar orçamento previsto com lançamentos realizados no Painel Gerencial.",
-        },
-    ]
-
-    nomes_existentes = {normalizar_texto(item.get("nome_meta")) for item in sugestoes}
-
-    for meta_extra in complementares:
-        if len(sugestoes) >= 5:
-            break
-        nome_extra = normalizar_texto(meta_extra.get("nome_meta"))
-        if nome_extra in nomes_existentes:
-            continue
-        sugestoes.append(meta_extra)
-        nomes_existentes.add(nome_extra)
-
     sugestoes_validas = []
+
     for sugestao in sugestoes:
         if converter_valor(sugestao.get("valor_alvo")) <= 0:
             continue
+
         sugestoes_validas.append(sugestao)
+
         if len(sugestoes_validas) >= 5:
             break
 

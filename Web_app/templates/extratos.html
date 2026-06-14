@@ -253,6 +253,115 @@
             margin-bottom: 16px;
         }
 
+        .import-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 18px;
+            margin-bottom: 18px;
+        }
+
+        .summary-card {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 14px;
+        }
+
+        .summary-card span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .summary-card strong {
+            display: block;
+            color: #0f172a;
+            font-size: 24px;
+            font-weight: 950;
+            line-height: 1;
+        }
+
+        .summary-card.ok {
+            background: #ecfdf5;
+            border-color: #bbf7d0;
+        }
+
+        .summary-card.warn {
+            background: #fffbeb;
+            border-color: #fde68a;
+        }
+
+        .section-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 22px 0 12px;
+        }
+
+        .section-title-row h3 {
+            margin: 0;
+            font-size: 18px;
+            letter-spacing: -0.03em;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 950;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .badge-green {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .badge-blue {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+
+        .badge-amber {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+
+        .badge-red {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .badge-gray {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .status-cell {
+            min-width: 140px;
+        }
+
+        .mini-table {
+            min-width: 1100px;
+        }
+
         @media (max-width: 1000px) {
             .page { padding: 18px; }
             input[type="file"] { min-width: 100%; width: 100%; }
@@ -390,6 +499,197 @@
             <div class="alert error">{{ erro }}</div>
         {% endif %}
 
+        {% if resultado_importacao %}
+            <section class="card">
+                <h2>Resultado da importação</h2>
+
+                <div class="import-summary-grid">
+                    <div class="summary-card">
+                        <span>Total do extrato</span>
+                        <strong>{{ resultado_importacao.total_extrato }}</strong>
+                    </div>
+
+                    <div class="summary-card ok">
+                        <span>Importados agora</span>
+                        <strong>{{ resultado_importacao.qtd_importados }}</strong>
+                    </div>
+
+                    <div class="summary-card">
+                        <span>Já existentes</span>
+                        <strong>{{ resultado_importacao.qtd_duplicados }}</strong>
+                    </div>
+
+                    <div class="summary-card">
+                        <span>Desmarcados</span>
+                        <strong>{{ resultado_importacao.qtd_desmarcados }}</strong>
+                    </div>
+
+                    <div class="summary-card">
+                        <span>Saldos/zerados</span>
+                        <strong>{{ resultado_importacao.qtd_saldos }}</strong>
+                    </div>
+
+                    <div class="summary-card {% if resultado_importacao.conferencia_ok %}ok{% else %}warn{% endif %}">
+                        <span>Conferência</span>
+                        <strong>{{ resultado_importacao.total_tratado }}/{{ resultado_importacao.total_extrato }}</strong>
+                    </div>
+                </div>
+
+                <p class="hint">
+                    {% if resultado_importacao.conferencia_ok %}
+                        Conferência OK: todas as linhas da prévia foram tratadas entre importadas, já existentes,
+                        desmarcadas ou ignoradas por saldo/valor zerado.
+                    {% else %}
+                        Atenção: a quantidade tratada não bateu com o total da prévia. Confira as linhas do extrato.
+                    {% endif %}
+
+                    {% if resultado_importacao.qtd_classificacoes_reaproveitadas %}
+                        {{ resultado_importacao.qtd_classificacoes_reaproveitadas }} classificação(ões) foram reaproveitadas da BASE_LANCAMENTOS.
+                    {% endif %}
+                </p>
+
+                {% if resultado_importacao.itens_importados %}
+                    <div class="section-title-row">
+                        <h3>Lançamentos importados nesta execução</h3>
+                        <span class="badge badge-green">{{ resultado_importacao.qtd_importados }} importado(s)</span>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="mini-table">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Data banco</th>
+                                    <th>Descrição</th>
+                                    <th>Valor</th>
+                                    <th>Tipo</th>
+                                    <th>Categoria</th>
+                                    <th>Subcategoria</th>
+                                    <th>Situação</th>
+                                    <th>Conta</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in resultado_importacao.itens_importados %}
+                                    <tr>
+                                        <td>{{ item.data }}</td>
+                                        <td>{{ item.data_banco }}</td>
+                                        <td class="desc">{{ item.descricao }}</td>
+                                        <td class="money">R$ {{ item.valor_fmt }}</td>
+                                        <td>{{ item.tipo }}</td>
+                                        <td>{{ item.categoria }}</td>
+                                        <td>{{ item.subcategoria }}</td>
+                                        <td>{{ item.situacao }}</td>
+                                        <td>{{ item.conta }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+
+                {% if resultado_importacao.itens_duplicados %}
+                    <div class="section-title-row">
+                        <h3>Lançamentos já existentes na BASE</h3>
+                        <span class="badge badge-blue">{{ resultado_importacao.qtd_duplicados }} ignorado(s)</span>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="mini-table">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Data</th>
+                                    <th>Data banco</th>
+                                    <th>Descrição</th>
+                                    <th>Valor</th>
+                                    <th>Categoria</th>
+                                    <th>Subcategoria</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in resultado_importacao.itens_duplicados %}
+                                    <tr>
+                                        <td><span class="badge badge-blue">{{ item.status }}</span></td>
+                                        <td>{{ item.data }}</td>
+                                        <td>{{ item.data_banco }}</td>
+                                        <td class="desc">{{ item.descricao }}</td>
+                                        <td class="money">R$ {{ item.valor_fmt }}</td>
+                                        <td>{{ item.categoria }}</td>
+                                        <td>{{ item.subcategoria }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+
+                {% if resultado_importacao.itens_desmarcados %}
+                    <div class="section-title-row">
+                        <h3>Lançamentos desmarcados pelo usuário</h3>
+                        <span class="badge badge-gray">{{ resultado_importacao.qtd_desmarcados }} desmarcado(s)</span>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="mini-table">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th>Valor</th>
+                                    <th>Categoria</th>
+                                    <th>Subcategoria</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in resultado_importacao.itens_desmarcados %}
+                                    <tr>
+                                        <td><span class="badge badge-gray">{{ item.status }}</span></td>
+                                        <td>{{ item.data }}</td>
+                                        <td class="desc">{{ item.descricao }}</td>
+                                        <td class="money">R$ {{ item.valor_fmt }}</td>
+                                        <td>{{ item.categoria }}</td>
+                                        <td>{{ item.subcategoria }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+
+                {% if resultado_importacao.itens_saldos %}
+                    <div class="section-title-row">
+                        <h3>Lançamentos ignorados por saldo ou valor zerado</h3>
+                        <span class="badge badge-amber">{{ resultado_importacao.qtd_saldos }} ignorado(s)</span>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="mini-table">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th>Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in resultado_importacao.itens_saldos %}
+                                    <tr>
+                                        <td><span class="badge badge-amber">{{ item.status }}</span></td>
+                                        <td>{{ item.data }}</td>
+                                        <td class="desc">{{ item.descricao }}</td>
+                                        <td class="money">R$ {{ item.valor_fmt }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </section>
+        {% endif %}
+
         {% if etapa == "upload" %}
             <section class="card">
                 <h2>Enviar extrato</h2>
@@ -451,6 +751,7 @@
                             <thead>
                                 <tr>
                                     <th>Importar</th>
+                                    <th>Status</th>
                                     <th>Data</th>
                                     <th>Descrição</th>
                                     <th>Valor</th>
@@ -472,8 +773,18 @@
                                                 name="importar_{{ mov.indice }}"
                                                 value="SIM"
                                                 class="import-checkbox"
-                                                checked
+                                                {% if not mov.ja_existe_base %}checked{% endif %}
                                             />
+                                        </td>
+
+                                        <td class="status-cell">
+                                            {% if mov.ja_existe_base %}
+                                                <span class="badge badge-blue">Já existe</span>
+                                            {% elif mov.classificacao_reaproveitada %}
+                                                <span class="badge badge-green">Classificação reaproveitada</span>
+                                            {% else %}
+                                                <span class="badge badge-gray">Novo</span>
+                                            {% endif %}
                                         </td>
 
                                         <td>{{ mov.data }}</td>

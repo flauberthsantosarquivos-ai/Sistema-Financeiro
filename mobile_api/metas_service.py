@@ -1,9 +1,21 @@
-def listar_metas_mobile():
+from mobile_api.financeiro_adapter import montar_referencia, obter_periodo_padrao
+
+
+def listar_metas_mobile(ano: int | None = None, mes: int | None = None):
     """
     Retorna metas simuladas para a versão mobile.
     """
 
+    ano, mes = obter_periodo_padrao(ano, mes)
+    referencia = montar_referencia(ano, mes)
+
     return {
+        "mes": referencia,
+        "periodo": {
+            "ano": ano,
+            "mes": mes,
+            "referencia": referencia,
+        },
         "metas": [
             {
                 "id": 1,

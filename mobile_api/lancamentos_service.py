@@ -1,4 +1,7 @@
-def listar_lancamentos_mobile():
+from mobile_api.financeiro_adapter import montar_referencia, obter_periodo_padrao
+
+
+def listar_lancamentos_mobile(ano: int | None = None, mes: int | None = None):
     """
     Retorna lançamentos simulados para a versão mobile.
 
@@ -6,13 +9,21 @@ def listar_lancamentos_mobile():
     de lançamentos do Sistema Financeiro.
     """
 
+    ano, mes = obter_periodo_padrao(ano, mes)
+    referencia = montar_referencia(ano, mes)
+
     return {
-        "mes": "2026-06",
+        "mes": referencia,
+        "periodo": {
+            "ano": ano,
+            "mes": mes,
+            "referencia": referencia,
+        },
         "total": 4,
         "lancamentos": [
             {
                 "id": 1,
-                "data": "2026-06-01",
+                "data": f"{referencia}-01",
                 "descricao": "Supermercado",
                 "categoria": "Alimentação",
                 "tipo": "despesa",
@@ -21,7 +32,7 @@ def listar_lancamentos_mobile():
             },
             {
                 "id": 2,
-                "data": "2026-06-03",
+                "data": f"{referencia}-03",
                 "descricao": "Salário",
                 "categoria": "Renda",
                 "tipo": "receita",
@@ -30,7 +41,7 @@ def listar_lancamentos_mobile():
             },
             {
                 "id": 3,
-                "data": "2026-06-05",
+                "data": f"{referencia}-05",
                 "descricao": "Internet",
                 "categoria": "Moradia",
                 "tipo": "despesa",
@@ -39,7 +50,7 @@ def listar_lancamentos_mobile():
             },
             {
                 "id": 4,
-                "data": "2026-06-08",
+                "data": f"{referencia}-08",
                 "descricao": "Combustível",
                 "categoria": "Transporte",
                 "tipo": "despesa",

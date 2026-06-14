@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from mobile_api.dashboard_service import obter_dashboard_mobile
 from mobile_api.lancamentos_service import (
@@ -26,14 +26,19 @@ def status_mobile():
         dados={
             "status": "online",
             "modulo": "mobile",
+            "versao": "fase-mobile-1.5",
         },
         mensagem="API mobile do Sistema Financeiro funcionando",
     )
 
 
 @router.get("/dashboard")
-def dashboard_mobile():
-    dados = obter_dashboard_mobile()
+def dashboard_mobile(
+    ano: int | None = Query(None, description="Ano de referência"),
+    mes: int | None = Query(None, ge=1, le=12, description="Mês de referência"),
+):
+    dados = obter_dashboard_mobile(ano=ano, mes=mes)
+
     return resposta_sucesso(
         dados=dados,
         mensagem="Dashboard mobile carregado com sucesso",
@@ -41,8 +46,12 @@ def dashboard_mobile():
 
 
 @router.get("/lancamentos")
-def lancamentos_mobile():
-    dados = listar_lancamentos_mobile()
+def lancamentos_mobile(
+    ano: int | None = Query(None, description="Ano de referência"),
+    mes: int | None = Query(None, ge=1, le=12, description="Mês de referência"),
+):
+    dados = listar_lancamentos_mobile(ano=ano, mes=mes)
+
     return resposta_sucesso(
         dados=dados,
         mensagem="Lançamentos carregados com sucesso",
@@ -52,6 +61,7 @@ def lancamentos_mobile():
 @router.post("/lancamentos")
 def criar_lancamento(dados: dict):
     resultado = criar_lancamento_mobile(dados)
+
     return resposta_sucesso(
         dados=resultado,
         mensagem="Lançamento criado com sucesso",
@@ -59,8 +69,12 @@ def criar_lancamento(dados: dict):
 
 
 @router.get("/pagamentos")
-def pagamentos_mobile():
-    dados = listar_pagamentos_mobile()
+def pagamentos_mobile(
+    ano: int | None = Query(None, description="Ano de referência"),
+    mes: int | None = Query(None, ge=1, le=12, description="Mês de referência"),
+):
+    dados = listar_pagamentos_mobile(ano=ano, mes=mes)
+
     return resposta_sucesso(
         dados=dados,
         mensagem="Pagamentos carregados com sucesso",
@@ -70,6 +84,7 @@ def pagamentos_mobile():
 @router.patch("/pagamentos/{pagamento_id}/pagar")
 def marcar_pagamento_pago(pagamento_id: int):
     resultado = marcar_pagamento_como_pago_mobile(pagamento_id)
+
     return resposta_sucesso(
         dados=resultado,
         mensagem="Pagamento marcado como pago com sucesso",
@@ -77,8 +92,12 @@ def marcar_pagamento_pago(pagamento_id: int):
 
 
 @router.get("/orcamento")
-def orcamento_mobile():
-    dados = obter_orcamento_mobile()
+def orcamento_mobile(
+    ano: int | None = Query(None, description="Ano de referência"),
+    mes: int | None = Query(None, ge=1, le=12, description="Mês de referência"),
+):
+    dados = obter_orcamento_mobile(ano=ano, mes=mes)
+
     return resposta_sucesso(
         dados=dados,
         mensagem="Orçamento carregado com sucesso",
@@ -86,8 +105,12 @@ def orcamento_mobile():
 
 
 @router.get("/patrimonio")
-def patrimonio_mobile():
-    dados = obter_patrimonio_mobile()
+def patrimonio_mobile(
+    ano: int | None = Query(None, description="Ano de referência"),
+    mes: int | None = Query(None, ge=1, le=12, description="Mês de referência"),
+):
+    dados = obter_patrimonio_mobile(ano=ano, mes=mes)
+
     return resposta_sucesso(
         dados=dados,
         mensagem="Patrimônio carregado com sucesso",
@@ -95,8 +118,12 @@ def patrimonio_mobile():
 
 
 @router.get("/metas")
-def metas_mobile():
-    dados = listar_metas_mobile()
+def metas_mobile(
+    ano: int | None = Query(None, description="Ano de referência"),
+    mes: int | None = Query(None, ge=1, le=12, description="Mês de referência"),
+):
+    dados = listar_metas_mobile(ano=ano, mes=mes)
+
     return resposta_sucesso(
         dados=dados,
         mensagem="Metas carregadas com sucesso",

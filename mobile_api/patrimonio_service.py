@@ -1,10 +1,21 @@
-def obter_patrimonio_mobile():
+from mobile_api.financeiro_adapter import montar_referencia, obter_periodo_padrao
+
+
+def obter_patrimonio_mobile(ano: int | None = None, mes: int | None = None):
     """
     Retorna patrimônio simulado para a versão mobile.
     """
 
+    ano, mes = obter_periodo_padrao(ano, mes)
+    referencia = montar_referencia(ano, mes)
+
     return {
-        "mes": "2026-06",
+        "mes": referencia,
+        "periodo": {
+            "ano": ano,
+            "mes": mes,
+            "referencia": referencia,
+        },
         "patrimonio_total": 38500.00,
         "variacao_mes": 1250.00,
         "percentual_variacao": 3.36,

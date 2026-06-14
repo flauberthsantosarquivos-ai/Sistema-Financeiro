@@ -1,16 +1,27 @@
-def listar_pagamentos_mobile():
+from mobile_api.financeiro_adapter import montar_referencia, obter_periodo_padrao
+
+
+def listar_pagamentos_mobile(ano: int | None = None, mes: int | None = None):
     """
     Retorna pagamentos simulados para a versão mobile.
     """
 
+    ano, mes = obter_periodo_padrao(ano, mes)
+    referencia = montar_referencia(ano, mes)
+
     return {
-        "mes": "2026-06",
+        "mes": referencia,
+        "periodo": {
+            "ano": ano,
+            "mes": mes,
+            "referencia": referencia,
+        },
         "total_pendente": 1370.00,
         "quantidade_pendente": 3,
         "pagamentos": [
             {
                 "id": 1,
-                "vencimento": "2026-06-10",
+                "vencimento": f"{referencia}-10",
                 "descricao": "Energia",
                 "categoria": "Moradia",
                 "valor": 280.00,
@@ -18,7 +29,7 @@ def listar_pagamentos_mobile():
             },
             {
                 "id": 2,
-                "vencimento": "2026-06-12",
+                "vencimento": f"{referencia}-12",
                 "descricao": "Internet",
                 "categoria": "Moradia",
                 "valor": 119.90,
@@ -26,7 +37,7 @@ def listar_pagamentos_mobile():
             },
             {
                 "id": 3,
-                "vencimento": "2026-06-15",
+                "vencimento": f"{referencia}-15",
                 "descricao": "Cartão de crédito",
                 "categoria": "Cartão",
                 "valor": 970.10,

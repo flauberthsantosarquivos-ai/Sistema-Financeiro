@@ -42,6 +42,7 @@
             font-family: "Segoe UI", Arial, sans-serif;
             background: var(--bg);
             color: var(--text);
+            overflow-x: hidden;
         }
 
         .page {
@@ -752,7 +753,7 @@
 
         .budget-category-row {
             display: grid;
-            grid-template-columns: 190px 1fr 150px 150px 160px;
+            grid-template-columns: 190px 1fr 150px 150px 160px 94px;
             gap: 12px;
             align-items: center;
             border: 1px solid var(--border);
@@ -1452,8 +1453,9 @@
         }
 
         .app {
-            display: flex;
+            display: block;
             min-height: 100vh;
+            padding-left: 280px;
         }
 
         .sidebar {
@@ -1464,11 +1466,14 @@
             display: flex;
             flex-direction: column;
             gap: 24px;
-            position: sticky;
+            position: fixed;
+            left: 0;
             top: 0;
+            bottom: 0;
             height: 100vh;
             overflow-y: auto;
             flex: 0 0 280px;
+            z-index: 50;
         }
 
         .brand {
@@ -1533,26 +1538,294 @@
         }
 
         .page {
-            flex: 1;
+            flex: none;
+            width: 100%;
             max-width: none;
+            min-width: 0;
             margin: 0;
             padding: 34px;
         }
 
+
+        body .app > main.page {
+            width: 100%;
+            max-width: none;
+            min-width: 0;
+            margin-left: 0;
+        }
+
         @media (max-width: 900px) {
             .app {
-                flex-direction: column;
+                display: block;
+                padding-left: 0;
             }
 
             .sidebar {
                 width: 100%;
                 height: auto;
                 position: relative;
+                left: auto;
+                top: auto;
+                bottom: auto;
                 flex: none;
             }
 
             .page {
+                width: 100%;
+                margin: 0;
                 padding: 22px;
+            }
+        }
+
+
+        /* Correção definitiva do layout com menu lateral fixo.
+           O conteúdo inteiro fica na mesma margem visual do Resumo Executivo. */
+        @media (min-width: 901px) {
+            body {
+                overflow-x: hidden !important;
+            }
+
+            .app {
+                display: block !important;
+                min-height: 100vh !important;
+                padding-left: 0 !important;
+                width: 100% !important;
+            }
+
+            .sidebar {
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                bottom: 0 !important;
+                width: 280px !important;
+                height: 100vh !important;
+                z-index: 100 !important;
+                overflow-y: auto !important;
+            }
+
+            main.page,
+            .app > .page,
+            body .app > main.page {
+                margin-left: 280px !important;
+                width: calc(100vw - 280px) !important;
+                max-width: calc(100vw - 280px) !important;
+                min-width: 0 !important;
+                padding: 34px !important;
+                overflow-x: hidden !important;
+            }
+
+            main.page > section,
+            main.page > article,
+            main.page > .summary,
+            main.page > .executive-grid,
+            main.page > .grid-2 {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .app {
+                padding-left: 0 !important;
+                width: 100% !important;
+            }
+
+            .sidebar {
+                position: relative !important;
+                width: 100% !important;
+                height: auto !important;
+            }
+
+            main.page,
+            .app > .page,
+            body .app > main.page {
+                margin-left: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 22px !important;
+            }
+        }
+
+
+        /* Ajuste final do layout do Painel Gerencial.
+           Mantém a navegação visível sem sobrepor o conteúdo.
+           A sidebar volta para o fluxo do layout em grid e fica fixa por sticky. */
+        @media (min-width: 901px) {
+            html,
+            body {
+                width: 100% !important;
+                overflow-x: hidden !important;
+            }
+
+            .app {
+                display: grid !important;
+                grid-template-columns: 280px minmax(0, 1fr) !important;
+                align-items: start !important;
+                min-height: 100vh !important;
+                width: 100% !important;
+                padding-left: 0 !important;
+                margin: 0 !important;
+            }
+
+            .sidebar {
+                grid-column: 1 !important;
+                position: sticky !important;
+                top: 0 !important;
+                left: auto !important;
+                right: auto !important;
+                bottom: auto !important;
+                width: 280px !important;
+                height: 100vh !important;
+                min-height: 100vh !important;
+                flex: none !important;
+                align-self: start !important;
+                overflow-y: auto !important;
+                z-index: 20 !important;
+            }
+
+            main.page,
+            .app > main.page,
+            body .app > main.page {
+                grid-column: 2 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                margin: 0 !important;
+                padding: 34px !important;
+                overflow-x: hidden !important;
+                box-sizing: border-box !important;
+            }
+
+            main.page > * {
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .app {
+                display: block !important;
+                grid-template-columns: none !important;
+                padding-left: 0 !important;
+            }
+
+            .sidebar {
+                position: relative !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+            }
+
+            main.page,
+            .app > main.page,
+            body .app > main.page {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 22px !important;
+            }
+        }
+
+    
+
+        /* =========================================================
+           AJUSTE FINAL DEFINITIVO - MENU FIXO + CONTEÚDO ALINHADO
+           Mantém a navegação sempre visível e impede sobreposição.
+           Esta regra fica por último para prevalecer sobre ajustes anteriores.
+        ========================================================= */
+        @media (min-width: 901px) {
+            html,
+            body {
+                width: 100% !important;
+                min-height: 100% !important;
+                overflow-x: hidden !important;
+            }
+
+            body {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .app {
+                display: block !important;
+                width: 100% !important;
+                min-height: 100vh !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .sidebar {
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                bottom: 0 !important;
+                width: 280px !important;
+                height: 100vh !important;
+                min-height: 100vh !important;
+                z-index: 1000 !important;
+                overflow-y: auto !important;
+                flex: none !important;
+            }
+
+            main.page,
+            .app > main.page,
+            body .app > main.page {
+                display: block !important;
+                width: calc(100vw - 280px) !important;
+                max-width: calc(100vw - 280px) !important;
+                min-width: 0 !important;
+                margin: 0 0 0 280px !important;
+                padding: 34px !important;
+                box-sizing: border-box !important;
+                overflow-x: hidden !important;
+            }
+
+            main.page > section,
+            main.page > article,
+            main.page > div,
+            main.page > .summary,
+            main.page > .executive-grid,
+            main.page > .grid-2,
+            main.page > .card,
+            main.page > .stacked-card,
+            main.page > .evolution-card,
+            main.page > .budget-category-card,
+            main.page > .executive-summary-card {
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .app {
+                display: block !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .sidebar {
+                position: relative !important;
+                left: auto !important;
+                top: auto !important;
+                bottom: auto !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+                z-index: auto !important;
+            }
+
+            main.page,
+            .app > main.page,
+            body .app > main.page {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                margin: 0 !important;
+                padding: 22px !important;
+                overflow-x: hidden !important;
             }
         }
 
@@ -1786,10 +2059,11 @@
                 <div class="executive-title">Maior despesa individual</div>
                 {% if analise.maior_despesa %}
                     <div class="executive-value">{{ analise.maior_despesa.valor_fmt }}</div>
-                    {{ analise.maior_despesa.categoria }}
-                    {% if analise.maior_despesa.subcategoria %}
-                        · {{ analise.maior_despesa.subcategoria }}
-                    {% endif %}
+                    <div class="executive-sub">
+                        {{ analise.maior_despesa.categoria }}
+                        {% if analise.maior_despesa.subcategoria %}
+                            · {{ analise.maior_despesa.subcategoria }}
+                        {% endif %}
                     </div>
                 {% else %}
                     <div class="executive-value">Sem despesa</div>
@@ -2006,6 +2280,20 @@
                                     {{ item.status }}
                                 </span>
                             </div>
+
+                            <div>
+                                {% for cat in analise.despesas_por_categoria %}
+                                    {% if cat.categoria == item.categoria %}
+                                        <button
+                                            type="button"
+                                            class="detail-button"
+                                            onclick="abrirModalCategoria('{{ cat.modal_id }}')"
+                                        >
+                                            Detalhar
+                                        </button>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -2014,6 +2302,61 @@
                     Não há despesas com valores previstos ou realizados para comparar neste período.
                 </div>
             {% endif %}
+        </section>
+
+        
+
+        <section class="card">
+                <h2 class="section-title">Resumo por categoria</h2>
+                <p class="section-subtitle">
+                    Distribuição das despesas por grupo, com acesso direto aos lançamentos detalhados de cada categoria.
+                </p>
+
+                {% if analise.despesas_por_categoria %}
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Categoria</th>
+                                    <th>Valor</th>
+                                    <th>Participação</th>
+                                    <th>Lançamentos</th>
+                                    <th>Detalhar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in analise.despesas_por_categoria %}
+                                    <tr>
+                                        <td>
+                                            <span
+                                                class="category-chip"
+                                                style="background: {{ item.cor_fundo }}; color: {{ item.cor }}; border-color: {{ item.cor_borda }};"
+                                            >
+                                                <span class="category-chip-dot" style="background: {{ item.cor }};"></span>
+                                                {{ item.categoria }}
+                                            </span>
+                                        </td>
+                                        <td class="money red">{{ item.valor_fmt }}</td>
+                                        <td>{{ item.percentual_fmt }}</td>
+                                        <td>{{ item.qtd_lancamentos }}</td>
+                                        <td>
+                                            <button
+                                                type="button"
+                                                class="detail-button"
+                                                onclick="abrirModalCategoria('{{ item.modal_id }}')"
+                                            >
+                                                Detalhar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty">Nenhuma categoria encontrada.</div>
+                {% endif %}
+            
         </section>
 
         <section class="stacked-card">
@@ -2268,8 +2611,7 @@
     {% endif %}
 
 
-        <section class="grid-2">
-            <article class="card">
+        <section class="card">
                 <h2 class="section-title">Top 10 maiores despesas</h2>
                 <p class="section-subtitle">
                     Lançamentos de maior valor no período filtrado.
@@ -2303,49 +2645,7 @@
                 {% else %}
                     <div class="empty">Nenhuma despesa encontrada.</div>
                 {% endif %}
-            </article>
-
-            <article class="card">
-                <h2 class="section-title">Resumo por categoria</h2>
-                <p class="section-subtitle">
-                    Distribuição das despesas por grupo.
-                </p>
-
-                {% if analise.despesas_por_categoria %}
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Categoria</th>
-                                    <th>Valor</th>
-                                    <th>Participação</th>
-                                    <th>Lançamentos</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in analise.despesas_por_categoria %}
-                                    <tr>
-                                        <td>
-                                            <span
-                                                class="category-chip"
-                                                style="background: {{ item.cor_fundo }}; color: {{ item.cor }}; border-color: {{ item.cor_borda }};"
-                                            >
-                                                <span class="category-chip-dot" style="background: {{ item.cor }};"></span>
-                                                {{ item.categoria }}
-                                            </span>
-                                        </td>
-                                        <td class="money red">{{ item.valor_fmt }}</td>
-                                        <td>{{ item.percentual_fmt }}</td>
-                                        <td>{{ item.qtd_lancamentos }}</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="empty">Nenhuma categoria encontrada.</div>
-                {% endif %}
-            </article>
+            
         </section>
     </main>
 

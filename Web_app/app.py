@@ -4,8 +4,11 @@ from importlib import import_module
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+
+from mobile_api.routes import router as mobile_router
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -18,6 +21,17 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# Liberação temporária para desenvolvimento local com Flutter Web/Chrome.
+# Depois, quando o app estiver mais avançado, podemos restringir as origens.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(mobile_router)
 
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
@@ -34,6 +48,7 @@ ROTAS_DO_SISTEMA = [
     "Web_app.routes_patrimonio",
     "Web_app.routes_investimentos",
     "Web_app.routes_metas",
+    "Web_app.routes_alimentacao",
 ]
 
 

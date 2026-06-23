@@ -48,7 +48,6 @@ ROTAS_DO_SISTEMA = [
     "Web_app.routes_patrimonio",
     "Web_app.routes_investimentos",
     "Web_app.routes_metas",
-    "Web_app.routes_alimentacao",
 ]
 
 

@@ -24,9 +24,6 @@ from core.financeiro.categorias_google import (
 )
 from core.financeiro.dashboard_base import ler_base_lancamentos, para_float
 from core.financeiro.lancamentos_google import salvar_lancamentos_em_lote_google
-from core.financeiro.pagamentos_google import (
-    conciliar_pagamentos_com_lancamentos_importados,
-)
 from core.financeiro.leitor_extrato import (
     carregar_previa_extrato,
     processar_extrato,
@@ -270,7 +267,6 @@ async def extratos_importar(request: Request):
                 )
 
             lancamento = {
-                "id": uuid4().hex,
                 "data": data,
                 "data_banco": data_banco,
                 "mes": inferir_mes(data),
@@ -355,34 +351,9 @@ async def extratos_importar(request: Request):
             lancamentos=lancamentos,
         )
 
-        # Cada lançamento recém-importado tenta atualizar automaticamente
-        # o pagamento previsto correspondente. A confirmação só ocorre quando
-        # há um único candidato com valor, categoria, subcategoria e data
-        # compatíveis; os casos ambíguos permanecem para conferência manual.
-        resultado_conciliacao_automatica = (
-            conciliar_pagamentos_com_lancamentos_importados(
-                lancamentos_importados=lancamentos,
-            )
-        )
-
         mensagem = (
             f"{len(lancamentos)} lançamento(s) importado(s) com sucesso para a BASE_LANCAMENTOS."
         )
-
-        qtd_pagamentos_auto = int(resultado_conciliacao_automatica.get("atualizados", 0) or 0)
-        qtd_pagamentos_ambiguos = int(resultado_conciliacao_automatica.get("ambiguos", 0) or 0)
-
-        if qtd_pagamentos_auto:
-            mensagem += (
-                f" {qtd_pagamentos_auto} pagamento(s) previsto(s) foram marcado(s) "
-                "automaticamente como pago(s)."
-            )
-
-        if qtd_pagamentos_ambiguos:
-            mensagem += (
-                f" {qtd_pagamentos_ambiguos} pagamento(s) ficaram para conferência manual "
-                "por haver mais de um candidato compatível."
-            )
 
         if duplicados_ignorados > 0:
             mensagem += f" {duplicados_ignorados} duplicado(s) foram ignorado(s)."

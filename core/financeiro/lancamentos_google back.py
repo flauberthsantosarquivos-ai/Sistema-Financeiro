@@ -40,7 +40,6 @@ CABECALHOS_BASE = [
     "OBSERVACAO",
     "CRIADO_EM",
     "DATA_BANCO",
-    "REAPROVEITAR_CLASSIFICACAO",
 ]
 
 
@@ -302,7 +301,6 @@ def montar_linha_lancamento(dados: dict[str, Any]) -> list[str]:
         dados.get("observacao", ""),
         dados.get("criado_em") or agora,
         dados.get("data_banco", ""),
-        str(dados.get("reaproveitar_classificacao", "SIM") or "SIM").strip().upper(),
     ]
 
 

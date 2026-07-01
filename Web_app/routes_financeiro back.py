@@ -14,7 +14,6 @@ from core.financeiro.dashboard_base import (
     para_float,
 )
 from core.financeiro.orcamento_google import ler_orcamento_mensal
-from core.financeiro.patrimonio_google import montar_resumo_patrimonio
 
 
 router = APIRouter()
@@ -1438,40 +1437,6 @@ def montar_dashboard_inicial(ano_base: str) -> dict:
         }
 
 
-def obter_patrimonio_total_atual() -> dict:
-    """
-    Obtém o último patrimônio consolidado salvo no módulo Patrimônio.
-    A consulta é independente dos filtros do Painel Gerencial.
-    """
-    padrao = {
-        "disponivel": False,
-        "total": 0.0,
-        "total_fmt": formatar_moeda(0),
-        "ano": "",
-        "mes": "",
-        "referencia": "Patrimônio ainda não cadastrado",
-    }
-
-    try:
-        resumo = montar_resumo_patrimonio()
-        if not resumo.get("tem_dados_mes_resumo"):
-            return padrao
-
-        ano = str(resumo.get("ano_resumo", "") or "").strip()
-        mes = str(resumo.get("mes_resumo", "") or "").strip()
-
-        return {
-            "disponivel": True,
-            "total": float(resumo.get("total_fim_atual", 0) or 0),
-            "total_fmt": str(resumo.get("total_fim_atual_fmt", formatar_moeda(0))),
-            "ano": ano,
-            "mes": mes,
-            "referencia": f"Posição registrada em {mes}/{ano}" if mes and ano else "Última posição cadastrada",
-        }
-    except Exception:
-        return padrao
-
-
 @router.get("/financeiro", response_class=HTMLResponse)
 async def financeiro_get(request: Request):
     config = obter_configuracao_sistema()
@@ -1570,7 +1535,6 @@ async def analise_financeira_get(
             registros_ano=registros_ano,
             registros_orcamento=registros_orcamento_filtrados,
         )
-        patrimonio_atual = obter_patrimonio_total_atual()
 
         return templates.TemplateResponse(
             request=request,
@@ -1580,7 +1544,6 @@ async def analise_financeira_get(
                 "filtros": filtros,
                 "meses_opcoes": MESES_OPCOES,
                 "analise": analise,
-                "patrimonio_atual": patrimonio_atual,
                 "planilha_google": config.get("planilha_google", ""),
             },
         )
@@ -1594,7 +1557,6 @@ async def analise_financeira_get(
                 "filtros": filtros,
                 "meses_opcoes": MESES_OPCOES,
                 "analise": preparar_analise([]),
-                "patrimonio_atual": obter_patrimonio_total_atual(),
                 "planilha_google": config.get("planilha_google", ""),
             },
         )

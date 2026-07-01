@@ -1997,18 +1997,6 @@
         </section>
         
         <section class="summary">
-            <a class="metric metric-clickable" href="/financeiro/patrimonio" style="text-decoration: none; color: inherit;">
-                <div class="metric-title">Patrimônio total atual</div>
-                <div class="metric-value purple">{{ patrimonio_atual.total_fmt }}</div>
-                <div class="metric-note">
-                    {% if patrimonio_atual.disponivel %}
-                        {{ patrimonio_atual.referencia }} · clique para abrir Patrimônio
-                    {% else %}
-                        Cadastre o patrimônio para exibir o total atual
-                    {% endif %}
-                </div>
-            </a>
-
             <div class="metric metric-clickable" onclick="abrirModalCategoria('modalReceitas')">
                 <div class="metric-title">Receitas</div>
                 <div class="metric-value green">{{ analise.total_receitas_fmt }}</div>

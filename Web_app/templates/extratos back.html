@@ -140,7 +140,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1480px;
+            min-width: 1320px;
         }
 
         th {
@@ -228,8 +228,7 @@
         }
 
         .select-all-label input,
-        .import-checkbox,
-        .reuse-checkbox {
+        .import-checkbox {
             width: 18px;
             height: 18px;
             min-width: 18px;
@@ -727,33 +726,20 @@
                 <div class="official-box">
                     As opções de Tipo, Categoria e Subcategoria são carregadas da aba oficial <strong>CATEGORIAS</strong>.
                     Para importar, cada movimentação selecionada precisa estar vinculada a uma categoria/subcategoria cadastrada e ativa.
-                    A opção <strong>Reaproveitar</strong> vem marcada por padrão; desmarque apenas classificações excepcionais, como gastos de viagem,
-                    para que elas não sejam sugeridas novamente em extratos futuros.
                 </div>
 
                 <form method="post" action="/financeiro/extratos/importar">
                     <input type="hidden" name="temp_id" value="{{ temp_id }}" />
 
                     <div class="selection-toolbar">
-                        <div style="display: flex; gap: 18px; flex-wrap: wrap; align-items: center;">
-                            <label class="select-all-label">
-                                <input
-                                    type="checkbox"
-                                    id="marcarTodosExtratos"
-                                    checked
-                                />
-                                Marcar / desmarcar todos
-                            </label>
-
-                            <label class="select-all-label">
-                                <input
-                                    type="checkbox"
-                                    id="reaproveitarTodosExtratos"
-                                    checked
-                                />
-                                Reaproveitar / não reaproveitar todos
-                            </label>
-                        </div>
+                        <label class="select-all-label">
+                            <input
+                                type="checkbox"
+                                id="marcarTodosExtratos"
+                                checked
+                            />
+                            Marcar / desmarcar todos
+                        </label>
 
                         <span class="selection-count" id="contadorSelecionados">
                             Todos os lançamentos da prévia estão selecionados.
@@ -765,7 +751,6 @@
                             <thead>
                                 <tr>
                                     <th>Importar</th>
-                                    <th>Reaproveitar</th>
                                     <th>Status</th>
                                     <th>Data</th>
                                     <th>Descrição</th>
@@ -790,23 +775,6 @@
                                                 class="import-checkbox"
                                                 {% if not mov.ja_existe_base %}checked{% endif %}
                                             />
-                                        </td>
-
-                                        <td>
-                                            {% if mov.ja_existe_base %}
-                                                <span class="badge badge-gray">Não aplicável</span>
-                                            {% else %}
-                                                <label class="select-all-label" title="Desmarque somente para classificações excepcionais, como gastos de viagem.">
-                                                    <input
-                                                        type="checkbox"
-                                                        name="reaproveitar_classificacao_{{ mov.indice }}"
-                                                        value="SIM"
-                                                        class="reuse-checkbox"
-                                                        checked
-                                                    />
-                                                    Sim
-                                                </label>
-                                            {% endif %}
                                         </td>
 
                                         <td class="status-cell">
@@ -1020,58 +988,27 @@
         master.indeterminate = selecionados > 0 && selecionados < total;
     }
 
-    function atualizarControleReaproveitarTodos() {
-        const master = document.getElementById("reaproveitarTodosExtratos");
-        const checkboxes = document.querySelectorAll(".reuse-checkbox");
+    function configurarMarcacaoEmMassaExtratos() {
+        const master = document.getElementById("marcarTodosExtratos");
+        const checkboxes = document.querySelectorAll(".import-checkbox");
 
         if (!master || checkboxes.length === 0) {
             return;
         }
 
-        const total = checkboxes.length;
-        const marcados = document.querySelectorAll(".reuse-checkbox:checked").length;
-
-        master.checked = total > 0 && marcados === total;
-        master.indeterminate = marcados > 0 && marcados < total;
-    }
-
-    function configurarMarcacaoEmMassaExtratos() {
-        const master = document.getElementById("marcarTodosExtratos");
-        const checkboxes = document.querySelectorAll(".import-checkbox");
-        const masterReaproveitar = document.getElementById("reaproveitarTodosExtratos");
-        const checkboxesReaproveitar = document.querySelectorAll(".reuse-checkbox");
-
-        if (master && checkboxes.length > 0) {
-            master.addEventListener("change", function () {
-                checkboxes.forEach(function (checkbox) {
-                    checkbox.checked = master.checked;
-                });
-
-                atualizarContadorSelecionados();
-            });
-
+        master.addEventListener("change", function () {
             checkboxes.forEach(function (checkbox) {
-                checkbox.addEventListener("change", atualizarContadorSelecionados);
+                checkbox.checked = master.checked;
             });
 
             atualizarContadorSelecionados();
-        }
+        });
 
-        if (masterReaproveitar && checkboxesReaproveitar.length > 0) {
-            masterReaproveitar.addEventListener("change", function () {
-                checkboxesReaproveitar.forEach(function (checkbox) {
-                    checkbox.checked = masterReaproveitar.checked;
-                });
+        checkboxes.forEach(function (checkbox) {
+            checkbox.addEventListener("change", atualizarContadorSelecionados);
+        });
 
-                atualizarControleReaproveitarTodos();
-            });
-
-            checkboxesReaproveitar.forEach(function (checkbox) {
-                checkbox.addEventListener("change", atualizarControleReaproveitarTodos);
-            });
-
-            atualizarControleReaproveitarTodos();
-        }
+        atualizarContadorSelecionados();
     }
 
     document.addEventListener("DOMContentLoaded", function () {

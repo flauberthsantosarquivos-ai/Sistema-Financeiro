@@ -20,7 +20,6 @@ from core.financeiro.categorias_google import (
     TIPOS_OFICIAIS,
     normalizar_tipo as normalizar_tipo_categoria,
     obter_estrutura_categorias,
-    validar_categoria_subcategoria,
 )
 from core.financeiro.dashboard_base import ler_base_lancamentos, para_float
 from core.financeiro.lancamentos_google import salvar_lancamentos_em_lote_google
@@ -161,6 +160,16 @@ async def extratos_importar(request: Request):
         if not link_planilha:
             raise ValueError("Nenhuma planilha vinculada foi encontrada nas configurações.")
 
+        # Lê a aba CATEGORIAS uma única vez nesta importação.
+        # A validação de cada lançamento acontece em memória, evitando uma
+        # leitura no Google Sheets por linha e o erro 429.
+        estrutura_categorias_importacao = obter_estrutura_categorias()
+
+        if not estrutura_categorias_importacao:
+            raise ValueError(
+                "Nenhuma categoria ativa foi encontrada na aba CATEGORIAS."
+            )
+
         contexto_base = obter_contexto_base_lancamentos()
         chaves_existentes = set(contexto_base.get("chaves", set()))
         classificacoes_por_descricao_valor = contexto_base.get("classificacoes", {}) or {}
@@ -196,6 +205,13 @@ async def extratos_importar(request: Request):
             situacao = str(form.get(f"situacao_{indice}", mov.get("situacao", ""))).strip()
             forma_pagamento = str(form.get(f"forma_pagamento_{indice}", mov.get("forma_pagamento", ""))).strip()
             conta = str(form.get(f"conta_{indice}", mov.get("conta", ""))).strip()
+
+            # Por padrão, a classificação pode ser reaproveitada nos próximos
+            # extratos. A caixa da prévia permite desmarcar exceções, como
+            # gastos de viagem.
+            reaproveitar_classificacao = (
+                "SIM" if form.get(f"reaproveitar_{indice}") == "SIM" else "NAO"
+            )
 
             data = str(mov.get("data", "")).strip()
             data_banco = str(mov.get("data_banco", "")).strip()
@@ -248,10 +264,11 @@ async def extratos_importar(request: Request):
                     classificacoes_reaproveitadas_importacao += 1
 
             try:
-                tipo, categoria, subcategoria = validar_categoria_subcategoria(
+                tipo, categoria, subcategoria = resolver_categoria_subcategoria_em_memoria(
                     tipo=tipo_form,
                     categoria=categoria_form,
                     subcategoria=subcategoria_form,
+                    estrutura=estrutura_categorias_importacao,
                 )
             except Exception as erro_validacao:
                 return templates.TemplateResponse(
@@ -284,6 +301,7 @@ async def extratos_importar(request: Request):
                 "situacao": situacao,
                 "forma_pagamento": forma_pagamento,
                 "conta": conta,
+                "reaproveitar_classificacao": reaproveitar_classificacao,
                 "observacao": mov.get("observacao", ""),
                 "origem": origem,
             }
@@ -546,6 +564,54 @@ def montar_resultado_importacao(
         "itens_saldos": itens_saldos,
         "itens_desmarcados": itens_desmarcados,
     }
+
+
+def resolver_categoria_subcategoria_em_memoria(
+    tipo: str,
+    categoria: str,
+    subcategoria: str,
+    estrutura: dict,
+) -> tuple[str, str, str]:
+    """
+    Valida TIPO/CATEGORIA/SUBCATEGORIA usando a estrutura já carregada da aba
+    CATEGORIAS. Não faz chamadas ao Google Sheets.
+    """
+
+    tipo_informado = normalizar_tipo_categoria(tipo)
+    categoria_informada = str(categoria or "").strip()
+    subcategoria_informada = str(subcategoria or "").strip()
+
+    if tipo_informado not in estrutura:
+        raise ValueError(f"Tipo não cadastrado na aba CATEGORIAS: {tipo}")
+
+    categorias_do_tipo = estrutura.get(tipo_informado, {})
+    categoria_oficial = resolver_nome_oficial(
+        categoria_informada,
+        categorias_do_tipo.keys(),
+    )
+
+    if not categoria_oficial:
+        raise ValueError(
+            f"Categoria não cadastrada para {tipo_informado}: {categoria}"
+        )
+
+    subcategorias = categorias_do_tipo.get(categoria_oficial, [])
+
+    if not subcategorias:
+        return tipo_informado, categoria_oficial, ""
+
+    subcategoria_oficial = resolver_nome_oficial(
+        subcategoria_informada,
+        subcategorias,
+    )
+
+    if not subcategoria_oficial:
+        raise ValueError(
+            f"Subcategoria não cadastrada para "
+            f"{tipo_informado}/{categoria_oficial}: {subcategoria}"
+        )
+
+    return tipo_informado, categoria_oficial, subcategoria_oficial
 
 
 def preparar_resultado_para_categorias_oficiais(resultado: dict) -> dict:

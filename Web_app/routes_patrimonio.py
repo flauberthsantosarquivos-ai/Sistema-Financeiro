@@ -11,6 +11,7 @@ from core.financeiro.patrimonio_google import (
     ATIVOS_PATRIMONIO,
     MESES_OPCOES,
     dados_formulario_padrao,
+    duplicar_patrimonio_para_mes,
     montar_itens_formulario_padrao,
     montar_resumo_patrimonio,
     salvar_patrimonio_mensal,
@@ -29,6 +30,7 @@ async def patrimonio_get(
     mes: str | None = Query(None),
     modo: str | None = Query(None),
     salvo: str | None = Query(None),
+    erro: str | None = Query(None),
     ano_resumo: str | None = Query(None),
     mes_resumo: str | None = Query(None),
 ):
@@ -75,7 +77,7 @@ async def patrimonio_get(
         request=request,
         name="patrimonio.html",
         context={
-            "erro": None,
+            "erro": erro,
             "salvo": salvo,
             "config": config,
             "ano": ano_final,
@@ -91,6 +93,50 @@ async def patrimonio_get(
             "planilha_google": config.get("planilha_google", ""),
         },
     )
+
+
+@router.post("/financeiro/patrimonio/duplicar-proximo-mes")
+async def patrimonio_duplicar_proximo_mes(
+    ano_origem: str = Form(...),
+    mes_origem: str = Form(...),
+    ano_destino: str = Form(...),
+    mes_destino: str = Form(...),
+):
+    try:
+        resultado = duplicar_patrimonio_para_mes(
+            ano_origem=ano_origem,
+            mes_origem=mes_origem,
+            ano_destino=ano_destino,
+            mes_destino=mes_destino,
+        )
+        mensagem = (
+            f"Patrimônio de {resultado['mes_origem']}/{resultado['ano_origem']} "
+            f"duplicado para {resultado['mes_destino']}/{resultado['ano_destino']} "
+            f"com {resultado['itens_duplicados']} item(ns)."
+        )
+        return RedirectResponse(
+            url=(
+                f"/financeiro/patrimonio?"
+                f"ano={resultado['ano_destino']}&"
+                f"mes={resultado['mes_destino']}&"
+                f"ano_resumo={resultado['ano_destino']}&"
+                f"mes_resumo={resultado['mes_destino']}&"
+                f"modo=editar&salvo={mensagem}"
+            ),
+            status_code=303,
+        )
+    except Exception as e:
+        ano_final = str(ano_origem or date.today().year)
+        mes_final = str(mes_origem or obter_mes_atual_sigla()).upper()
+        return RedirectResponse(
+            url=(
+                f"/financeiro/patrimonio?"
+                f"ano={ano_final}&mes={mes_final}&"
+                f"ano_resumo={ano_final}&mes_resumo={mes_final}&"
+                f"modo=consultar&erro={str(e)}"
+            ),
+            status_code=303,
+        )
 
 
 @router.post("/financeiro/patrimonio/salvar")

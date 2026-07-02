@@ -290,7 +290,7 @@
 
         .quick-actions {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 14px;
             margin-bottom: 18px;
         }
@@ -331,6 +331,63 @@
             grid-template-columns: 1fr 1fr auto;
             gap: 12px;
             align-items: end;
+        }
+
+        .duplication-flow {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            gap: 10px;
+            align-items: stretch;
+            margin: 2px 0 12px;
+        }
+
+        .duplication-step {
+            border: 1px solid var(--primary-border);
+            background: var(--primary-soft);
+            border-radius: 16px;
+            padding: 11px 12px;
+        }
+
+        .duplication-step.destination {
+            background: var(--green-bg);
+            border-color: var(--green-border);
+        }
+
+        .duplication-step-label {
+            display: block;
+            font-size: 10px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            margin-bottom: 3px;
+        }
+
+        .duplication-step-value {
+            display: block;
+            font-size: 16px;
+            font-weight: 950;
+            color: #0f172a;
+        }
+
+        .duplication-arrow {
+            align-self: center;
+            color: var(--primary);
+            font-size: 22px;
+            font-weight: 950;
+        }
+
+
+        .duplication-fields {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            align-items: end;
+        }
+
+        .duplication-fields .btn {
+            grid-column: 1 / -1;
+            width: 100%;
         }
 
         .reference-pill {
@@ -400,7 +457,7 @@
             border-radius: 24px;
             padding: 18px;
             box-shadow: var(--shadow-soft);
-            min-height: 430px;
+            min-height: 650px;
         }
 
         .pie-charts-grid {
@@ -410,7 +467,7 @@
         }
 
         .pie-charts-grid.has-detail {
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
         }
 
         .pie-detail-panel {
@@ -428,7 +485,7 @@
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
             overflow: visible;
             position: relative;
-            min-height: 470px;
+            min-height: 680px;
         }
 
         .pie-chart-panel::before {
@@ -468,7 +525,7 @@
             position: relative;
             z-index: 1;
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 300px;
+            grid-template-columns: minmax(0, 1fr) 410px;
             gap: 12px;
             padding: 0 14px 16px;
             align-items: center;
@@ -481,13 +538,13 @@
 
         .grafico-pizza {
             width: 100%;
-            height: 390px;
+            height: 590px;
             position: relative;
             z-index: 1;
         }
 
         .pie-detail-placeholder {
-            height: 390px;
+            height: 590px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -513,8 +570,24 @@
             align-self: stretch;
         }
 
+        .pie-mini-values {
+            padding: 16px;
+            gap: 10px;
+        }
+
+        .pie-mini-row {
+            grid-template-columns: 12px minmax(0, 1fr) auto;
+            gap: 10px;
+            padding: 9px 2px;
+        }
+
+        .pie-mini-dot {
+            width: 12px;
+            height: 12px;
+        }
+
         .pie-mini-title {
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 950;
             color: var(--muted);
             text-transform: uppercase;
@@ -549,7 +622,7 @@
         }
 
         .pie-mini-name strong {
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 950;
             color: #334155;
             white-space: nowrap;
@@ -558,14 +631,14 @@
         }
 
         .pie-mini-name span {
-            font-size: 9px;
+            font-size: 11px;
             color: var(--muted);
             font-weight: 850;
         }
 
         .pie-mini-value {
             text-align: right;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 950;
             color: #111827;
             white-space: nowrap;
@@ -573,8 +646,8 @@
 
         .pie-mini-value span {
             display: block;
-            margin-top: 1px;
-            font-size: 9px;
+            margin-top: 2px;
+            font-size: 11px;
             color: var(--muted);
             font-weight: 900;
         }
@@ -1245,8 +1318,18 @@
             .asset-detail-row,
             .asset-item,
             .subdivision-row,
-            .quick-actions {
+            .quick-actions,
+            .duplication-fields {
                 grid-template-columns: 1fr;
+            }
+
+            .duplication-flow {
+                grid-template-columns: 1fr;
+            }
+
+            .duplication-arrow {
+                transform: rotate(90deg);
+                justify-self: center;
             }
 
             .pie-chart-body {
@@ -1444,6 +1527,7 @@
             <a href="/financeiro/lancamento">➕ Lançamento</a>
             <a href="/financeiro/orcamento">📊 Orçamento</a>
             <a href="/financeiro/pagamentos">💳 Pagamentos</a>
+            <a href="/financeiro/alimentacao">🍽️ Alimentação</a>
             <a href="/financeiro/analise">📌 Painel Gerencial</a>
             <a href="/financeiro/patrimonio" class="ativo">🏦 Patrimônio</a>
             <a href="/financeiro/investimentos">📈 Investimentos</a>
@@ -1575,6 +1659,72 @@
                             Cadastrar/Atualizar
                         </button>
                     </div>
+                </div>
+
+                <div class="action-panel">
+                    <div class="action-panel-header">
+                        <div>
+                            <div class="action-panel-title">Duplicar para o próximo mês</div>
+                            <div class="action-panel-subtitle">
+                                Leva o saldo final do mês escolhido para os campos de início e fim da competência seguinte, sem substituir dados já existentes.
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post" action="/financeiro/patrimonio/duplicar-proximo-mes"
+                        onsubmit="return confirmarDuplicacaoPatrimonio();">
+                        <div class="duplication-flow">
+                            <div class="duplication-step">
+                                <span class="duplication-step-label">Origem</span>
+                                <strong class="duplication-step-value" id="duplicacao_origem_visual">{{ mes_resumo }}/{{ ano_resumo }}</strong>
+                                <span class="small-help">Saldo final será utilizado.</span>
+                            </div>
+
+                            <div class="duplication-arrow">→</div>
+
+                            <div class="duplication-step destination">
+                                <span class="duplication-step-label">Destino</span>
+                                <strong class="duplication-step-value" id="duplicacao_destino_visual">-</strong>
+                                <span class="small-help">Valores de início e fim serão preenchidos.</span>
+                            </div>
+                        </div>
+
+                        <div class="duplication-fields">
+                            <div>
+                                <label>Ano de origem</label>
+                                <input type="number" id="ano_duplicacao" name="ano_origem" value="{{ ano_resumo }}" required onchange="atualizarDestinoDuplicacao()" />
+                            </div>
+
+                            <div>
+                                <label>Mês de origem</label>
+                                <select id="mes_duplicacao" name="mes_origem" required onchange="atualizarDestinoDuplicacao()">
+                                    {% for sigla, nome in meses_opcoes %}
+                                        <option value="{{ sigla }}" {% if mes_resumo == sigla %}selected{% endif %}>
+                                            {{ nome }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Ano de destino</label>
+                                <input type="number" id="ano_destino_duplicacao" name="ano_destino" value="{{ ano_resumo }}" required onchange="atualizarDestinoDuplicacao()" />
+                            </div>
+
+                            <div>
+                                <label>Mês de destino</label>
+                                <select id="mes_destino_duplicacao" name="mes_destino" required onchange="atualizarDestinoDuplicacao()">
+                                    {% for sigla, nome in meses_opcoes %}
+                                        <option value="{{ sigla }}">{{ nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                Duplicar mês
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </section>
@@ -1934,7 +2084,7 @@
                             <div class="pie-chart-panel pie-detail-panel" id="painelGraficoDetalhe">
                                 <div class="pie-chart-title">
                                     <strong id="tituloGraficoDetalhe">Detalhamento</strong>
-                                    <span id="subtituloGraficoDetalhe">Clique em um ativo detalhável para abrir o gráfico de subdivisões.</span>
+                                    <span id="subtituloGraficoDetalhe">Clique em qualquer ativo para abrir as subdivisões ou visualizar o saldo individual.</span>
                                 </div>
 
                                 <div class="pie-chart-body">
@@ -2328,6 +2478,64 @@
             }
         }
 
+        function obterNomeMesPatrimonio(sigla) {
+            const meses = {
+                JAN: "JAN", FEV: "FEV", MAR: "MAR", ABR: "ABR",
+                MAI: "MAI", JUN: "JUN", JUL: "JUL", AGO: "AGO",
+                SET: "SET", OUT: "OUT", NOV: "NOV", DEZ: "DEZ"
+            };
+            return meses[sigla] || sigla || "-";
+        }
+
+        function atualizarDestinoDuplicacao() {
+            const anoOrigem = document.getElementById("ano_duplicacao");
+            const mesOrigem = document.getElementById("mes_duplicacao");
+            const anoDestino = document.getElementById("ano_destino_duplicacao");
+            const mesDestino = document.getElementById("mes_destino_duplicacao");
+            const origemVisual = document.getElementById("duplicacao_origem_visual");
+            const destinoVisual = document.getElementById("duplicacao_destino_visual");
+
+            if (!anoOrigem || !mesOrigem || !anoDestino || !mesDestino || !origemVisual || !destinoVisual) {
+                return;
+            }
+
+            origemVisual.textContent = `${obterNomeMesPatrimonio(mesOrigem.value)}/${anoOrigem.value || "-"}`;
+            destinoVisual.textContent = `${obterNomeMesPatrimonio(mesDestino.value)}/${anoDestino.value || "-"}`;
+        }
+
+        function sugerirDestinoDuplicacaoInicial() {
+            const anoOrigem = document.getElementById("ano_duplicacao");
+            const mesOrigem = document.getElementById("mes_duplicacao");
+            const anoDestino = document.getElementById("ano_destino_duplicacao");
+            const mesDestino = document.getElementById("mes_destino_duplicacao");
+
+            if (!anoOrigem || !mesOrigem || !anoDestino || !mesDestino) {
+                return;
+            }
+
+            const meses = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+            const indice = meses.indexOf(mesOrigem.value);
+            const indiceDestino = indice === 11 ? 0 : Math.max(indice + 1, 0);
+            const ano = Number(anoOrigem.value || 0);
+
+            anoDestino.value = indice === 11 ? ano + 1 : ano;
+            mesDestino.value = meses[indiceDestino];
+            atualizarDestinoDuplicacao();
+        }
+
+        function confirmarDuplicacaoPatrimonio() {
+            atualizarDestinoDuplicacao();
+
+            const origem = document.getElementById("duplicacao_origem_visual")?.textContent || "";
+            const destino = document.getElementById("duplicacao_destino_visual")?.textContent || "";
+
+            return confirm(
+                `Duplicar patrimônio de ${origem} para ${destino}?\n\n` +
+                "O saldo final da origem será copiado para os valores de início e fim do destino. " +
+                "O mês destino não será substituído se já possuir patrimônio cadastrado."
+            );
+        }
+
         function carregarMesParaEdicao() {
             const ano = document.getElementById("ano_edicao").value;
             const mes = document.getElementById("mes_edicao").value;
@@ -2521,8 +2729,10 @@
 
                         let dicaDetalhe = "";
 
-                        if (modo === "geral" && itemOriginal.tem_detalhamento) {
-                            dicaDetalhe = "<br/><em>Clique para detalhar/retrair</em>";
+                        if (modo === "geral") {
+                            dicaDetalhe = itemOriginal.tem_detalhamento
+                                ? "<br/><em>Clique para detalhar/retrair as subdivisões</em>"
+                                : "<br/><em>Clique para visualizar este ativo</em>";
                         }
 
                         return `
@@ -2537,13 +2747,13 @@
                     {
                         name: modo === "geral" ? "Composição geral" : "Detalhamento",
                         type: "pie",
-                       radius: modo === "geral" ? ["52%", "76%"] : ["45%", "72%"],
+                       radius: modo === "geral" ? ["38%", "84%"] : ["32%", "86%"],
                         avoidLabelOverlap: false,
                         selectedMode: false,
                         selectedOffset: 0,
                         startAngle: 110,
-                        minAngle: modo === "geral" ? 0 : 2,
-                        padAngle: modo === "geral" ? 0.5 : 1.5,
+                        minAngle: modo === "geral" ? 6 : 8,
+                        padAngle: modo === "geral" ? 1.2 : 1.8,
                         roseType: false,
                         stillShowZeroSum: false,
                         label: {
@@ -2553,7 +2763,7 @@
                             formatter: function (params) {
                                 const itemOriginal = params.data && params.data.dadosOriginais;
 
-                                if (modo === "geral" && params.percent < 4) {
+                                if (modo === "geral" && params.percent < 0.6) {
                                     return "";
                                 }
 
@@ -2565,13 +2775,13 @@
                             },
                             rich: {
                                 nome: {
-                                    fontSize: modo === "geral" ? 10 : 11,
+                                    fontSize: modo === "geral" ? 12 : 14,
                                     fontWeight: 900,
                                     color: "#334155",
                                     lineHeight: 15
                                 },
                                 perc: {
-                                    fontSize: modo === "geral" ? 10 : 11,
+                                    fontSize: modo === "geral" ? 12 : 14,
                                     fontWeight: 950,
                                     color: "#0f172a",
                                     lineHeight: 15
@@ -2597,7 +2807,7 @@
                     {
                         name: "Sombra 3D",
                         type: "pie",
-                       radius: modo === "geral" ? ["52%", "76%"] : ["45%", "72%"],
+                       radius: modo === "geral" ? ["38%", "84%"] : ["32%", "86%"],
                        center: ["50%", "54%"],
                         silent: true,
                         z: -1,
@@ -2661,7 +2871,7 @@
             }
 
             dadosPizzaGeral.forEach((item) => {
-                const clicavel = item.tem_detalhamento;
+                const clicavel = true;
                 const estaDetalhado = (
                     ativoDetalhadoAtual &&
                     ativoDetalhadoAtual.nome === item.nome
@@ -2677,7 +2887,7 @@
                         <strong>${item.nome}</strong>
                         <span>
                             ${item.percentual_fmt || "0,0%"} do patrimônio
-                            ${clicavel ? " · clique para detalhar/retrair" : ""}
+                            ${item.tem_detalhamento ? " · clique para detalhar/retrair" : " · clique para visualizar"}
                         </span>
                     </span>
 
@@ -2739,7 +2949,9 @@
                 }
 
                 if (subtituloDetalhe) {
-                    subtituloDetalhe.textContent = "Subdivisões do ativo selecionado.";
+                    subtituloDetalhe.textContent = ativoDetalhadoAtual.tem_detalhamento
+                        ? "Subdivisões do ativo selecionado."
+                        : "Ativo sem subdivisões: visualização individual do saldo final.";
                 }
 
                 if (placeholder) {
@@ -2763,7 +2975,7 @@
                 }
 
                 if (subtituloDetalhe) {
-                    subtituloDetalhe.textContent = "Clique em um ativo detalhável para abrir o gráfico de subdivisões.";
+                    subtituloDetalhe.textContent = "Clique em qualquer ativo para ver suas subdivisões ou seu saldo individual.";
                 }
 
                 if (placeholder) {
@@ -2814,10 +3026,30 @@
             graficoPizzaGeral.on("click", function (params) {
                 const itemOriginal = params.data && params.data.dadosOriginais;
 
-                if (itemOriginal && itemOriginal.tem_detalhamento) {
+                if (itemOriginal) {
                     alternarDetalhamentoPizza(itemOriginal.nome);
                 }
             });
+        }
+
+        function obterDadosDetalhamento(ativo) {
+            if (!ativo) {
+                return [];
+            }
+
+            if (Array.isArray(ativo.subdivisoes) && ativo.subdivisoes.length > 0) {
+                return ativo.subdivisoes;
+            }
+
+            // Ativos sem subdivisões, como PicPay, também abrem o painel lateral.
+            // O gráfico exibe a única posição "GERAL" com o saldo final do ativo.
+            return [{
+                nome: "GERAL",
+                valor: Number(ativo.valor || 0),
+                valor_fmt: ativo.valor_fmt || "R$ 0,00",
+                percentual_fmt: "100,0%",
+                cor: ativo.cor || "#1d4ed8"
+            }];
         }
 
         function desenharGraficoDetalhe() {
@@ -2827,7 +3059,9 @@
                 return;
             }
 
-            if (!Array.isArray(ativoDetalhadoAtual.subdivisoes) || ativoDetalhadoAtual.subdivisoes.length === 0) {
+            const dadosDetalhe = obterDadosDetalhamento(ativoDetalhadoAtual);
+
+            if (dadosDetalhe.length === 0) {
                 return;
             }
 
@@ -2837,7 +3071,7 @@
 
             graficoPizzaDetalhe.setOption(
                 criarOpcaoPizza(
-                    ativoDetalhadoAtual.subdivisoes,
+                    dadosDetalhe,
                     ativoDetalhadoAtual.nome,
                     ativoDetalhadoAtual.valor_fmt,
                     "detalhe"
@@ -2845,7 +3079,7 @@
                 true
             );
 
-            montarEspelhoPizza("espelhoPizzaDetalhe", ativoDetalhadoAtual.subdivisoes, ` ${ativoDetalhadoAtual.nome}`);
+            montarEspelhoPizza("espelhoPizzaDetalhe", dadosDetalhe, ` ${ativoDetalhadoAtual.nome}`);
 
             setTimeout(function () {
                 if (graficoPizzaDetalhe) {
@@ -2857,7 +3091,7 @@
         function alternarDetalhamentoPizza(nomeAtivo) {
             const ativo = dadosPizzaGeral.find((item) => item.nome === nomeAtivo);
 
-            if (!ativo || !ativo.tem_detalhamento || !Array.isArray(ativo.subdivisoes) || ativo.subdivisoes.length === 0) {
+            if (!ativo) {
                 return;
             }
 
@@ -2903,6 +3137,7 @@
             });
 
             recalcularTotaisPatrimonio();
+            sugerirDestinoDuplicacaoInicial();
             montarGraficosPatrimonio();
 
             window.addEventListener("resize", function () {

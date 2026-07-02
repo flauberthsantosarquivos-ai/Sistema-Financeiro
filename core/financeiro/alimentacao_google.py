@@ -274,22 +274,44 @@ def atualizar_saldos_contas(
     data_saldo: str = "",
     origem: str = "EXTRATO_PAGBANK",
 ) -> None:
+    """Atualiza os saldos das contas sem depender das linhas fixas A2:E4.
+
+    A aba pode já conter linhas em outra ordem, linhas vazias ou registros
+    antigos. Por isso, cada conta é localizada pelo nome e atualizada no seu
+    próprio registro. Assim, o mesmo saldo que vai para o Patrimônio também
+    permanece disponível para os cards do módulo Alimentação.
+    """
     aba = obter_aba_contas()
+    valores = aba.get_all_values()
     agora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
-    linhas = [
-        [
-            conta,
-            abs(para_float(saldos.get(conta, 0))),
-            data_saldo,
-            origem,
-            agora,
-        ]
-        for conta in CONTAS_ALIMENTACAO
-    ]
+    linhas_por_conta: dict[str, int] = {}
+    for numero_linha, linha in enumerate(valores[1:], start=2):
+        if not linha:
+            continue
+        conta_linha = normalizar_upper(linha[0] if len(linha) > 0 else "")
+        if conta_linha in CONTAS_ALIMENTACAO and conta_linha not in linhas_por_conta:
+            linhas_por_conta[conta_linha] = numero_linha
 
-    # Atualiza sempre A2:E4, preservando cabeçalhos A1:E1.
-    aba.update("A2:E4", linhas, value_input_option="USER_ENTERED")
+    novas_linhas = []
+
+    for conta in CONTAS_ALIMENTACAO:
+        saldo = abs(para_float(saldos.get(conta, 0)))
+        registro = [conta, saldo, data_saldo, origem, agora]
+        numero_linha = linhas_por_conta.get(conta)
+
+        if numero_linha:
+            aba.update(
+                f"A{numero_linha}:E{numero_linha}",
+                [registro],
+                value_input_option="USER_ENTERED",
+            )
+        else:
+            novas_linhas.append(registro)
+
+    if novas_linhas:
+        aba.append_rows(novas_linhas, value_input_option="USER_ENTERED")
+
     formatar_aba(aba, len(CABECALHOS_CONTAS))
 
 
@@ -394,7 +416,8 @@ def importar_movimentacoes_extrato(
         )
         formatar_aba(aba, len(CABECALHOS_MOVIMENTACOES))
 
-    if normalizar_texto(saldo_atual):
+    # O saldo 0 é válido e precisa ser gravado; a condição anterior tratava 0 como vazio.
+    if saldo_atual is not None and str(saldo_atual).strip() != "":
         saldos = {item["conta"]: item["saldo_atual"] for item in ler_contas()}
         saldos[conta] = abs(para_float(saldo_atual))
         atualizar_saldos_contas(

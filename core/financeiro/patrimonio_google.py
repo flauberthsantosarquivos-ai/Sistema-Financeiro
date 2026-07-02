@@ -901,6 +901,127 @@ MESES_NUMERO_PATRIMONIO = {
 }
 
 
+def proximo_mes_patrimonio(ano: str, mes: str) -> tuple[str, str]:
+    """Retorna a competência imediatamente posterior ao mês informado."""
+    ano_texto = str(ano or "").strip()
+    mes_norm = normalizar_upper(mes)
+
+    if not ano_texto or mes_norm not in ORDEM_MESES:
+        raise ValueError("Informe um ano e mês válidos para duplicar o patrimônio.")
+
+    try:
+        ano_num = int(ano_texto)
+    except ValueError as exc:
+        raise ValueError("Ano inválido para duplicar o patrimônio.") from exc
+
+    indice = ORDEM_MESES.index(mes_norm)
+    if indice == len(ORDEM_MESES) - 1:
+        return str(ano_num + 1), ORDEM_MESES[0]
+
+    return str(ano_num), ORDEM_MESES[indice + 1]
+
+
+def duplicar_patrimonio_para_mes(
+    ano_origem: str,
+    mes_origem: str,
+    ano_destino: str,
+    mes_destino: str,
+) -> dict:
+    """Duplica uma competência patrimonial para outra escolhida pelo usuário.
+
+    O VALOR_FIM da origem é copiado para VALOR_INICIO e VALOR_FIM do destino.
+    A competência destino nunca é sobrescrita.
+    """
+    ano_origem = str(ano_origem or "").strip()
+    mes_origem = normalizar_upper(mes_origem)
+    ano_destino = str(ano_destino or "").strip()
+    mes_destino = normalizar_upper(mes_destino)
+
+    if not ano_origem or mes_origem not in ORDEM_MESES:
+        raise ValueError("Informe um ano e mês de origem válidos para duplicar o patrimônio.")
+
+    if not ano_destino or mes_destino not in ORDEM_MESES:
+        raise ValueError("Informe um ano e mês de destino válidos para duplicar o patrimônio.")
+
+    try:
+        int(ano_origem)
+        int(ano_destino)
+    except ValueError as exc:
+        raise ValueError("Informe anos válidos para origem e destino.") from exc
+
+    if ano_origem == ano_destino and mes_origem == mes_destino:
+        raise ValueError("A origem e o destino da duplicação não podem ser o mesmo mês.")
+
+    origem = obter_patrimonio_por_ano_mes(ano_origem, mes_origem)
+    if not origem or not origem.get("ITENS"):
+        raise ValueError(
+            f"Não há patrimônio cadastrado em {mes_origem}/{ano_origem} para duplicar."
+        )
+
+    if obter_patrimonio_por_ano_mes(ano_destino, mes_destino):
+        raise ValueError(
+            f"Já existe patrimônio cadastrado em {mes_destino}/{ano_destino}. "
+            "Abra esse mês para atualizar os valores, sem duplicar novamente."
+        )
+
+    itens_destino = []
+    for item in origem.get("ITENS", []):
+        saldo_final_origem = abs(para_float(item.get("VALOR_FIM")))
+        ativo = normalizar_upper(item.get("ATIVO"))
+        subdivisao = normalizar_upper(item.get("SUBDIVISAO") or SUBDIVISAO_GERAL)
+
+        if not ativo:
+            continue
+
+        itens_destino.append(
+            {
+                "ATIVO": ativo,
+                "SUBDIVISAO": subdivisao,
+                "VALOR_INICIO": saldo_final_origem,
+                "VALOR_FIM": saldo_final_origem,
+                "OBSERVACAO": str(item.get("OBSERVACAO") or "").strip(),
+            }
+        )
+
+    if not itens_destino:
+        raise ValueError(
+            f"Não há itens válidos em {mes_origem}/{ano_origem} para duplicar."
+        )
+
+    resultado = salvar_patrimonio_mensal(
+        {
+            "ANO": ano_destino,
+            "MES": mes_destino,
+            "DATA_INICIO": "",
+            "DATA_FIM": "",
+            "OBSERVACAO": (
+                f"Duplicado de {mes_origem}/{ano_origem}: "
+                "saldo final anterior carregado como saldo inicial e final."
+            ),
+            "ITENS": itens_destino,
+        }
+    )
+
+    return {
+        **resultado,
+        "ano_origem": ano_origem,
+        "mes_origem": mes_origem,
+        "ano_destino": ano_destino,
+        "mes_destino": mes_destino,
+        "itens_duplicados": len(itens_destino),
+    }
+
+
+def duplicar_patrimonio_para_proximo_mes(ano: str, mes: str) -> dict:
+    """Compatibilidade: duplica a competência para o mês imediatamente seguinte."""
+    ano_destino, mes_destino = proximo_mes_patrimonio(ano, mes)
+    return duplicar_patrimonio_para_mes(
+        ano_origem=ano,
+        mes_origem=mes,
+        ano_destino=ano_destino,
+        mes_destino=mes_destino,
+    )
+
 def atualizar_saldo_pagbank_por_alimentacao(
     ano: str,
     mes: str,
@@ -992,3 +1113,91 @@ def atualizar_saldo_pagbank_por_alimentacao(
         "saldo_final_fmt": formatar_moeda(saldo_final_num),
         "data_fim": data_fim,
     }
+
+def atualizar_saldo_cc_bb_por_extrato(
+    ano: str,
+    mes: str,
+    saldo_final: Any,
+    data_fim: str = "",
+) -> dict:
+    """
+    Atualiza exclusivamente CC BB / GERAL a partir do saldo final lido no
+    extrato da conta principal.
+
+    Não altera os demais ativos nem o VALOR_INICIO já informado no mês.
+    """
+    ano = str(ano or "").strip()
+    mes = normalizar_upper(mes)
+    saldo_final_num = abs(para_float(saldo_final))
+
+    if not ano:
+        raise ValueError("Ano inválido para atualização patrimonial.")
+    if mes not in ORDEM_MESES:
+        raise ValueError("Mês inválido para atualização patrimonial.")
+
+    aba = obter_ou_criar_aba_patrimonio()
+    valores = aba.get_all_values()
+    agora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    observacao = "Saldo atualizado automaticamente pelo extrato da conta corrente BB."
+
+    linha_encontrada = None
+    valor_inicio = 0.0
+
+    for numero_linha, linha in enumerate(valores[1:], start=2):
+        item = linha_para_dict(CABECALHOS_PATRIMONIO, linha)
+        if (
+            str(item.get("ANO", "")).strip() == ano
+            and normalizar_upper(item.get("MES")) == mes
+            and normalizar_upper(item.get("ATIVO")) == "CC BB"
+            and normalizar_upper(item.get("SUBDIVISAO") or SUBDIVISAO_GERAL) == SUBDIVISAO_GERAL
+        ):
+            linha_encontrada = numero_linha
+            valor_inicio = abs(para_float(item.get("VALOR_INICIO")))
+            break
+
+    diferenca = saldo_final_num - valor_inicio
+    percentual = (diferenca / valor_inicio) if valor_inicio > 0 else 0.0
+
+    if linha_encontrada:
+        aba.update(
+            f"D{linha_encontrada}:L{linha_encontrada}",
+            [[data_fim, "CC BB", SUBDIVISAO_GERAL, valor_inicio, saldo_final_num, diferenca, percentual, observacao, agora]],
+            value_input_option="USER_ENTERED",
+        )
+        acao = "atualizado"
+    else:
+        nova_linha = [
+            ano,
+            mes,
+            "",
+            data_fim,
+            "CC BB",
+            SUBDIVISAO_GERAL,
+            valor_inicio,
+            saldo_final_num,
+            diferenca,
+            percentual,
+            observacao,
+            agora,
+        ]
+        proxima_linha = len(valores) + 1
+        aba.update(
+            f"A{proxima_linha}:L{proxima_linha}",
+            [nova_linha],
+            value_input_option="USER_ENTERED",
+        )
+        acao = "criado"
+
+    formatar_aba_patrimonio(aba)
+
+    return {
+        "acao": acao,
+        "ano": ano,
+        "mes": mes,
+        "ativo": "CC BB",
+        "subdivisao": SUBDIVISAO_GERAL,
+        "saldo_final": saldo_final_num,
+        "saldo_final_fmt": formatar_moeda(saldo_final_num),
+        "data_fim": data_fim,
+    }
+

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 from uuid import uuid4
 
@@ -451,9 +451,79 @@ def filtrar_movimentacoes_por_referencia(
     return resultado
 
 
-def montar_resumo_alimentacao(ano: str, mes: str) -> dict:
-    contas = ler_contas()
-    registros = filtrar_movimentacoes_por_referencia(ler_movimentacoes(), ano, mes)
+
+def _data_movimentacao_para_date(valor: Any) -> date | None:
+    texto = normalizar_texto(valor)
+    for formato in ("%d/%m/%Y", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(texto[:10], formato).date()
+        except ValueError:
+            continue
+    return None
+
+
+def filtrar_movimentacoes_por_periodo(
+    registros: list[dict],
+    ano: str,
+    mes: str,
+    data_inicio: str = "",
+    data_fim: str = "",
+    conta_filtro: str = "",
+) -> tuple[list[dict], str, str, str]:
+    """Filtra registros do mês por intervalo opcional e por conta."""
+    registros_mes = filtrar_movimentacoes_por_referencia(registros, ano, mes)
+    inicio = _data_movimentacao_para_date(data_inicio)
+    fim = _data_movimentacao_para_date(data_fim)
+    conta_final = normalizar_upper(conta_filtro)
+
+    if inicio and fim and inicio > fim:
+        inicio, fim = fim, inicio
+
+    if conta_final not in CONTAS_ALIMENTACAO:
+        conta_final = ""
+
+    resultado = []
+    for item in registros_mes:
+        data_movimento = _data_movimentacao_para_date(item.get("DATA"))
+        if not data_movimento:
+            continue
+        if inicio and data_movimento < inicio:
+            continue
+        if fim and data_movimento > fim:
+            continue
+        if conta_final and normalizar_upper(item.get("CONTA")) != conta_final:
+            continue
+        resultado.append(item)
+
+    return (
+        resultado,
+        inicio.isoformat() if inicio else "",
+        fim.isoformat() if fim else "",
+        conta_final,
+    )
+
+
+def montar_resumo_alimentacao(
+    ano: str,
+    mes: str,
+    data_inicio: str = "",
+    data_fim: str = "",
+    conta_filtro: str = "",
+) -> dict:
+    contas_todas = ler_contas()
+    registros, data_inicio_final, data_fim_final, conta_filtro_final = filtrar_movimentacoes_por_periodo(
+        ler_movimentacoes(),
+        ano,
+        mes,
+        data_inicio=data_inicio,
+        data_fim=data_fim,
+        conta_filtro=conta_filtro,
+    )
+
+    contas = [
+        item for item in contas_todas
+        if not conta_filtro_final or item["conta"] == conta_filtro_final
+    ]
 
     por_conta = {
         conta: {"entradas": 0.0, "saidas": 0.0, "qtd": 0}
@@ -461,18 +531,15 @@ def montar_resumo_alimentacao(ano: str, mes: str) -> dict:
     }
 
     for item in registros:
-        conta = item.get("CONTA")
-
+        conta = normalizar_upper(item.get("CONTA"))
         if conta not in por_conta:
             continue
 
         valor = float(item.get("VALOR_NUM", 0) or 0)
-
         if item.get("TIPO") == "ENTRADA":
             por_conta[conta]["entradas"] += valor
         else:
             por_conta[conta]["saidas"] += valor
-
         por_conta[conta]["qtd"] += 1
 
     cards = []
@@ -483,11 +550,9 @@ def montar_resumo_alimentacao(ano: str, mes: str) -> dict:
     for conta_item in contas:
         conta = conta_item["conta"]
         dados = por_conta[conta]
-
         total_saldo += conta_item["saldo_atual"]
         total_entradas += dados["entradas"]
         total_saidas += dados["saidas"]
-
         cards.append(
             {
                 **conta_item,
@@ -505,9 +570,92 @@ def montar_resumo_alimentacao(ano: str, mes: str) -> dict:
         reverse=True,
     )
 
+    maior_gasto = max((card["saidas"] for card in cards), default=0.0)
+    gasto_por_conta = []
+    for card in cards:
+        gasto = card["saidas"]
+        percentual = (gasto / total_saidas * 100) if total_saidas else 0.0
+        largura_barra = (gasto / maior_gasto * 100) if maior_gasto else 0.0
+        gasto_por_conta.append(
+            {
+                "conta": card["conta"],
+                "valor": gasto,
+                "valor_fmt": formatar_moeda(gasto),
+                "qtd_movimentacoes": card["qtd_movimentacoes"],
+                "percentual": percentual,
+                "percentual_fmt": f"{percentual:.1f}".replace(".", ","),
+                "largura_barra": round(largura_barra, 2),
+            }
+        )
+
+    gastos_por_dia: dict[str, float] = {}
+    maiores_gastos = []
+    for item in registros:
+        if item.get("TIPO") != "SAÍDA":
+            continue
+        valor = float(item.get("VALOR_NUM", 0) or 0)
+        data_movimento = normalizar_texto(item.get("DATA"))
+        if data_movimento:
+            gastos_por_dia[data_movimento] = gastos_por_dia.get(data_movimento, 0.0) + valor
+        maiores_gastos.append(
+            {
+                "data": data_movimento,
+                "conta": item.get("CONTA", ""),
+                "descricao": item.get("DESCRICAO", ""),
+                "valor": valor,
+                "valor_fmt": formatar_moeda(valor),
+            }
+        )
+
+    maior_gasto_diario = max(gastos_por_dia.values(), default=0.0)
+    evolucao_diaria = []
+    for data_movimento, valor in sorted(
+        gastos_por_dia.items(),
+        key=lambda item: tuple(reversed(item[0].split("/"))),
+    ):
+        largura_barra = (valor / maior_gasto_diario * 100) if maior_gasto_diario else 0.0
+        evolucao_diaria.append(
+            {
+                "data": data_movimento,
+                "valor": valor,
+                "valor_fmt": formatar_moeda(valor),
+                "largura_barra": round(largura_barra, 2),
+            }
+        )
+
+    maiores_gastos.sort(key=lambda item: item["valor"], reverse=True)
+    qtd_compras = len(maiores_gastos)
+    ticket_medio = (total_saidas / qtd_compras) if qtd_compras else 0.0
+
+    analise = {
+        "qtd_compras": qtd_compras,
+        "ticket_medio": ticket_medio,
+        "ticket_medio_fmt": formatar_moeda(ticket_medio),
+        "dias_com_gasto": len(gastos_por_dia),
+        "gasto_por_conta": gasto_por_conta,
+        "evolucao_diaria": evolucao_diaria,
+        "maiores_gastos": maiores_gastos[:5],
+    }
+
+    titulo_saldo = (
+        f"Saldo disponível · {conta_filtro_final}"
+        if conta_filtro_final
+        else "Saldo total de alimentação"
+    )
+    nota_saldo = (
+        f"Posição atual da conta {conta_filtro_final}."
+        if conta_filtro_final
+        else "Soma dos saldos disponíveis em FLV, Restaurante e Supermercado."
+    )
+
     return {
         "ano": ano,
         "mes": mes,
+        "data_inicio": data_inicio_final,
+        "data_fim": data_fim_final,
+        "conta_filtro": conta_filtro_final,
+        "titulo_saldo": titulo_saldo,
+        "nota_saldo": nota_saldo,
         "contas": cards,
         "movimentacoes": registros_ordenados,
         "total_saldo": total_saldo,
@@ -517,4 +665,5 @@ def montar_resumo_alimentacao(ano: str, mes: str) -> dict:
         "total_saidas": total_saidas,
         "total_saidas_fmt": formatar_moeda(total_saidas),
         "qtd_movimentacoes": len(registros_ordenados),
+        "analise": analise,
     }

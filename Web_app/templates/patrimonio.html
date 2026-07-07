@@ -1200,55 +1200,64 @@
             color: #334155;
         }
 
-        .evolution-chart {
-            display: grid;
-            grid-template-columns: repeat(12, minmax(86px, 1fr));
-            gap: 14px;
-            align-items: end;
-            overflow-x: auto;
-            padding: 8px 4px 4px;
-        }
-
-        .evolution-month {
-            display: grid;
-            gap: 10px;
-            min-width: 86px;
-        }
-
-        .evolution-bar-box {
-            height: 240px;
-            display: flex;
-            align-items: end;
-            justify-content: center;
-            padding: 12px;
-            background: #f8fafc;
+        .evolution-chart-shell {
             border: 1px solid var(--border);
-            border-radius: 18px;
+            border-radius: 22px;
+            padding: 18px;
+            background: linear-gradient(135deg, #f8fafc, #ffffff);
+            box-shadow: var(--shadow-soft);
         }
 
-        .evolution-bar {
-            width: 34px;
-            min-height: 4px;
-            border-radius: 7px 7px 2px 2px;
+        .evolution-chart {
+            width: 100%;
+            height: 390px;
         }
 
-        .evolution-label {
-            text-align: center;
+        .evolution-type-control {
+            min-width: 180px;
         }
 
-        .evolution-label strong {
+        .evolution-type-control label {
+            margin-bottom: 6px;
+        }
+
+        .evolution-type-control select {
+            background: #ffffff;
+            color: #1e3a8a;
+            border-color: var(--primary-border);
+            font-weight: 900;
+        }
+
+        .evolution-insight-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .evolution-insight {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 13px;
+        }
+
+        .evolution-insight strong {
             display: block;
-            font-size: 13px;
-            color: #334155;
+            color: #111827;
+            font-size: 15px;
             font-weight: 950;
+            line-height: 1.25;
         }
 
-        .evolution-label span {
+        .evolution-insight span {
             display: block;
-            margin-top: 3px;
+            margin-top: 4px;
             color: var(--muted);
             font-size: 11px;
-            font-weight: 800;
+            font-weight: 850;
+            text-transform: uppercase;
+            letter-spacing: .06em;
         }
 
         .history-table-wrap {
@@ -2249,32 +2258,39 @@
                 <div>
                     <h2 class="section-title">Evolução mês a mês</h2>
                     <p class="section-subtitle">
-                        Acompanhe o patrimônio financeiro final no ano consultado. Cada mês tem uma cor própria.
+                        Acompanhe o patrimônio financeiro final no ano consultado. Escolha a visualização que preferir.
                     </p>
                 </div>
+
+                {% if resumo.evolucao %}
+                    <div class="evolution-type-control">
+                        <label for="tipoGraficoEvolucao">Tipo de gráfico</label>
+                        <select id="tipoGraficoEvolucao" onchange="alterarTipoGraficoEvolucao(this.value)">
+                            <option value="line">Linha</option>
+                            <option value="bar">Barras</option>
+                        </select>
+                    </div>
+                {% endif %}
             </div>
 
             {% if resumo.evolucao %}
-                <div class="evolution-chart">
-                    {% for item in resumo.evolucao %}
-                        <div class="evolution-month">
-                            <div class="evolution-bar-box">
-                                <div
-                                    class="evolution-bar"
-                                    title="{{ item.mes }}/{{ item.ano }} — {{ item.total_fim_fmt }}"
-                                    style="height: {{ item.percentual_barra }}%; background: {{ item.cor_barra }};"
-                                ></div>
-                            </div>
+                <div class="evolution-chart-shell">
+                    <div id="graficoEvolucaoPatrimonio" class="evolution-chart"></div>
 
-                            <div class="evolution-label">
-                                <strong>{{ item.mes }}</strong>
-                                <span>{{ item.total_fim_fmt }}</span>
-                                <span class="{% if item.diferenca >= 0 %}green{% else %}red{% endif %}">
-                                    {{ item.sinal }}{{ item.diferenca_fmt }}
-                                </span>
-                            </div>
+                    <div class="evolution-insight-grid">
+                        <div class="evolution-insight">
+                            <strong>{{ resumo.evolucao[-1].total_fim_fmt }}</strong>
+                            <span>Patrimônio no último mês</span>
                         </div>
-                    {% endfor %}
+                        <div class="evolution-insight">
+                            <strong class="{% if resumo.evolucao[-1].diferenca >= 0 %}green{% else %}red{% endif %}">{{ resumo.evolucao[-1].sinal }}{{ resumo.evolucao[-1].diferenca_fmt }}</strong>
+                            <span>Variação do último mês</span>
+                        </div>
+                        <div class="evolution-insight">
+                            <strong>{{ resumo.evolucao|length }}</strong>
+                            <span>Mês(es) registrados</span>
+                        </div>
+                    </div>
                 </div>
             {% else %}
                 <div class="empty">
@@ -2354,8 +2370,10 @@
 
     <script>
         const dadosPizzaGeral = {{ resumo.pizza_ativos.fatias | tojson }};
+        const dadosEvolucaoPatrimonio = {{ resumo.evolucao | tojson }};
         let graficoPizzaGeral = null;
         let graficoPizzaDetalhe = null;
+        let graficoEvolucaoPatrimonio = null;
         let ativoDetalhadoAtual = null;
 
         function valorParaNumero(valor) {
@@ -3125,10 +3143,95 @@
             montarLegendaPizza();
         }
 
+        function obterTipoGraficoEvolucao() {
+            const salvo = window.localStorage.getItem("patrimonio_tipo_grafico_evolucao");
+            return salvo === "bar" ? "bar" : "line";
+        }
+
+        function configurarTipoGraficoEvolucao() {
+            const seletor = document.getElementById("tipoGraficoEvolucao");
+            if (seletor) {
+                seletor.value = obterTipoGraficoEvolucao();
+            }
+        }
+
+        function alterarTipoGraficoEvolucao(tipo) {
+            const tipoFinal = tipo === "bar" ? "bar" : "line";
+            window.localStorage.setItem("patrimonio_tipo_grafico_evolucao", tipoFinal);
+            desenharGraficoEvolucaoPatrimonio();
+        }
+
+        function desenharGraficoEvolucaoPatrimonio() {
+            const container = document.getElementById("graficoEvolucaoPatrimonio");
+
+            if (!container || !window.echarts || !Array.isArray(dadosEvolucaoPatrimonio) || dadosEvolucaoPatrimonio.length === 0) {
+                return;
+            }
+
+            if (!graficoEvolucaoPatrimonio) {
+                graficoEvolucaoPatrimonio = echarts.init(container);
+            }
+
+            const tipoGrafico = obterTipoGraficoEvolucao();
+            const labels = dadosEvolucaoPatrimonio.map((item) => `${item.mes}/${item.ano}`);
+            const valores = dadosEvolucaoPatrimonio.map((item) => Number(item.total_fim || 0));
+
+            graficoEvolucaoPatrimonio.setOption({
+                animationDuration: 650,
+                grid: { left: 86, right: 34, top: 48, bottom: 62 },
+                tooltip: {
+                    trigger: "axis",
+                    backgroundColor: "rgba(15, 23, 42, .96)",
+                    borderWidth: 0,
+                    textStyle: { color: "#ffffff" },
+                    formatter: function (params) {
+                        const ponto = params[0];
+                        const item = dadosEvolucaoPatrimonio[ponto.dataIndex];
+                        return `<strong>${item.mes}/${item.ano}</strong><br/>Patrimônio final: ${item.total_fim_fmt}<br/>Variação no mês: ${item.sinal}${item.diferenca_fmt} (${item.percentual_variacao_fmt})`;
+                    }
+                },
+                xAxis: {
+                    type: "category",
+                    data: labels,
+                    axisLine: { lineStyle: { color: "#cbd5e1" } },
+                    axisTick: { show: false },
+                    axisLabel: { color: "#64748b", fontWeight: 800, margin: 14 }
+                },
+                yAxis: {
+                    type: "value",
+                    axisLabel: {
+                        color: "#64748b",
+                        fontWeight: 750,
+                        formatter: function (value) {
+                            return "R$ " + Number(value).toLocaleString("pt-BR", { maximumFractionDigits: 0 });
+                        }
+                    },
+                    splitLine: { lineStyle: { color: "#e2e8f0", type: "dashed" } }
+                },
+                series: [{
+                    name: "Patrimônio final",
+                    type: tipoGrafico,
+                    smooth: tipoGrafico === "line",
+                    data: valores,
+                    symbol: tipoGrafico === "line" ? "circle" : "none",
+                    symbolSize: 10,
+                    barMaxWidth: 48,
+                    lineStyle: { width: 4, color: "#1d4ed8" },
+                    itemStyle: { color: "#1d4ed8", borderColor: "#ffffff", borderWidth: tipoGrafico === "line" ? 3 : 0 },
+                    areaStyle: tipoGrafico === "line" ? { color: "rgba(29, 78, 216, .13)" } : undefined,
+                    markPoint: {
+                        data: [{ type: "max", name: "Maior patrimônio" }],
+                        label: { color: "#ffffff", fontWeight: 900 }
+                    }
+                }]
+            }, true);
+        }
+
         function montarGraficosPatrimonio() {
             montarLegendaPizza();
             atualizarEstadoDetalhe();
             desenharGraficoGeral();
+            desenharGraficoEvolucaoPatrimonio();
         }
 
         document.addEventListener("DOMContentLoaded", function () {
@@ -3138,6 +3241,7 @@
 
             recalcularTotaisPatrimonio();
             sugerirDestinoDuplicacaoInicial();
+            configurarTipoGraficoEvolucao();
             montarGraficosPatrimonio();
 
             window.addEventListener("resize", function () {
@@ -3147,6 +3251,10 @@
 
                 if (graficoPizzaDetalhe) {
                     graficoPizzaDetalhe.resize();
+                }
+
+                if (graficoEvolucaoPatrimonio) {
+                    graficoEvolucaoPatrimonio.resize();
                 }
             });
         });

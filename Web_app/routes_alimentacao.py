@@ -326,20 +326,102 @@ def _mes_sigla(numero_mes: str) -> str:
     return meses.get(str(numero_mes or "").zfill(2), "")
 
 
-def montar_contexto(request: Request, ano: str, mes: str, *, etapa: str = "painel", mensagem: str | None = None, erro: str | None = None, resumo: dict | None = None, resultado: dict | None = None, temp_id: str = "", conta_selecionada: str = ""):
+
+def resolver_periodo_alimentacao(
+    ano: str,
+    mes: str,
+    periodo: str | None,
+    data_inicio: str | None,
+    data_fim: str | None,
+) -> tuple[str, str, str]:
+    """Converte a escolha de semana/período em um intervalo ISO dentro do mês."""
+    periodo_final = str(periodo or "mes").strip().lower()
+    try:
+        ano_num = int(ano)
+        mes_num = int(mes)
+    except (TypeError, ValueError):
+        return "", "", "Mês inteiro"
+
+    ultimo_dia = 31
+    while True:
+        try:
+            date(ano_num, mes_num, ultimo_dia)
+            break
+        except ValueError:
+            ultimo_dia -= 1
+
+    faixas = {
+        "semana_1": (1, 7, "1ª semana · dias 1 a 7"),
+        "semana_2": (8, 14, "2ª semana · dias 8 a 14"),
+        "semana_3": (15, 21, "3ª semana · dias 15 a 21"),
+        "semana_4": (22, ultimo_dia, f"4ª semana · dias 22 a {ultimo_dia}"),
+    }
+
+    if periodo_final in faixas:
+        inicio_dia, fim_dia, descricao = faixas[periodo_final]
+        return (
+            date(ano_num, mes_num, inicio_dia).isoformat(),
+            date(ano_num, mes_num, fim_dia).isoformat(),
+            descricao,
+        )
+
+    if periodo_final == "personalizado":
+        inicio = str(data_inicio or "").strip()
+        fim = str(data_fim or "").strip()
+        return inicio, fim, "Período personalizado"
+
+    return "", "", "Mês inteiro"
+
+def montar_contexto(request: Request, ano: str, mes: str, *, etapa: str = "painel", mensagem: str | None = None, erro: str | None = None, resumo: dict | None = None, resultado: dict | None = None, temp_id: str = "", conta_selecionada: str = "", periodo: str = "mes", data_inicio: str = "", data_fim: str = "", periodo_descricao: str = "Mês inteiro", conta_filtro: str = ""):
     if resumo is None:
-        resumo = montar_resumo_alimentacao(ano, mes)
-    return {"config": obter_configuracao_sistema(), "ano": ano, "mes": mes, "etapa": etapa, "mensagem": mensagem, "erro": erro, "resumo": resumo, "resultado": resultado or {}, "temp_id": temp_id, "contas_alimentacao": CONTAS_ALIMENTACAO, "conta_selecionada": conta_selecionada}
+        resumo = montar_resumo_alimentacao(ano, mes, data_inicio=data_inicio, data_fim=data_fim, conta_filtro=conta_filtro)
+    return {"config": obter_configuracao_sistema(), "ano": ano, "mes": mes, "etapa": etapa, "mensagem": mensagem, "erro": erro, "resumo": resumo, "resultado": resultado or {}, "temp_id": temp_id, "contas_alimentacao": CONTAS_ALIMENTACAO, "conta_selecionada": conta_selecionada, "periodo": periodo, "data_inicio": data_inicio, "data_fim": data_fim, "periodo_descricao": periodo_descricao, "conta_filtro": conta_filtro}
 
 
 @router.get("/financeiro/alimentacao", response_class=HTMLResponse)
-async def alimentacao_get(request: Request, ano: str | None = Query(None), mes: str | None = Query(None), salvo: str | None = Query(None)):
+async def alimentacao_get(
+    request: Request,
+    ano: str | None = Query(None),
+    mes: str | None = Query(None),
+    salvo: str | None = Query(None),
+    periodo: str | None = Query(None),
+    data_inicio: str | None = Query(None),
+    data_fim: str | None = Query(None),
+    conta: str | None = Query(None),
+):
     ano_final, mes_final = obter_referencia(ano, mes)
+    inicio_final, fim_final, periodo_descricao = resolver_periodo_alimentacao(
+        ano_final, mes_final, periodo, data_inicio, data_fim
+    )
+    conta_final = str(conta or "").strip().upper()
+    if conta_final not in CONTAS_ALIMENTACAO:
+        conta_final = ""
     mensagem = "" if not salvo else "Extrato de alimentação importado com sucesso."
     try:
-        contexto = montar_contexto(request, ano_final, mes_final, mensagem=mensagem)
+        contexto = montar_contexto(
+            request,
+            ano_final,
+            mes_final,
+            mensagem=mensagem,
+            periodo=str(periodo or "mes"),
+            data_inicio=inicio_final,
+            data_fim=fim_final,
+            periodo_descricao=periodo_descricao,
+            conta_filtro=conta_final,
+        )
     except Exception as e:
-        contexto = montar_contexto(request, ano_final, mes_final, erro=f"Erro ao carregar alimentação: {e}", resumo={"contas": [], "movimentacoes": [], "total_saldo_fmt": "R$ 0,00", "total_entradas_fmt": "R$ 0,00", "total_saidas_fmt": "R$ 0,00", "qtd_movimentacoes": 0})
+        contexto = montar_contexto(
+            request,
+            ano_final,
+            mes_final,
+            erro=f"Erro ao carregar alimentação: {e}",
+            resumo={"contas": [], "movimentacoes": [], "total_saldo_fmt": "R$ 0,00", "total_entradas_fmt": "R$ 0,00", "total_saidas_fmt": "R$ 0,00", "qtd_movimentacoes": 0, "analise": {"qtd_compras": 0, "ticket_medio_fmt": "R$ 0,00", "dias_com_gasto": 0, "gasto_por_conta": [], "maiores_gastos": [], "evolucao_diaria": []}},
+            periodo=str(periodo or "mes"),
+            data_inicio=inicio_final,
+            data_fim=fim_final,
+            periodo_descricao=periodo_descricao,
+            conta_filtro=conta_final,
+        )
     return templates.TemplateResponse(request=request, name="alimentacao.html", context=contexto)
 
 

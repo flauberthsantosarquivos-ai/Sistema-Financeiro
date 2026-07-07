@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8" />
@@ -1829,6 +1829,55 @@
             }
         }
 
+        .evolution-chart-controls {
+            display: grid;
+            grid-template-columns: minmax(240px, 1.4fr) minmax(180px, .7fr) minmax(220px, .9fr);
+            gap: 14px;
+            align-items: end;
+            margin: 4px 0 16px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: #f8fafc;
+        }
+
+        .evolution-chart-controls select[multiple] {
+            min-height: 152px;
+            padding: 7px;
+        }
+
+        .evolution-control-help {
+            margin-top: 7px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 750;
+            line-height: 1.35;
+        }
+
+        .evolution-control-actions {
+            display: grid;
+            gap: 10px;
+        }
+
+        .evolution-control-actions .toggle-button {
+            width: 100%;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .evolution-interactive-chart {
+            width: 100%;
+            height: 420px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: #ffffff;
+        }
+
+        @media (max-width: 900px) {
+            .evolution-chart-controls { grid-template-columns: 1fr; }
+            .evolution-interactive-chart { height: 340px; }
+        }
+
     </style>
 </head>
 
@@ -1849,6 +1898,7 @@
             <a href="/financeiro/lancamento">➕ Lançamento</a>
             <a href="/financeiro/orcamento">📊 Orçamento</a>
             <a href="/financeiro/pagamentos">💳 Pagamentos</a>
+            <a href="/financeiro/alimentacao">🍽️ Alimentação</a>
             <a href="/financeiro/analise" class="ativo">📌 Painel Gerencial</a>
             <a href="/financeiro/patrimonio">🏦 Patrimônio</a>
             <a href="/financeiro/investimentos">📈 Investimentos</a>
@@ -2429,7 +2479,7 @@
         <div>
             <h2 class="section-title">Evolução mês a mês</h2>
             <p class="section-subtitle" style="margin-bottom: 0;">
-                Comparativo anual em gráfico de barras com receitas, despesas, investimentos e saldo operacional.
+                Escolha os indicadores e o formato de visualização para comparar o desempenho mensal.
             </p>
         </div>
 
@@ -2444,17 +2494,14 @@
                 <div class="evolution-summary-label">Receitas no ano</div>
                 <div class="evolution-summary-value green">{{ analise.evolucao_mensal.total_receitas_fmt }}</div>
             </div>
-
             <div class="evolution-summary-card">
                 <div class="evolution-summary-label">Despesas no ano</div>
                 <div class="evolution-summary-value red">{{ analise.evolucao_mensal.total_despesas_fmt }}</div>
             </div>
-
             <div class="evolution-summary-card">
                 <div class="evolution-summary-label">Investimentos no ano</div>
                 <div class="evolution-summary-value purple">{{ analise.evolucao_mensal.total_investimentos_fmt }}</div>
             </div>
-
             <div class="evolution-summary-card">
                 <div class="evolution-summary-label">Saldo operacional acumulado</div>
                 <div class="evolution-summary-value {% if analise.evolucao_mensal.saldo_total >= 0 %}green{% else %}red{% endif %}">
@@ -2463,72 +2510,41 @@
             </div>
         </div>
 
-        <div class="evolution-chart-legend">
-            <div class="evolution-legend-item">
-                <span class="evolution-legend-dot" style="background: var(--green);"></span>
-                Receitas
+        <div class="evolution-chart-controls">
+            <div>
+                <label for="evolucaoIndicadores">Indicadores</label>
+                <select id="evolucaoIndicadores" multiple size="6" onchange="atualizarGraficoEvolucao()" aria-label="Indicadores do gráfico">
+                    <option value="receitas" selected>Receitas</option>
+                    <option value="despesas" selected>Despesas</option>
+                    <option value="investimentos" selected>Investimentos</option>
+                    <option value="saldo" selected>Saldo operacional</option>
+                    <option value="disponivel_apos_investimentos">Disponível após investimentos</option>
+                    <option value="transferencias">Transferências</option>
+                </select>
+                <div class="evolution-control-help">Use Ctrl para selecionar ou retirar mais de um indicador.</div>
             </div>
 
-            <div class="evolution-legend-item">
-                <span class="evolution-legend-dot" style="background: var(--red);"></span>
-                Despesas
+            <div>
+                <label for="evolucaoTipoGrafico">Tipo do gráfico</label>
+                <select id="evolucaoTipoGrafico" onchange="atualizarGraficoEvolucao()">
+                    <option value="bar">Barras</option>
+                    <option value="line">Linha</option>
+                    <option value="area">Área</option>
+                </select>
             </div>
 
-            <div class="evolution-legend-item">
-                <span class="evolution-legend-dot" style="background: var(--purple);"></span>
-                Investimentos
-            </div>
-
-            <div class="evolution-legend-item">
-                <span class="evolution-legend-dot" style="background: var(--primary);"></span>
-                Saldo positivo
-            </div>
-
-            <div class="evolution-legend-item">
-                <span class="evolution-legend-dot" style="background: var(--amber);"></span>
-                Saldo negativo
+            <div class="evolution-control-actions">
+                <button type="button" class="toggle-button" onclick="selecionarTodosIndicadoresEvolucao()">Todos os indicadores</button>
+                <button type="button" class="toggle-button" onclick="limparIndicadoresEvolucao()">Limpar seleção</button>
             </div>
         </div>
 
-        <div class="evolution-chart">
-           {% for mes in analise.evolucao_mensal.meses %}
-           {% if mes.qtd_lancamentos > 0 %}
-             <div class="evolution-chart-month">
-                    <div class="evolution-bars">
-                        <div
-                            class="evolution-bar receita"
-                            title="Receitas: {{ mes.receitas_fmt }}"
-                            style="height: {{ mes.receitas_pct }}%;"
-                        ></div>
-
-                        <div
-                            class="evolution-bar despesa"
-                            title="Despesas: {{ mes.despesas_fmt }}"
-                            style="height: {{ mes.despesas_pct }}%;"
-                        ></div>
-
-                        <div
-                            class="evolution-bar investimento"
-                            title="Investimentos: {{ mes.investimentos_fmt }}"
-                            style="height: {{ mes.investimentos_pct }}%;"
-                        ></div>
-
-                        <div
-                            class="evolution-bar {% if mes.saldo >= 0 %}saldo-pos{% else %}saldo-neg{% endif %}"
-                            title="Saldo operacional: {{ mes.saldo_fmt }}"
-                            style="height: {{ mes.saldo_pct }}%;"
-                        ></div>
-                    </div>
-
-                    <div class="evolution-month-label">
-                        {{ mes.mes }}
-                        <span>{{ mes.comprometimento_fmt }}</span>
-                    </div>
-                            </div>
-                              {% endif %}
-                                {% endfor %}
-                    </div>
-         </section>
+        <div id="graficoEvolucaoGerencial" class="evolution-interactive-chart"></div>
+        <div id="avisoGraficoEvolucao" class="empty" style="display:none; margin-top:12px;">
+            Selecione pelo menos um indicador para montar o gráfico.
+        </div>
+    </div>
+</section>
         
   
             <article class="card">
@@ -2997,6 +3013,8 @@
         </div>
     {% endfor %}
 
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+
     <script>
         function alternarPeriodo() {
             const tipo = document.getElementById("periodo_tipo").value;
@@ -3017,6 +3035,95 @@
                 campoInicio.style.display = "block";
                 campoFim.style.display = "block";
             }
+        }
+
+        const dadosEvolucaoMensal = {{ analise.evolucao_mensal.meses | tojson }};
+        let graficoEvolucaoGerencial = null;
+
+        const configuracaoIndicadoresEvolucao = {
+            receitas: { nome: "Receitas", cor: "#047857" },
+            despesas: { nome: "Despesas", cor: "#b91c1c" },
+            investimentos: { nome: "Investimentos", cor: "#6d28d9" },
+            saldo: { nome: "Saldo operacional", cor: "#1d4ed8" },
+            disponivel_apos_investimentos: { nome: "Disponível após investimentos", cor: "#b45309" },
+            transferencias: { nome: "Transferências", cor: "#475569" }
+        };
+
+        function moedaNoGrafico(valor) {
+            return Number(valor || 0).toLocaleString("pt-BR", {
+                style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0
+            });
+        }
+
+        function obterIndicadoresSelecionadosEvolucao() {
+            const select = document.getElementById("evolucaoIndicadores");
+            if (!select) return [];
+            return Array.from(select.selectedOptions).map((option) => option.value);
+        }
+
+        function selecionarTodosIndicadoresEvolucao() {
+            const select = document.getElementById("evolucaoIndicadores");
+            if (!select) return;
+            Array.from(select.options).forEach((option) => option.selected = true);
+            atualizarGraficoEvolucao();
+        }
+
+        function limparIndicadoresEvolucao() {
+            const select = document.getElementById("evolucaoIndicadores");
+            if (!select) return;
+            Array.from(select.options).forEach((option) => option.selected = false);
+            atualizarGraficoEvolucao();
+        }
+
+        function atualizarGraficoEvolucao() {
+            const container = document.getElementById("graficoEvolucaoGerencial");
+            const aviso = document.getElementById("avisoGraficoEvolucao");
+            const tipo = document.getElementById("evolucaoTipoGrafico")?.value || "bar";
+            const indicadores = obterIndicadoresSelecionadosEvolucao();
+
+            if (!container || typeof echarts === "undefined") return;
+            if (!graficoEvolucaoGerencial) graficoEvolucaoGerencial = echarts.init(container);
+
+            if (!indicadores.length) {
+                graficoEvolucaoGerencial.clear();
+                aviso.style.display = "block";
+                return;
+            }
+
+            aviso.style.display = "none";
+            const meses = dadosEvolucaoMensal.map((item) => item.mes);
+            const tipoSerie = tipo === "bar" ? "bar" : "line";
+            const series = indicadores.map((chave) => {
+                const config = configuracaoIndicadoresEvolucao[chave];
+                return {
+                    name: config.nome,
+                    type: tipoSerie,
+                    data: dadosEvolucaoMensal.map((item) => Number(item[chave] || 0)),
+                    smooth: tipo !== "bar",
+                    symbol: tipo === "bar" ? "none" : "circle",
+                    symbolSize: 8,
+                    barMaxWidth: 34,
+                    itemStyle: { color: config.cor },
+                    lineStyle: { width: 3, color: config.cor },
+                    areaStyle: tipo === "area" ? { color: config.cor, opacity: 0.18 } : undefined,
+                    emphasis: { focus: "series" }
+                };
+            });
+
+            graficoEvolucaoGerencial.setOption({
+                animationDuration: 350,
+                color: indicadores.map((chave) => configuracaoIndicadoresEvolucao[chave].cor),
+                tooltip: {
+                    trigger: "axis",
+                    valueFormatter: (valor) => moedaNoGrafico(valor)
+                },
+                legend: { top: 14, type: "scroll", textStyle: { color: "#334155", fontWeight: 700 } },
+                grid: { left: 78, right: 28, top: 64, bottom: 44 },
+                xAxis: { type: "category", data: meses, axisLine: { lineStyle: { color: "#cbd5e1" } }, axisLabel: { color: "#475569", fontWeight: 700 } },
+                yAxis: { type: "value", axisLabel: { formatter: (valor) => moedaNoGrafico(valor), color: "#64748b" }, splitLine: { lineStyle: { color: "#e5e7eb" } } },
+                series
+            }, true);
+            graficoEvolucaoGerencial.resize();
         }
 
         function alternarEvolucao(botao) {
@@ -3091,6 +3198,14 @@
                     modal.classList.remove("open");
                 }
             });
+        });
+
+        window.addEventListener("resize", () => {
+            if (graficoEvolucaoGerencial) graficoEvolucaoGerencial.resize();
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            atualizarGraficoEvolucao();
         });
     </script>
 </div>
